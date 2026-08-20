@@ -154,6 +154,17 @@ CONFIG_CAM_MOTOR_DW9714=y
 CONFIG_CAMERA_OV5647_ENABLE_MOTOR_BY_GPIO0=y
 ```
 
+#### Post-quantum signature benchmark
+
+A measurement-only build that times SLH-DSA-SHA2-128s keygen and signing on the ESP32-P4, for comparison against published ESP32-S3 figures. It is off by default and never part of a release.
+
+```bash
+just bench wave_4b          # build with CONFIG_KERN_BENCH_HBS=y
+just bench-flash wave_4b    # flash and watch the results
+```
+
+See [docs/pq-benchmark.md](docs/pq-benchmark.md) for methodology, how to reproduce the reportable numbers, and how the port differs from the Jade reference port.
+
 ## Web Flasher
 
 The easiest way to flash Kern is the browser-based flasher, which requires no local toolchain. It works in **Google Chrome** or **Microsoft Edge** (version 89+) via the Web Serial API.
