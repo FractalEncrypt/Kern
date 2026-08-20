@@ -1,0 +1,18 @@
+# Overlay for the hash-based signature benchmark. Append after the board file:
+#   just bench wave_4b
+#
+# Never use this for a build that reaches a device in use -- it turns the task
+# watchdog off.
+CONFIG_KERN_BENCH_HBS=y
+CONFIG_KERN_BENCH_HBS_ITERATIONS=3
+
+# A single SLH-DSA-SHA2-128s signature runs for tens of seconds without a yield
+# point, well past ESP_TASK_WDT_TIMEOUT_S=30, and a compute-bound pinned task
+# starves its core's idle task throughout. Feeding the watchdog between
+# iterations cannot help; the trip happens inside one call. Disabling it here
+# keeps the vendored reference code unmodified, which patching in a progress
+# callback (as the Jade port did) would not.
+CONFIG_ESP_TASK_WDT_INIT=n
+
+# Optimization is already PERF (-O2) and power management is already off in
+# sdkconfig.defaults, so neither is repeated here.

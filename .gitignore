@@ -6,6 +6,7 @@ build_wave_43/
 build_wave_5/
 build_wave_7b/
 build_crowpanel/
+build_bench_*/
 build_wave_7b/
 sdkconfig
 sdkconfig.old
@@ -61,3 +62,6 @@ __pycache__/
 AGENTS.md
 CLAUDE.md
 .claude/
+
+# Host test binaries
+main/bench/test/test_kat

@@ -1,5 +1,11 @@
 file(GLOB_RECURSE SOURCES "*.c")
-list(FILTER SOURCES EXCLUDE REGEX ".*/core/test/.*")
+list(FILTER SOURCES EXCLUDE REGEX ".*/test/.*")
+
+# The hash-based signature benchmark is opt-in and must never reach a release
+# build; with it off, main/bench/ is not compiled at all.
+if(NOT CONFIG_KERN_BENCH_HBS)
+    list(FILTER SOURCES EXCLUDE REGEX ".*/bench/.*")
+endif()
 
 # Select touch driver based on board
 if(CONFIG_KERN_BOARD_WAVE_4B)
@@ -34,13 +40,29 @@ idf_component_register(
     PRIV_REQUIRES lvgl ${TOUCH_DRIVER} k_quirc esp_timer wave_4b wave_35 wave_5 wave_43
                   crowpanel wave_7b libwally-core cUR sd_card bbqr deflate_codec video spiffs
                   nvs_flash efuse esp_hw_support esp_app_format mbedtls
-                  esp_driver_ppa app_update bootloader_support
+                  esp_driver_ppa app_update bootloader_support slhdsa-c
 )
 
 # Ignoring a warn_unused_result return is a build error, not a warning. The
 # k_quirc and cUR entry points carry the attribute and report failure that way
 # and nothing else.
 target_compile_options(${COMPONENT_LIB} PRIVATE -Werror=unused-result)
+
+# Benchmark builds record which source revisions produced the numbers. Guarded
+# so that a normal build is untouched by git state.
+if(CONFIG_KERN_BENCH_HBS)
+    execute_process(COMMAND git rev-parse --short HEAD
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+                    OUTPUT_VARIABLE KERN_GIT_REV OUTPUT_STRIP_TRAILING_WHITESPACE
+                    ERROR_QUIET)
+    execute_process(COMMAND git rev-parse --short HEAD
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../components/slhdsa-c/upstream
+                    OUTPUT_VARIABLE SLHDSA_GIT_REV OUTPUT_STRIP_TRAILING_WHITESPACE
+                    ERROR_QUIET)
+    target_compile_definitions(${COMPONENT_LIB} PRIVATE
+        KERN_BENCH_GIT_REV="${KERN_GIT_REV}"
+        KERN_BENCH_SLHDSA_REV="${SLHDSA_GIT_REV}")
+endif()
 
 if(DEFINED FONT_POLICY_WIDTH AND DEFINED FONT_POLICY_HEIGHT)
     find_program(PYTHON3_EXECUTABLE python3 REQUIRED)

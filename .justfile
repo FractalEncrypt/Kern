@@ -28,6 +28,18 @@ monitor board="wave_4b": (_check_board board)
     command -v idf.py >/dev/null || . $IDF_PATH/export.sh
     idf.py -B build_{{board}} -D SDKCONFIG=build_{{board}}/sdkconfig monitor
 
+# Hash-based signature benchmark (SLH-DSA-SHA2-128s). Separate build dir so the
+# normal build stays untouched and its binary remains comparable.
+bench board="wave_4b": (_check_board board)
+    #!/usr/bin/env sh
+    command -v idf.py >/dev/null || . $IDF_PATH/export.sh
+    idf.py -B build_bench_{{board}} -D SDKCONFIG=build_bench_{{board}}/sdkconfig -D 'SDKCONFIG_DEFAULTS=sdkconfig.defaults;sdkconfig.defaults.{{board}};sdkconfig.bench' build
+
+bench-flash board="wave_4b": (_check_board board)
+    #!/usr/bin/env sh
+    command -v idf.py >/dev/null || . $IDF_PATH/export.sh
+    idf.py -B build_bench_{{board}} -D SDKCONFIG=build_bench_{{board}}/sdkconfig -D 'SDKCONFIG_DEFAULTS=sdkconfig.defaults;sdkconfig.defaults.{{board}};sdkconfig.bench' flash monitor
+
 format:
     ./scripts/format.sh
 
@@ -36,11 +48,13 @@ test:
 
 clean:
     rm -fRd build build_wave_4b build_wave_35 build_wave_5 build_wave_43 build_crowpanel build_wave_7b
+    rm -fRd build_bench_wave_4b build_bench_wave_35 build_bench_wave_5 build_bench_wave_43 build_bench_crowpanel build_bench_wave_7b
     rm -f sdkconfig
     rm -fRd compile_commands.json
     rm -fRd .cache/
     rm -rf simulator/build
     make -C components/bbqr/test clean
+    make -C main/bench/test clean
     make -C main/core/test clean
 
 # Stages branding and any locally built firmware into site/ the same way the

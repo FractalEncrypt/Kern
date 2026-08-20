@@ -25,4 +25,26 @@ menu "Kern Configuration"
             bool "Waveshare ESP32-P4-WiFi6-Touch-LCD-7B (1024x600 MIPI DSI)"
     endchoice
 
+    config KERN_BENCH_HBS
+        bool "Build the hash-based signature benchmark (SLH-DSA-SHA2-128s)"
+        default n
+        help
+            Compiles main/bench/ and the slhdsa-c reference implementation, and
+            spawns a benchmark task at the end of app_main that runs known-answer
+            tests and then times SLH-DSA-SHA2-128s keygen and signing.
+
+            Development and measurement only. Leave this off for any build that
+            reaches a device in use: it disables the task watchdog and adds
+            several hundred KB of code that no signing path calls.
+
+    config KERN_BENCH_HBS_ITERATIONS
+        int "Benchmark iterations per operation"
+        depends on KERN_BENCH_HBS
+        default 3
+        range 1 100
+        help
+            Cold-mode iterations timed for each of keygen and signing. Keep at 3
+            while iterating; the published Blockstream figures are 100-run means,
+            which takes over an hour and a half.
+
 endmenu
