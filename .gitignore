@@ -65,3 +65,4 @@ CLAUDE.md
 
 # Host test binaries
 main/bench/test/test_kat
+main/bench/test/test_unwrap

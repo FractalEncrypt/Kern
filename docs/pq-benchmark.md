@@ -36,7 +36,7 @@ Each operation is timed two ways:
 - **Wall time** (`esp_timer_get_time`) — how long a user waits.
 - **CPU cycles** (`esp_cpu_get_cycle_count`) — whether the RISC-V core does more or less work per operation than the Xtensa LX7. This is the result that survives any future clock change, and it is the reason the benchmark exists.
 
-The summary also reports `cyc_per_us`. That is a contamination check, not a datum: `esp_cpu_get_cycle_count()` reads `mcycle`, which counts every cycle executed on the core including any task that preempted the measurement. If `cyc_per_us` does not land on the reported CPU clock, the sample is dirty and the numbers next to it are not comparable. The benchmark task is pinned to core 1 at priority 10 — above the LVGL task's 6, which has no core affinity — to keep this from happening.
+The summary also reports `cyc_per_us`. That is an integrity check on the cycle count, not a datum — see [On the reported `cyc_per_us`](#on-the-reported-cyc_per_us) for what it does and does not catch. The benchmark task is pinned to core 1 at priority 10, above the LVGL task's 6, which has no core affinity.
 
 ### Rotations on the P4
 
@@ -47,13 +47,51 @@ sig0:  slli a4,a0,0x19 / srli a5,a0,0x7 / slli a3,a0,0xe / add a5,a5,a4
        srli a4,a0,0x12 / add a4,a4,a3  / xor a5,a5,a4   / srli a0,a0,0x3 / xor a0,a0,a5
 ```
 
-The Xtensa LX7 has a funnel shifter (`ssai`/`src`) that does a fixed-amount rotate in fewer operations. Expect the P4 to spend *more* cycles per SHA-256 block; the cycle counts are what settle it.
+The Xtensa LX7 has a funnel shifter (`ssai`/`src`) that does a fixed-amount rotate in fewer operations, so the expectation going in was that the P4 would spend *more* cycles per SHA-256 block.
+
+**That prediction was wrong.** It spends about 24% fewer. See Results.
 
 ### Hash path
 
 The reference `sha2_256.c`, in software. No hardware SHA accelerator.
 
 Worth stating explicitly, because a faster-looking option is right there and is a trap. Kern's libwally routes SHA-256 through mbedTLS (`ccan_config.h` hardcodes `CCAN_CRYPTO_SHA256_USE_MBEDTLS`) and the build sets `CONFIG_MBEDTLS_HARDWARE_SHA=1`, so `wally_sha256()` really does run on the P4 SHA peripheral. But `slh_sha2.c` needs three things no standard SHA-256 API exposes: `sha2_256_copy()` for midstate cloning, `sha2_256_final_pad()` plus a raw `sha2_256_compress(void *)` over a caller-owned block, and the `sha2_256_t` layout that packs state and message block into one array. mbedTLS supplies `clone` and nothing else. Wiring the rest to IDF's low-level `esp_sha_*` API would be hardware-accelerator integration — a different experiment — and the peripheral takes a FreeRTOS mutex shared with AES on every call, which for hundreds of millions of single-block hashes may well lose to software anyway.
+
+## Results
+
+wave_4b, 360 MHz, 3 cold iterations, `-O2`, software SHA-256. Kern `68be355`, slhdsa-c `174c02e`. Compared against the published Jade Plus figures (ESP32-S3, Xtensa LX7 @ 240 MHz), whose cycle counts are derived as `wall x 240 MHz`.
+
+| Op | P4 wall | S3 wall | Speedup | P4 cycles | S3 cycles | P4/S3 cycles |
+|---|---|---|---|---|---|---|
+| KeyGen | 3.544 s | 7.06 s | 1.99x | 1.276 G | 1.694 G | **0.75** |
+| SigGen | 27.078 s | 52.85 s | 1.95x | 9.748 G | 12.684 G | **0.77** |
+
+Signature 7856 bytes. Stack high-water mark 4584 bytes. Iteration spread 0.06% (keygen) and 0.01% (sign).
+
+The clock ratio is only 360/240 = **1.50x**, but the P4 finishes ~1.95-1.99x faster. Decomposed:
+
+```
+KeyGen  1.99x  =  1.50x clock  x  1.33x cycles
+SigGen  1.95x  =  1.50x clock  x  1.30x cycles
+```
+
+So roughly a quarter of the P4's advantage is architectural, not clock. It executes SLH-DSA in **23-25% fewer cycles** than the Xtensa LX7 — despite having no rotate instruction and paying three instructions for every SHA-256 rotation.
+
+That gap is not explained by Jade's host-side measurement method (divergence 6). The largest artefact there is serialising the 7856-byte signature reply; at a typical 115200 baud that is ~0.7 s, about 1% of 52.85 s, and the keygen reply is only 64 bytes. A 1% measurement artefact cannot produce a 23% cycle gap.
+
+Candidate explanations, none of them established by this benchmark:
+
+- **Xtensa register windows.** SLH-DSA is exceptionally call-heavy -- WOTS+ chains and tree hashing bottom out in a SHA-256 call per node -- and window overflow/underflow traps are a known cost for deep call chains on Xtensa. This is the most plausible single contributor.
+- **Compiler backends.** GCC's RISC-V and Xtensa backends are not equally mature; the reference code is identical, the code generation is not.
+- **Memory system.** The P4 has a 256 KB L2 cache. SLH-DSA's working set is small, so this may matter less than it first appears.
+
+Separating these would need per-primitive instrumentation on both parts, which is a different experiment.
+
+### On the reported `cyc_per_us`
+
+Treat it as an integrity check on the cycle count -- wrap reconstruction, clock, stalls -- and **not** as a preemption detector. Both the cycle CSR and `esp_timer` advance while another task runs on the same core, so same-core preemption leaves the ratio sitting at the CPU clock. The evidence against preemption is the min/max spread: iterations agreeing to 0.01% did not share a core.
+
+The first on-device run is why this distinction is documented. It reported `sign cyc_per_us=42.77` against an expected 360 -- not contamination, but `esp_cpu_get_cycle_count()` being `uint32_t`. At 360 MHz it wraps every 2^32/360e6 = 11.93 s, so a 27 s signing call wrapped twice and a plain subtraction lost 2^33 cycles. See `main/bench/cycle_unwrap.h`; `main/bench/test/test_unwrap.c` pins the behaviour, including the values from that run.
 
 ## Divergences from the Jade port
 

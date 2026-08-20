@@ -1,5 +1,6 @@
 #include "bench_hbs.h"
 
+#include "cycle_unwrap.h"
 #include "kat_slhdsa_sha2_128s.h"
 
 #include <inttypes.h>
@@ -41,7 +42,14 @@
 #endif
 
 #define BENCH_ITERATIONS CONFIG_KERN_BENCH_HBS_ITERATIONS
-#define BENCH_TASK_STACK (64 * 1024)
+/*
+ * Measured high-water mark on wave_4b across the KAT gate and both timed
+ * operations is 4584 bytes, so this is roughly 3.5x headroom. It started at
+ * 64 KB; the harness still prints the high-water mark every run, so the figure
+ * stays measured rather than assumed. Smaller also matters because internal
+ * DRAM is tight after camera/ISP init on some boards.
+ */
+#define BENCH_TASK_STACK (16 * 1024)
 #define BENCH_TASK_CORE 1
 /* Above the LVGL task's priority 6, which has no core affinity and would
  * otherwise preempt a timed region and inflate the cycle count. */
@@ -51,7 +59,8 @@
 
 typedef struct {
   int64_t wall_us;
-  uint32_t cycles;
+  uint64_t cycles;
+  int wraps;
 } sample_t;
 
 typedef struct {
@@ -89,10 +98,12 @@ static void report(const char *op, const stats_t *s, int cpu_mhz) {
          op, s->cyc_min, cyc_mean, s->cyc_max);
   printf("BENCH %s wall_s  mean=%.3f\n", op, (double)wall_mean / 1e6);
   /*
-   * Derived clock. esp_cpu_get_cycle_count() reads mcycle, which counts every
-   * cycle executed on this core -- including any task that preempted us. If
-   * this does not land on the configured CPU frequency the sample is
-   * contaminated and the numbers below it are not comparable.
+   * Integrity check on the cycle count, not a preemption check. The cycle CSR
+   * and esp_timer both advance while another task runs on this core, so
+   * same-core preemption leaves this ratio at the CPU clock; what it does catch
+   * is a mis-reconstructed wrap, a clock that is not what was configured, or a
+   * core that stalled. Evidence against preemption is the min/max spread above:
+   * iterations agreeing to a fraction of a percent did not share the core.
    */
   printf("BENCH %s cyc_per_us mean=%.2f (expect %d)\n", op,
          (double)cyc_mean / (double)wall_mean, cpu_mhz);
@@ -213,10 +224,11 @@ static void bench_task(void *arg) {
       break;
     }
     s.wall_us = t1 - t0;
-    s.cycles = c1 - c0;
+    s.cycles = unwrap_cycles(c0, c1, s.wall_us, cpu_mhz, &s.wraps);
     stats_add(&kg, &s);
-    printf("BENCH iter keygen %d wall_us=%" PRId64 " cycles=%" PRIu32 "\n", i,
-           s.wall_us, s.cycles);
+    printf("BENCH iter keygen %d wall_us=%" PRId64 " cycles=%" PRIu64
+           " wraps=%d\n",
+           i, s.wall_us, s.cycles, s.wraps);
 
     t0 = esp_timer_get_time();
     c0 = esp_cpu_get_cycle_count();
@@ -228,10 +240,11 @@ static void bench_task(void *arg) {
       break;
     }
     s.wall_us = t1 - t0;
-    s.cycles = c1 - c0;
+    s.cycles = unwrap_cycles(c0, c1, s.wall_us, cpu_mhz, &s.wraps);
     stats_add(&sg, &s);
-    printf("BENCH iter sign %d wall_us=%" PRId64 " cycles=%" PRIu32 "\n", i,
-           s.wall_us, s.cycles);
+    printf("BENCH iter sign %d wall_us=%" PRId64 " cycles=%" PRIu64
+           " wraps=%d\n",
+           i, s.wall_us, s.cycles, s.wraps);
   }
 
   if (kg.n > 0)
