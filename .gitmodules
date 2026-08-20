@@ -7,3 +7,6 @@
 [submodule "components/k_quirc"]
 	path = components/k_quirc
 	url = https://github.com/odudex/k_quirc.git
+[submodule "components/slhdsa-c/upstream"]
+	path = components/slhdsa-c/upstream
+	url = https://github.com/pq-code-package/slhdsa-c.git
