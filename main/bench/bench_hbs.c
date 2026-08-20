@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include <esp_cpu.h>
+#include <esp_heap_caps.h>
 #include <esp_private/esp_clk.h>
 #include <esp_timer.h>
 #include <freertos/FreeRTOS.h>
@@ -248,6 +249,32 @@ static void bench_task(void *arg) {
 }
 
 void bench_hbs_start(void) {
-  xTaskCreatePinnedToCore(bench_task, "bench_hbs", BENCH_TASK_STACK, NULL,
-                          BENCH_TASK_PRIO, NULL, BENCH_TASK_CORE);
+  /*
+   * Internal DRAM first: a PSRAM stack costs cache misses that land straight in
+   * the cycle counts this benchmark exists to report. It may not fit -- the ISP
+   * pipeline holds enough internal DRAM after camera init that even a 32 KB
+   * stack fails elsewhere in this codebase (see qr/scanner.c) -- so fall back
+   * rather than silently not running, and say so, because the fallback changes
+   * what the numbers mean.
+   */
+  printf("BENCH free_internal %u bytes, largest block %u\n",
+         (unsigned)heap_caps_get_free_size(MALLOC_CAP_INTERNAL),
+         (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL));
+
+  if (xTaskCreatePinnedToCore(bench_task, "bench_hbs", BENCH_TASK_STACK, NULL,
+                              BENCH_TASK_PRIO, NULL,
+                              BENCH_TASK_CORE) == pdPASS) {
+    return;
+  }
+
+  printf(
+      "BENCH WARNING: %d byte internal stack unavailable; retrying in PSRAM.\n",
+      BENCH_TASK_STACK);
+  printf("BENCH WARNING: a PSRAM stack inflates cycle counts -- treat results "
+         "as indicative.\n");
+  if (xTaskCreatePinnedToCoreWithCaps(
+          bench_task, "bench_hbs", BENCH_TASK_STACK, NULL, BENCH_TASK_PRIO,
+          NULL, BENCH_TASK_CORE, MALLOC_CAP_SPIRAM) != pdPASS) {
+    printf("BENCH ABORTED: could not create the benchmark task\n");
+  }
 }
