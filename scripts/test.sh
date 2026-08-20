@@ -16,4 +16,7 @@ make -C "$REPO_ROOT/components/bbqr/test" run
 echo "Running core tests..."
 make -C "$REPO_ROOT/main/core/test" run
 
+echo "Running SLH-DSA KAT..."
+make -C "$REPO_ROOT/main/bench/test" run
+
 echo "All tests passed!"

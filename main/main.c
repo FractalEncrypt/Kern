@@ -127,4 +127,13 @@ void app_main(void) {
   // Everything initialized and UI up — confirm a freshly installed update so
   // the bootloader doesn't roll back to the previous slot
   fw_update_boot_confirm();
+
+#ifdef CONFIG_KERN_BENCH_HBS
+  // Measurement build only; never compiled into a release. Declared here rather
+  // than included at the top of the file so that a default build stays
+  // byte-for-byte identical: any line added above shifts __LINE__ in every
+  // ESP_ERROR_CHECK below it, which moves the whole binary. See main/bench/.
+  void bench_hbs_start(void);
+  bench_hbs_start();
+#endif
 }
