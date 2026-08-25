@@ -160,6 +160,9 @@ def render() -> str:
     positive_messages = [parse_message(positive[f"message_{stage}_hex"])
                          for stage in range(1, 5)]
     expected_digest = bytes.fromhex(positive["psbt_sha256"])
+    psbt = bytes.fromhex(positive["psbt_hex"])
+    if hashlib.sha256(psbt).digest() != expected_digest:
+        raise ValueError("semantic PSBT bytes do not match their pinned digest")
     if positive["slot_count"] != len(positive["slots"]):
         raise ValueError("semantic slot count does not match its slot layer")
     for stage, message in enumerate(positive_messages, start=1):
@@ -206,6 +209,11 @@ def render() -> str:
     out.extend(c_message(message) + "," for message in positive_messages)
     out.extend([
         "};",
+        "",
+        "static const uint8_t ANTI_EXFIL_SEMANTIC_PSBT[] = " +
+        c_bytes(psbt, "    ") + ";",
+        "static const size_t ANTI_EXFIL_SEMANTIC_PSBT_LEN =",
+        "    sizeof(ANTI_EXFIL_SEMANTIC_PSBT);",
         "",
         "typedef struct {",
         "  anti_exfil_message_t message;",
