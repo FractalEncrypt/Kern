@@ -82,8 +82,8 @@ target_include_directories(wally PRIVATE
 target_compile_definitions(wally PRIVATE
     BUILD_ELEMENTS=0
     BUILD_MINIMAL=1
-    # Standard libsecp256k1: drops MuSig2 + ecdsa-s2c/anti-exfil (unused by Kern).
-    BUILD_STANDARD_SECP=1
+    # BUILD_STANDARD_SECP must remain unset: it compiles libwally's
+    # ECDSA-S2C/anti-exfil APIs out despite ENABLE_MODULE_ECDSA_S2C below.
     ECMULT_WINDOW_SIZE=8
     ENABLE_MODULE_ECDH=1
     ENABLE_MODULE_ECDSA_S2C=1
@@ -166,6 +166,7 @@ set(APP_UTIL_SOURCES
 
 # --- Core application modules ---
 set(APP_CORE_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/../main/core/anti_exfil_crypto.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../main/core/settings.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../main/core/nvs_secure.c
     ${CMAKE_CURRENT_SOURCE_DIR}/platform/esp_idf_stubs/storage_sim.c

@@ -1,3 +1,4 @@
+#include "core/anti_exfil_crypto.h"
 #include "core/entropy_pool.h"
 #include "core/fw_update.h"
 #include "core/nvs_secure.h"
@@ -99,6 +100,14 @@ void app_main(void) {
   if (wally_res != WALLY_OK) {
     abort();
   }
+
+  // Public known-answer test: fail closed if the linked libwally build lacks
+  // ECDSA-S2C support or produces bytes different from the pinned reference.
+  if (!anti_exfil_crypto_self_test()) {
+    ESP_LOGE(TAG, "Anti-exfil cryptographic self-test failed");
+    abort();
+  }
+  ESP_LOGI(TAG, "Anti-exfil cryptographic self-test passed");
 
   // Initialize BIP39 wordlist (needed for anti-phishing words)
   if (!bip39_filter_init())
