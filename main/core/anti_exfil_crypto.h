@@ -33,6 +33,12 @@ bool anti_exfil_signer_commit(const uint8_t *private_key,
 bool anti_exfil_sign(const uint8_t *private_key, const uint8_t *message_hash,
                      const uint8_t *host_entropy, uint8_t *compact_signature);
 
+/* Verify both ECDSA and the sign-to-contract opening. */
+bool anti_exfil_verify(const uint8_t *public_key, const uint8_t *message_hash,
+                       const uint8_t *host_entropy,
+                       const uint8_t *signer_opening,
+                       const uint8_t *compact_signature);
+
 /* Run the pinned public known-answer vector and wipe all stack buffers. */
 bool anti_exfil_crypto_self_test(void);
 

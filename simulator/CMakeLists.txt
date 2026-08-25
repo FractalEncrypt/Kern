@@ -170,6 +170,7 @@ set(APP_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../main/core/anti_exfil/anti_exfil_types.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../main/core/anti_exfil/anti_exfil_semantic.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../main/core/anti_exfil/anti_exfil_slots.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../main/core/anti_exfil/anti_exfil_signer.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../main/core/settings.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../main/core/nvs_secure.c
     ${CMAKE_CURRENT_SOURCE_DIR}/platform/esp_idf_stubs/storage_sim.c
