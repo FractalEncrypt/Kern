@@ -8,6 +8,7 @@
 #include "lvgl.h"
 #include "src/drivers/sdl/lv_sdl_window.h"
 #include "src/drivers/sdl/lv_sdl_mouse.h"
+#include "core/anti_exfil_crypto.h"
 #include "ui/theme.h"
 #include "ui/theme_widgets.h"
 #include "ui/assets/kern_logo_lvgl.h"
@@ -160,6 +161,11 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "wally_init failed\n");
         return 1;
     }
+    if (!anti_exfil_crypto_self_test()) {
+        fprintf(stderr, "Anti-exfil cryptographic self-test failed\n");
+        return 1;
+    }
+    printf("Anti-exfil cryptographic self-test passed\n");
 
     /* Initialize LVGL */
     lv_init();
