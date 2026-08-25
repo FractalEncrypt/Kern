@@ -1,5 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g
+PYTHON ?= python3
 
 ROOT = ../../..
 WALLY_DIR = $(ROOT)/components/libwally-core
@@ -87,11 +88,24 @@ SRCS_ANTI_EXFIL_CRYPTO = test_anti_exfil_crypto.c
 TARGET_ANTI_EXFIL_CRYPTO = test_anti_exfil_crypto
 ANTI_EXFIL_CRYPTO_SRC = ../anti_exfil_crypto.c ../anti_exfil_crypto.h ../../utils/secure_mem.h
 
+SRCS_ANTI_EXFIL_SEMANTIC = test_anti_exfil_semantic.c
+TARGET_ANTI_EXFIL_SEMANTIC = test_anti_exfil_semantic
+ANTI_EXFIL_SEMANTIC_SRC = ../anti_exfil/anti_exfil_types.c ../anti_exfil/anti_exfil_types.h \
+	../anti_exfil/anti_exfil_semantic.c ../anti_exfil/anti_exfil_semantic.h \
+	anti_exfil_semantic_vectors.generated.h
+ANTI_EXFIL_FIXTURE_SOURCES = generate_anti_exfil_fixtures.py \
+	fixtures/anti_exfil/manifest.json \
+	fixtures/anti_exfil/crypto/primitive-opening.json \
+	fixtures/anti_exfil/complete_ecdsa/complete-signature.json \
+	fixtures/anti_exfil/semantic_protocol/protocol-v1-semantic-psbt-vector.json \
+	fixtures/anti_exfil/semantic_protocol/protocol-v1-negative-vectors.json \
+	fixtures/anti_exfil/transport/protocol-v1-multislot-vectors.json
+
 SS_SRC = ../ss_whitelist.c ../ss_whitelist.h $(SCRIPT_TEMPLATE_SRC)
 KEY_SRC = ../key.c ../key.h $(BIP32_PATH_SRC) ../../utils/secure_mem.h
 KEY_STUB_SRC = stubs/key_stub.c
 
-all: $(TARGET_DERIV) $(TARGET_SS_PARSE) $(TARGET_SS_WHITELISTED) $(TARGET_SS_REGEN) $(TARGET_PSB) $(TARGET_REG_MATCH) $(TARGET_REG_PARSE) $(TARGET_PSBT_CLASSIFY) $(TARGET_MS_POLICY) $(TARGET_BIP322) $(TARGET_ESTIMATED_ENTROPY) $(TARGET_ANTI_EXFIL_CRYPTO)
+all: $(TARGET_DERIV) $(TARGET_SS_PARSE) $(TARGET_SS_WHITELISTED) $(TARGET_SS_REGEN) $(TARGET_PSB) $(TARGET_REG_MATCH) $(TARGET_REG_PARSE) $(TARGET_PSBT_CLASSIFY) $(TARGET_MS_POLICY) $(TARGET_BIP322) $(TARGET_ESTIMATED_ENTROPY) $(TARGET_ANTI_EXFIL_CRYPTO) $(TARGET_ANTI_EXFIL_SEMANTIC)
 
 $(LIBWALLY): $(WALLY_SRC) $(wildcard $(WALLY_DIR)/upstream/src/*.c)
 	$(CC) $(CFLAGS) $(WALLY_CFLAGS) -c -o combined.o $<
@@ -136,7 +150,13 @@ $(TARGET_ESTIMATED_ENTROPY): $(SRCS_ESTIMATED_ENTROPY) $(ESTIMATED_ENTROPY_SRC) 
 $(TARGET_ANTI_EXFIL_CRYPTO): $(SRCS_ANTI_EXFIL_CRYPTO) $(ANTI_EXFIL_CRYPTO_SRC) $(LIBWALLY)
 	$(CC) $(CFLAGS) $(TEST_INCS) -o $@ $(SRCS_ANTI_EXFIL_CRYPTO) ../anti_exfil_crypto.c $(LIBWALLY)
 
-run: $(TARGET_DERIV) $(TARGET_SS_PARSE) $(TARGET_SS_WHITELISTED) $(TARGET_SS_REGEN) $(TARGET_PSB) $(TARGET_REG_MATCH) $(TARGET_REG_PARSE) $(TARGET_PSBT_CLASSIFY) $(TARGET_MS_POLICY) $(TARGET_BIP322) $(TARGET_ESTIMATED_ENTROPY) $(TARGET_ANTI_EXFIL_CRYPTO)
+check-anti-exfil-fixtures: $(ANTI_EXFIL_FIXTURE_SOURCES)
+	$(PYTHON) generate_anti_exfil_fixtures.py --check
+
+$(TARGET_ANTI_EXFIL_SEMANTIC): check-anti-exfil-fixtures $(SRCS_ANTI_EXFIL_SEMANTIC) $(ANTI_EXFIL_SEMANTIC_SRC) $(LIBWALLY)
+	$(CC) $(CFLAGS) $(TEST_INCS) -o $@ $(SRCS_ANTI_EXFIL_SEMANTIC) ../anti_exfil/anti_exfil_types.c ../anti_exfil/anti_exfil_semantic.c $(LIBWALLY)
+
+run: $(TARGET_DERIV) $(TARGET_SS_PARSE) $(TARGET_SS_WHITELISTED) $(TARGET_SS_REGEN) $(TARGET_PSB) $(TARGET_REG_MATCH) $(TARGET_REG_PARSE) $(TARGET_PSBT_CLASSIFY) $(TARGET_MS_POLICY) $(TARGET_BIP322) $(TARGET_ESTIMATED_ENTROPY) $(TARGET_ANTI_EXFIL_CRYPTO) $(TARGET_ANTI_EXFIL_SEMANTIC)
 	./$(TARGET_DERIV)
 	./$(TARGET_SS_PARSE)
 	./$(TARGET_SS_WHITELISTED)
@@ -149,8 +169,9 @@ run: $(TARGET_DERIV) $(TARGET_SS_PARSE) $(TARGET_SS_WHITELISTED) $(TARGET_SS_REG
 	./$(TARGET_BIP322)
 	./$(TARGET_ESTIMATED_ENTROPY)
 	./$(TARGET_ANTI_EXFIL_CRYPTO)
+	./$(TARGET_ANTI_EXFIL_SEMANTIC)
 
 clean:
-	rm -f $(TARGET_DERIV) $(TARGET_SS_PARSE) $(TARGET_SS_WHITELISTED) $(TARGET_SS_REGEN) $(TARGET_PSB) $(TARGET_REG_MATCH) $(TARGET_REG_PARSE) $(TARGET_PSBT_CLASSIFY) $(TARGET_MS_POLICY) $(TARGET_BIP322) $(TARGET_ESTIMATED_ENTROPY) $(TARGET_ANTI_EXFIL_CRYPTO) $(LIBWALLY) combined.o $(PSBT_KEY_OBJ)
+	rm -f $(TARGET_DERIV) $(TARGET_SS_PARSE) $(TARGET_SS_WHITELISTED) $(TARGET_SS_REGEN) $(TARGET_PSB) $(TARGET_REG_MATCH) $(TARGET_REG_PARSE) $(TARGET_PSBT_CLASSIFY) $(TARGET_MS_POLICY) $(TARGET_BIP322) $(TARGET_ESTIMATED_ENTROPY) $(TARGET_ANTI_EXFIL_CRYPTO) $(TARGET_ANTI_EXFIL_SEMANTIC) $(LIBWALLY) combined.o $(PSBT_KEY_OBJ)
 
-.PHONY: all run clean
+.PHONY: all run clean check-anti-exfil-fixtures

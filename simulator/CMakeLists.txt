@@ -167,6 +167,8 @@ set(APP_UTIL_SOURCES
 # --- Core application modules ---
 set(APP_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../main/core/anti_exfil_crypto.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../main/core/anti_exfil/anti_exfil_types.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../main/core/anti_exfil/anti_exfil_semantic.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../main/core/settings.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../main/core/nvs_secure.c
     ${CMAKE_CURRENT_SOURCE_DIR}/platform/esp_idf_stubs/storage_sim.c
