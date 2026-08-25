@@ -17,6 +17,7 @@ const char *anti_exfil_result_name(anti_exfil_result_t result) {
       "AE_TEST_KEY_MISMATCH",
       "AE_UNEXPECTED_RETURN_DATA",
       "AE_NATIVE_BACKEND",
+      "AE_SIZE_LIMIT",
   };
 
   if ((unsigned int)result >= sizeof(names) / sizeof(names[0]))

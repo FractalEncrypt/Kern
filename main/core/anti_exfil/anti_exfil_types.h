@@ -36,6 +36,7 @@ typedef enum {
   ANTI_EXFIL_TEST_KEY_MISMATCH = 12,
   ANTI_EXFIL_UNEXPECTED_RETURN_DATA = 13,
   ANTI_EXFIL_NATIVE_BACKEND = 14,
+  ANTI_EXFIL_SIZE_LIMIT = 15,
 } anti_exfil_result_t;
 
 typedef enum {
