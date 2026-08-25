@@ -10,6 +10,7 @@ build_wave_7b/
 build_crowpanel/
 build_*_v3/
 build_wave_7b/
+build-*/
 sdkconfig
 sdkconfig.old
 managed_components/

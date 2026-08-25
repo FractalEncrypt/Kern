@@ -1,0 +1,31 @@
+{
+  "complete_ecdsa": {
+    "files": {
+      "complete_ecdsa/complete-signature.json": "c2e5e17be80ba942649980b5a49254c07de3db7f381e31617a5330166fa1717b"
+    },
+    "semantic_test_input": false
+  },
+  "crypto": {
+    "files": {
+      "crypto/primitive-opening.json": "3c485dbe2277261773039e09d6ffe5b008928a1af7c0e0d120813ab8dd387604"
+    },
+    "semantic_test_input": false
+  },
+  "physical_evidence": {
+    "files": {},
+    "semantic_test_input": false
+  },
+  "semantic_protocol": {
+    "files": {
+      "semantic_protocol/protocol-v1-negative-vectors.json": "f5b9d3d21210173bb35da0a0de15705b3bc1d3a3d8ab42a14183c2cd7ee97599",
+      "semantic_protocol/protocol-v1-semantic-psbt-vector.json": "f28d572d1ae5d2060eeb52ca9814f37ce5d54258811d3af18b78c41744e23a4e"
+    },
+    "semantic_test_input": true
+  },
+  "transport": {
+    "files": {
+      "transport/protocol-v1-multislot-vectors.json": "bafd399a342e1be965666d4efca970b50218a2fb2e2820c418ad64686bac1bb3"
+    },
+    "semantic_test_input": false
+  }
+}
