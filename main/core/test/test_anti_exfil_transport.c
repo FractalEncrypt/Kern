@@ -210,6 +210,15 @@ int main(void) {
       .cbor_data = (uint8_t *)first->cbor,
       .cbor_len = first->cbor_len,
   };
+  memset(&view, 0xa5, sizeof(view));
+  CHECK("probe protected UR before ordinary dispatch",
+        anti_exfil_ur_probe_result(&routed, &view) == ANTI_EXFIL_OK &&
+            view.message.stage == ANTI_EXFIL_STAGE_HOST_COMMIT);
+  memset(&view, 0xa5, sizeof(view));
+  CHECK("wrong UR type cannot enter protected dispatch",
+        anti_exfil_ur_probe_result(&wrong_type, &view) ==
+                ANTI_EXFIL_INVALID_MESSAGE &&
+            all_zero(&view, sizeof(view)));
   CHECK("reject wrong active network at UR route",
         anti_exfil_ur_decode_result(&routed, ANTI_EXFIL_NETWORK_SIGNET,
                                     ANTI_EXFIL_STAGE_HOST_COMMIT, &view) ==

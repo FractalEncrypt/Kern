@@ -1,0 +1,84 @@
+{
+  "digest": "7b8a1057f2978e409ff832a3ffdaa824547c9502ee4743bade742464b9b06ecf",
+  "digest_algorithm": "BIP340-style tagged SHA-256",
+  "domain_tag": "anti-exfil/signing-context/v1",
+  "encoding": {
+    "body": "unsigned_tx || all input spend contexts || ordered requested slots",
+    "byte_strings": "u32 length followed by exact bytes",
+    "header": "AESC || version:u8 || network:u8 || flags:u16",
+    "integers": "unsigned big-endian",
+    "slot_order": "input_index ascending, then compressed signer pubkey lexicographic"
+  },
+  "inputs": [
+    {
+      "amount": 100000,
+      "input_index": 0,
+      "redeem_script": "",
+      "script_pubkey": "00146421db3b52f03cd7e241952942908453eb94d348",
+      "sighash_type": 1,
+      "witness_script": ""
+    },
+    {
+      "amount": 101000,
+      "input_index": 1,
+      "redeem_script": "00148a5930d9d453a710b7c434629674a67bec480e5f",
+      "script_pubkey": "a9149dc3d15ab96b3a5e9a4514574fcdf77b7bea961a87",
+      "sighash_type": 1,
+      "witness_script": ""
+    },
+    {
+      "amount": 102000,
+      "input_index": 2,
+      "redeem_script": "",
+      "script_pubkey": "002064b993e6d6304c0ad5e3a6fa9b8bab5356932de7e9326ec4d19f8fe3a052b249",
+      "sighash_type": 1,
+      "witness_script": "522102bda8ab73196ca246ba66ba9740f7d3552eb8b3dc6432e9c10d6f20f5f6c7e5fe21036930f46dd0b16d866d59d1054aa63298b357499cd1862ef16f3f55f1cafceb822102f5dbaa79265835cf344907ce73f497654516a9765a9817e36c83dd9f5f258ff753ae"
+    },
+    {
+      "amount": 103000,
+      "input_index": 3,
+      "redeem_script": "0020d750efe1f79a8a08cb087c91e5fcd387de19bcb3d98c59e0951d014370200403",
+      "script_pubkey": "a914e896ab4f819426f59718a9e46f26031513d8d24187",
+      "sighash_type": 1,
+      "witness_script": "52210290999dbbf43034bffb1dd53eac1eb4c33a4ea1c4f48ba585cfde3830840f05552102ea57d9adbdbaf9d74631bc8e5004bc2b97fc06a77038c47efe3a377f0b42cbd021023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b153ae"
+    }
+  ],
+  "policy_decisions_for_review": [
+    "Includes the exact unsigned transaction and every input's amount and scripts.",
+    "Includes network identity and each requested slot's input, pubkey, and sighash.",
+    "Excludes BIP32 derivation paths: devices still verify their own path-to-pubkey mapping locally, but path metadata is not part of signing identity.",
+    "Excludes anti-exfil and unknown proprietary fields; response allowlisting is a separate invariant."
+  ],
+  "preimage_hex": "4145534301040000000000cd020000000441414141414141414141414141414141414141414141414141414141414141410000000000ffffffff42424242424242424242424242424242424242424242424242424242424242420100000000ffffffff43434343434343434343434343434343434343434343434343434343434343430200000000ffffffff44444444444444444444444444444444444444444444444444444444444444440300000000ffffffff0170f30500000000001600148320611ff032223c1f4bb1fbbd2291fd2b3f43d900000000000000040000000000000000000186a00000001600146421db3b52f03cd7e241952942908453eb94d348000000000000000000000001000000010000000000018a8800000017a9149dc3d15ab96b3a5e9a4514574fcdf77b7bea961a870000001600148a5930d9d453a710b7c434629674a67bec480e5f0000000000000001000000020000000000018e7000000022002064b993e6d6304c0ad5e3a6fa9b8bab5356932de7e9326ec4d19f8fe3a052b2490000000000000069522102bda8ab73196ca246ba66ba9740f7d3552eb8b3dc6432e9c10d6f20f5f6c7e5fe21036930f46dd0b16d866d59d1054aa63298b357499cd1862ef16f3f55f1cafceb822102f5dbaa79265835cf344907ce73f497654516a9765a9817e36c83dd9f5f258ff753ae0000000100000003000000000001925800000017a914e896ab4f819426f59718a9e46f26031513d8d24187000000220020d750efe1f79a8a08cb087c91e5fcd387de19bcb3d98c59e0951d0143702004030000006952210290999dbbf43034bffb1dd53eac1eb4c33a4ea1c4f48ba585cfde3830840f05552102ea57d9adbdbaf9d74631bc8e5004bc2b97fc06a77038c47efe3a377f0b42cbd021023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b153ae0000000100050000000003909be3f1298f1337971ed6360dd95d456b2bda2c8f50879856e0a0fad38e2670000000010000000102fc4323478d235a10d8053af51ec0d237fe8547629560a0ad61e077392a95a5cc000000010000000202bda8ab73196ca246ba66ba9740f7d3552eb8b3dc6432e9c10d6f20f5f6c7e5fe000000010000000202f5dbaa79265835cf344907ce73f497654516a9765a9817e36c83dd9f5f258ff7000000010000000302ea57d9adbdbaf9d74631bc8e5004bc2b97fc06a77038c47efe3a377f0b42cbd000000001",
+  "schema": "ae-signing-context-draft-v1",
+  "slots": [
+    {
+      "input_index": 0,
+      "sighash_type": 1,
+      "signer_pubkey": "03909be3f1298f1337971ed6360dd95d456b2bda2c8f50879856e0a0fad38e2670"
+    },
+    {
+      "input_index": 1,
+      "sighash_type": 1,
+      "signer_pubkey": "02fc4323478d235a10d8053af51ec0d237fe8547629560a0ad61e077392a95a5cc"
+    },
+    {
+      "input_index": 2,
+      "sighash_type": 1,
+      "signer_pubkey": "02bda8ab73196ca246ba66ba9740f7d3552eb8b3dc6432e9c10d6f20f5f6c7e5fe"
+    },
+    {
+      "input_index": 2,
+      "sighash_type": 1,
+      "signer_pubkey": "02f5dbaa79265835cf344907ce73f497654516a9765a9817e36c83dd9f5f258ff7"
+    },
+    {
+      "input_index": 3,
+      "sighash_type": 1,
+      "signer_pubkey": "02ea57d9adbdbaf9d74631bc8e5004bc2b97fc06a77038c47efe3a377f0b42cbd0"
+    }
+  ],
+  "source_sha256": "f28d572d1ae5d2060eeb52ca9814f37ce5d54258811d3af18b78c41744e23a4e",
+  "status": "proposal-not-normative",
+  "unsigned_tx": "020000000441414141414141414141414141414141414141414141414141414141414141410000000000ffffffff42424242424242424242424242424242424242424242424242424242424242420100000000ffffffff43434343434343434343434343434343434343434343434343434343434343430200000000ffffffff44444444444444444444444444444444444444444444444444444444444444440300000000ffffffff0170f30500000000001600148320611ff032223c1f4bb1fbbd2291fd2b3f43d900000000"
+}
