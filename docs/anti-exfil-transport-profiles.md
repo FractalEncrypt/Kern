@@ -12,7 +12,7 @@ digest, ordered slot set, commitments, openings, reveals, and compact signatures
 
 | Property | Detached AEXT/AEXB | Proprietary in-PSBT fields | Hybrid: PSBT requests, detached responses |
 | --- | --- | --- | --- |
-| Current evidence | Byte-exact Sparrow/SeedSigner corpus and Kern codec | BitcoinShooter Jade/Sparrow experiment; equivalent shared corpus still needed | Architectural candidate; wire fields and corpus not yet concrete |
+| Current evidence | Byte-exact Sparrow/SeedSigner corpus and Kern codec; realistic five-slot frame measurements | Pinned Jade/Lark four-stage transcript and seven negative PSBTs; base identity measured after stripping AE records and partial signatures | Architectural candidate; wire fields and corpus not yet concrete |
 | Requests (messages 1 and 3) | Canonical AEXB plus the exact frozen PSBT inside AEXT | Stage fields carried as PSBT proprietary data | PSBT request carries stage fields |
 | Responses (messages 2 and 4) | Detached AEXB; PSBT forbidden | Returned PSBT carries openings/signatures | Detached bounded openings/signatures; PSBT forbidden |
 | Frozen-byte rule | Explicit: message 3 repeats byte-identical PSBT bytes | Must define whether the authoritative identity is original bytes or canonical PSBT semantics | Must bind the request PSBT without allowing reserialization between rounds |
@@ -51,3 +51,16 @@ digest, ordered slot set, commitments, openings, reveals, and compact signatures
    complexity on SeedSigner, Jade, and Kern.
 5. Coordinate any public PSBT field, CBOR tag, or registered UR type only after the
    cross-implementation matrix passes.
+
+## Collaboration checkpoint
+
+The imported Lark evidence and Kern's shareable complete tuples are recorded in
+`anti-exfil-collaboration-conformance-2026-08-26.md`. Option (b), a
+transport-neutral signing-context digest, is the proposed shared semantic
+binding. A concrete non-normative preimage is in
+`anti-exfil-signing-context-draft.md`. An in-PSBT normalized-base check remains
+useful profile-specific defense in depth, but is not the universal binding.
+
+Measured AEXT frame counts for the realistic five-slot fixture are recorded in
+`anti-exfil-resource-measurements-2026-08-26.md`. Physical heap and camera
+measurements remain required before changing the provisional operational cap.

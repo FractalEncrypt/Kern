@@ -157,6 +157,8 @@ ANTI_EXFIL_SEMANTIC_SRC = ../anti_exfil/anti_exfil_types.c ../anti_exfil/anti_ex
 	anti_exfil_semantic_vectors.generated.h
 ANTI_EXFIL_FIXTURE_SOURCES = generate_anti_exfil_fixtures.py \
 	generate_anti_exfil_transport_fixtures.py \
+	generate_anti_exfil_collaboration_fixtures.py \
+	check_anti_exfil_collaboration.py \
 	fixtures/anti_exfil/manifest.json \
 	fixtures/anti_exfil/crypto/primitive-opening.json \
 	fixtures/anti_exfil/complete_ecdsa/complete-signature.json \
@@ -180,6 +182,9 @@ ANTI_EXFIL_SIGNER_SRC = ../anti_exfil/anti_exfil_signer.c \
 
 SRCS_ANTI_EXFIL_TRANSPORT = test_anti_exfil_transport.c
 TARGET_ANTI_EXFIL_TRANSPORT = test_anti_exfil_transport
+TARGET_ANTI_EXFIL_MEASURE = measure_anti_exfil_transport
+SRCS_ANTI_EXFIL_MEASURE = measure_anti_exfil_transport.c
+ANTI_EXFIL_MEASURE_DEP = anti_exfil_measurement_vectors.generated.h
 ANTI_EXFIL_TRANSPORT_SRC = ../../qr/anti_exfil_aexb.c \
 	../../qr/anti_exfil_aexb.h ../../qr/anti_exfil_aext.c \
 	../../qr/anti_exfil_aext.h ../../qr/anti_exfil_ur.c \
@@ -325,6 +330,7 @@ $(TARGET_ANTI_EXFIL_CRYPTO): $(SRCS_ANTI_EXFIL_CRYPTO) $(ANTI_EXFIL_CRYPTO_SRC) 
 check-anti-exfil-fixtures: $(ANTI_EXFIL_FIXTURE_SOURCES)
 	$(PYTHON) generate_anti_exfil_fixtures.py --check
 	$(PYTHON) generate_anti_exfil_transport_fixtures.py --check
+	$(PYTHON) check_anti_exfil_collaboration.py
 
 $(TARGET_ANTI_EXFIL_SEMANTIC): check-anti-exfil-fixtures $(SRCS_ANTI_EXFIL_SEMANTIC) $(ANTI_EXFIL_SEMANTIC_SRC) $(LIBWALLY)
 	$(CC) $(CFLAGS) $(TEST_INCS) -o $@ $(SRCS_ANTI_EXFIL_SEMANTIC) ../anti_exfil/anti_exfil_types.c ../anti_exfil/anti_exfil_semantic.c $(LIBWALLY)
@@ -337,6 +343,12 @@ $(TARGET_ANTI_EXFIL_SIGNER): check-anti-exfil-fixtures $(SRCS_ANTI_EXFIL_SIGNER)
 
 $(TARGET_ANTI_EXFIL_TRANSPORT): check-anti-exfil-fixtures $(SRCS_ANTI_EXFIL_TRANSPORT) $(ANTI_EXFIL_TRANSPORT_SRC) $(CUR_ENVELOPE_SRC) $(LIBWALLY)
 	$(CC) $(CFLAGS) $(TEST_INCS) -o $@ $(SRCS_ANTI_EXFIL_TRANSPORT) ../../qr/anti_exfil_aexb.c ../../qr/anti_exfil_aext.c ../../qr/anti_exfil_ur.c ../anti_exfil/anti_exfil_types.c ../anti_exfil/anti_exfil_semantic.c $(CUR_ENVELOPE_SRC) $(LIBWALLY)
+
+$(TARGET_ANTI_EXFIL_MEASURE): check-anti-exfil-fixtures $(SRCS_ANTI_EXFIL_MEASURE) $(ANTI_EXFIL_MEASURE_DEP) $(ANTI_EXFIL_TRANSPORT_SRC) $(CUR_ENVELOPE_SRC) $(LIBWALLY)
+	$(CC) $(CFLAGS) $(TEST_INCS) -o $@ $(SRCS_ANTI_EXFIL_MEASURE) ../../qr/anti_exfil_aexb.c ../../qr/anti_exfil_aext.c ../../qr/anti_exfil_ur.c ../anti_exfil/anti_exfil_types.c ../anti_exfil/anti_exfil_semantic.c $(CUR_ENVELOPE_SRC) $(LIBWALLY)
+
+measure-anti-exfil: $(TARGET_ANTI_EXFIL_MEASURE)
+	./$(TARGET_ANTI_EXFIL_MEASURE)
 
 run: $(TARGET_DERIV) $(TARGET_SS_PARSE) $(TARGET_SS_WHITELISTED) $(TARGET_SS_REGEN) $(TARGET_PSB) $(TARGET_REG_MATCH) $(TARGET_REG_PARSE) $(TARGET_PSBT_CLASSIFY) $(TARGET_MS_POLICY) $(TARGET_BIP322) $(TARGET_ESTIMATED_ENTROPY) $(TARGET_UTF8) $(TARGET_PIN_ATTEMPT) $(TARGET_KEF) $(TARGET_PSBT_PARSE) $(TARGET_FW_UPDATE) $(TARGET_DESC_VALIDATOR) $(TARGET_STORAGE) $(TARGET_KEY) $(TARGET_CRYPTO_UTILS) $(TARGET_PBKDF2) $(TARGET_BIP138_KEYS) $(TARGET_BIP138_BACKUP) $(TARGET_ANTI_EXFIL_CRYPTO) $(TARGET_ANTI_EXFIL_SEMANTIC) $(TARGET_ANTI_EXFIL_SLOTS) $(TARGET_ANTI_EXFIL_SIGNER) $(TARGET_ANTI_EXFIL_TRANSPORT)
 	./$(TARGET_DERIV)
@@ -369,6 +381,6 @@ run: $(TARGET_DERIV) $(TARGET_SS_PARSE) $(TARGET_SS_WHITELISTED) $(TARGET_SS_REG
 	./$(TARGET_ANTI_EXFIL_TRANSPORT)
 
 clean:
-	rm -f $(TARGET_DERIV) $(TARGET_SS_PARSE) $(TARGET_SS_WHITELISTED) $(TARGET_SS_REGEN) $(TARGET_PSB) $(TARGET_REG_MATCH) $(TARGET_REG_PARSE) $(TARGET_PSBT_CLASSIFY) $(TARGET_MS_POLICY) $(TARGET_BIP322) $(TARGET_ESTIMATED_ENTROPY) $(TARGET_UTF8) $(TARGET_PIN_ATTEMPT) $(TARGET_KEF) $(TARGET_PSBT_PARSE) $(TARGET_FW_UPDATE) $(TARGET_DESC_VALIDATOR) $(TARGET_STORAGE) $(TARGET_KEY) $(TARGET_CRYPTO_UTILS) $(TARGET_PBKDF2) $(TARGET_BIP138_KEYS) $(TARGET_BIP138_BACKUP) $(TARGET_ANTI_EXFIL_CRYPTO) $(TARGET_ANTI_EXFIL_SEMANTIC) $(TARGET_ANTI_EXFIL_SLOTS) $(TARGET_ANTI_EXFIL_SIGNER) $(TARGET_ANTI_EXFIL_TRANSPORT) $(LIBWALLY) combined.o kern_wally.o secret_alloc.o $(PSBT_KEY_OBJ) $(STORAGE_OBJ) $(PBKDF2_OBJ)
+	rm -f $(TARGET_DERIV) $(TARGET_SS_PARSE) $(TARGET_SS_WHITELISTED) $(TARGET_SS_REGEN) $(TARGET_PSB) $(TARGET_REG_MATCH) $(TARGET_REG_PARSE) $(TARGET_PSBT_CLASSIFY) $(TARGET_MS_POLICY) $(TARGET_BIP322) $(TARGET_ESTIMATED_ENTROPY) $(TARGET_UTF8) $(TARGET_PIN_ATTEMPT) $(TARGET_KEF) $(TARGET_PSBT_PARSE) $(TARGET_FW_UPDATE) $(TARGET_DESC_VALIDATOR) $(TARGET_STORAGE) $(TARGET_KEY) $(TARGET_CRYPTO_UTILS) $(TARGET_PBKDF2) $(TARGET_BIP138_KEYS) $(TARGET_BIP138_BACKUP) $(TARGET_ANTI_EXFIL_CRYPTO) $(TARGET_ANTI_EXFIL_SEMANTIC) $(TARGET_ANTI_EXFIL_SLOTS) $(TARGET_ANTI_EXFIL_SIGNER) $(TARGET_ANTI_EXFIL_TRANSPORT) $(TARGET_ANTI_EXFIL_MEASURE) $(LIBWALLY) combined.o kern_wally.o secret_alloc.o $(PSBT_KEY_OBJ) $(STORAGE_OBJ) $(PBKDF2_OBJ)
 
-.PHONY: all run clean check-anti-exfil-fixtures
+.PHONY: all run clean check-anti-exfil-fixtures measure-anti-exfil

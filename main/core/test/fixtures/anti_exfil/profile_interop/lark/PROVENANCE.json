@@ -1,0 +1,26 @@
+{
+  "adversarial_commit": "10870f77421975cba7c2de8291ce652ae45a0182",
+  "files": {
+    "lark-ae-ecdsa-crypto-v1.json": "c749c6f051f34a95915c00c40362f10bc743e593",
+    "lark-ae-negatives-v1.json": "d9c7ea6ddc96074c7eb4f1eebee7bdbeae2de861",
+    "lark-ae-semantic-transcript-v1.json": "26f229a5ea09e3fe4ac5bd27add3bf3ef93ac066",
+    "negatives/changed-signing-context.psbt.b64": "1fcca56129fa52679875d6962786a9cc7f320535",
+    "negatives/cross-key-signature.psbt.b64": "8ccd5849ee717d677b9b948db5346c7030d09e10",
+    "negatives/duplicate-ae-record.psbt.b64": "0ad90c88ef048ac58066baadd302fe4f0065dee4",
+    "negatives/mutation-outside-allowlist.psbt.b64": "113c832b2c3776beadab6f7d7a14d72e4bfc018c",
+    "negatives/stripped-ae-records.psbt.b64": "29152418fbb21600a76ac20fc67daea3b1d85170",
+    "negatives/unknown-ae-subtype.psbt.b64": "5662abaf396980c76312ac0053492025c69f2421",
+    "negatives/unrelated-valid-signature.psbt.b64": "408df3085b9f702d2d7dc85673a2f4c953f370d6",
+    "transcript/M1-coordinator-to-signer.psbt.b64": "2e6dc9564357a518d9e07a5861c5a118f0460e79",
+    "transcript/M2-signer-to-coordinator.psbt.b64": "6ddabd8d82ca0f0c2b240ddea836a0369d09c4d4",
+    "transcript/M3-coordinator-to-signer.psbt.b64": "345445fbdd5bebc3a674c7b9aaee4f42cb6c694f",
+    "transcript/M4-signer-to-coordinator.psbt.b64": "fdd4d479b2bf174939c6af44ede950a5943479bc"
+  },
+  "notes": [
+    "Blob ids identify the exact upstream Git objects.",
+    "JSON and base64 text use the local repository's line-ending policy; decoded PSBT bytes are pinned separately by SHA-256 and length.",
+    "The vendored checkers are path-adapted copies and are not represented as byte-identical upstream blobs."
+  ],
+  "repository": "https://github.com/bitcoinshooter/lark",
+  "transcript_commit": "8f53be92ca7a49659d852ca58853740ce9a1625b"
+}

@@ -2,10 +2,9 @@
 
 #include <string.h>
 
-static anti_exfil_result_t validate_route(
-    const char *type, const uint8_t *cbor, size_t cbor_len,
-    anti_exfil_network_t expected_network, anti_exfil_stage_t expected_stage,
-    anti_exfil_aext_view_t *view) {
+static anti_exfil_result_t decode_route(const char *type, const uint8_t *cbor,
+                                        size_t cbor_len,
+                                        anti_exfil_aext_view_t *view) {
   if (!view)
     return ANTI_EXFIL_INVALID_MESSAGE;
   memset(view, 0, sizeof(*view));
@@ -17,6 +16,16 @@ static anti_exfil_result_t validate_route(
       cbor, cbor_len, &package, &package_len);
   if (result == ANTI_EXFIL_OK)
     result = anti_exfil_aext_decode(package, package_len, view);
+  if (result != ANTI_EXFIL_OK)
+    memset(view, 0, sizeof(*view));
+  return result;
+}
+
+static anti_exfil_result_t validate_route(
+    const char *type, const uint8_t *cbor, size_t cbor_len,
+    anti_exfil_network_t expected_network, anti_exfil_stage_t expected_stage,
+    anti_exfil_aext_view_t *view) {
+  anti_exfil_result_t result = decode_route(type, cbor, cbor_len, view);
   if (result == ANTI_EXFIL_OK && view->message.network != expected_network)
     result = ANTI_EXFIL_TRANSACTION_MISMATCH;
   if (result == ANTI_EXFIL_OK && view->message.stage != expected_stage)
@@ -24,6 +33,18 @@ static anti_exfil_result_t validate_route(
   if (result != ANTI_EXFIL_OK)
     memset(view, 0, sizeof(*view));
   return result;
+}
+
+anti_exfil_result_t anti_exfil_ur_probe_result(const ur_result_t *result,
+                                               anti_exfil_aext_view_t *view) {
+  if (!result) {
+    if (view)
+      memset(view, 0, sizeof(*view));
+    return ANTI_EXFIL_INVALID_MESSAGE;
+  }
+  if (!view)
+    return ANTI_EXFIL_INVALID_MESSAGE;
+  return decode_route(result->type, result->cbor_data, result->cbor_len, view);
 }
 
 anti_exfil_result_t anti_exfil_ur_decode_result(

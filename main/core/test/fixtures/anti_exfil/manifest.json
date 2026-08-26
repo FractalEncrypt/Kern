@@ -1,7 +1,8 @@
 {
   "complete_ecdsa": {
     "files": {
-      "complete_ecdsa/complete-signature.json": "c2e5e17be80ba942649980b5a49254c07de3db7f381e31617a5330166fa1717b"
+      "complete_ecdsa/complete-signature.json": "c2e5e17be80ba942649980b5a49254c07de3db7f381e31617a5330166fa1717b",
+      "complete_ecdsa/kern-ae-ecdsa-complete-v1.json": "35c3627596271a77d4dcea556665cd5eaabaede99321e2c997b116a8908b797f"
     },
     "semantic_test_input": false
   },
@@ -15,12 +16,41 @@
     "files": {},
     "semantic_test_input": false
   },
+  "profile_interop": {
+    "files": {
+      "profile_interop/kern-multisig-two-signatures-per-input-v1.json": "95f9992179cb1879d7ab2c95a2a817bc2e0d48ade8425c070a4c63c41632c1cf",
+      "profile_interop/lark/PROVENANCE.json": "a4f6b79118148a46f43d9ffffca76be7418a7187db0605d6e8c077ad717479c5",
+      "profile_interop/lark/lark-ae-ecdsa-crypto-v1.json": "c9bb2473782a87a65d7d48be53d8032588d9b73d2f997d32aba0fd5b94361a68",
+      "profile_interop/lark/lark-ae-negatives-v1.json": "88b2cc39d83a106714655e224c4c5b03416c585142f0fe43194e4813f279cd85",
+      "profile_interop/lark/lark-ae-semantic-transcript-v1.json": "19a505eef7f1d6cb020d07f54fc3a1874d08b339a9a110a969a3494c4743b8dd",
+      "profile_interop/lark/negatives/changed-signing-context.psbt.b64": "b427169bdee7ee9965ce519287ddd9f7e36185f873b3a96a644b39f0bf1eb884",
+      "profile_interop/lark/negatives/cross-key-signature.psbt.b64": "6ddcd7bb78f1591267d91f586a71f1428f23c6a691e5a0de86408de459c142fb",
+      "profile_interop/lark/negatives/duplicate-ae-record.psbt.b64": "6c42030b3ad524f692df4e3c5b18596768377cfb88a90e0607b1b33b4ac553aa",
+      "profile_interop/lark/negatives/mutation-outside-allowlist.psbt.b64": "79c9733572a2e21cf466d2416b89425225e208fdf1c7c6ff0c521f4730fbceb8",
+      "profile_interop/lark/negatives/stripped-ae-records.psbt.b64": "ebd45b0fec5b4fa17837608ec7d893c642205c5733a210fe2031da002980187d",
+      "profile_interop/lark/negatives/unknown-ae-subtype.psbt.b64": "f11803d42f2313f603f09929365b12220d3efe42bd87fd3bbbd3dc796a82d7ab",
+      "profile_interop/lark/negatives/unrelated-valid-signature.psbt.b64": "e545fb1a15aec73997c9559ab649d75b28dea903eb1670af572185aa07a3868a",
+      "profile_interop/lark/tools/check_vectors.py": "6fa8169756ce680949d1c787789017ee6d043e385fb64f152a48c9805360df66",
+      "profile_interop/lark/tools/verify_transcript.py": "8fdb7271d00d3b44f3780b5b02896c62dc48c3e977128547eed1d9fb1678a15f",
+      "profile_interop/lark/transcript/M1-coordinator-to-signer.psbt.b64": "782c974876b0aa7f3c1e9e53165dd64b802b42abad5a8f5feec7280942d11de1",
+      "profile_interop/lark/transcript/M2-signer-to-coordinator.psbt.b64": "e492279525e37fc1e168dbc858ea72d95d79cbdf1c8900d337ee7027af3e5b94",
+      "profile_interop/lark/transcript/M3-coordinator-to-signer.psbt.b64": "48c2bba8114e47a8c61ea8b88d5cff828a8de5ee8d99845445debc20f57fb7a5",
+      "profile_interop/lark/transcript/M4-signer-to-coordinator.psbt.b64": "9bd78ecfeda90ad5f79873fe3582fa6f9afa1c392227feaf8711ebdcea203311"
+    },
+    "semantic_test_input": false
+  },
   "semantic_protocol": {
     "files": {
       "semantic_protocol/protocol-v1-negative-vectors.json": "f5b9d3d21210173bb35da0a0de15705b3bc1d3a3d8ab42a14183c2cd7ee97599",
       "semantic_protocol/protocol-v1-semantic-psbt-vector.json": "f28d572d1ae5d2060eeb52ca9814f37ce5d54258811d3af18b78c41744e23a4e"
     },
     "semantic_test_input": true
+  },
+  "signing_context": {
+    "files": {
+      "signing_context/anti-exfil-signing-context-draft-v1.json": "30ea12b5db6a0badef4c2b51379e3f9e5920fc6b2ef7b15e81b6c4184a4200ac"
+    },
+    "semantic_test_input": false
   },
   "transport": {
     "files": {

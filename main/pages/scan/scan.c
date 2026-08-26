@@ -15,6 +15,7 @@
 #include "../../core/message_sign.h"
 #include "../../core/psbt.h"
 #include "../../core/wallet.h"
+#include "../../qr/anti_exfil_ur.h"
 #include "../../qr/encoder.h"
 #include "../../qr/parser.h"
 #include "../../qr/scanner.h"
@@ -53,6 +54,12 @@ void scan_defer_with_progress(const char *title, const char *text,
   scan_ctx.progress_dialog =
       dialog_show_progress(title, text, DIALOG_STYLE_OVERLAY);
   ui_oneshot_start(&deferred_timer, cb, 50);
+}
+
+static void return_from_anti_exfil_scaffold(void *unused) {
+  (void)unused;
+  if (scan_ctx.return_cb)
+    scan_ctx.return_cb();
 }
 
 static void scan_kef_return_cb(void);
@@ -250,7 +257,49 @@ static void process_scan_result(void) {
 
     if (qr_scanner_get_ur_result(&ur_type, &cbor_data, &cbor_len)) {
       // Layer 1: UR type hints
-      if (ur_type && strcmp(ur_type, "crypto-psbt") == 0) {
+      if (ur_type && strcmp(ur_type, ANTI_EXFIL_AEXT_UR_TYPE) == 0) {
+        /*
+         * Classification only. Later integration commits own policy, network,
+         * stage and retry decisions. Consume even malformed protected URs so
+         * they cannot fall through to ordinary PSBT, bytes or text signing.
+         */
+        anti_exfil_aext_view_t *ae_view = calloc(1, sizeof(*ae_view));
+        anti_exfil_result_t ae_result = ANTI_EXFIL_NATIVE_BACKEND;
+        anti_exfil_stage_t ae_stage = 0;
+        if (ae_view) {
+          const ur_result_t result = {
+              .type = (char *)ur_type,
+              .cbor_data = (uint8_t *)cbor_data,
+              .cbor_len = cbor_len,
+          };
+          ae_result = anti_exfil_ur_probe_result(&result, ae_view);
+          if (ae_result == ANTI_EXFIL_OK)
+            ae_stage = ae_view->message.stage;
+          memset(ae_view, 0, sizeof(*ae_view));
+          free(ae_view);
+        }
+        qr_scanner_page_hide();
+        qr_scanner_page_destroy();
+        if (ae_result == ANTI_EXFIL_OK) {
+          const char *stage_name =
+              ae_stage == ANTI_EXFIL_STAGE_HOST_COMMIT
+                  ? "host commitment"
+                  : ae_stage == ANTI_EXFIL_STAGE_HOST_REVEAL
+                        ? "host reveal"
+                        : "non-request stage";
+          char detail[128];
+          snprintf(detail, sizeof(detail),
+                   "Protected %s recognized. Workflow integration is pending.",
+                   stage_name);
+          dialog_show_info("Protected signing", detail,
+                           return_from_anti_exfil_scaffold, NULL,
+                           DIALOG_STYLE_FULLSCREEN);
+        } else {
+          dialog_show_error_timeout("Invalid protected signing request",
+                                    scan_ctx.return_cb, 0);
+        }
+        return;
+      } else if (ur_type && strcmp(ur_type, "crypto-psbt") == 0) {
         // PSBT via UR
         psbt_data_t *psbt_data = psbt_from_cbor(cbor_data, cbor_len);
         if (psbt_data) {

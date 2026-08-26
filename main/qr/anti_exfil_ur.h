@@ -10,6 +10,15 @@
 #define ANTI_EXFIL_UR_MIN_FRAGMENT_LEN 10u
 #define ANTI_EXFIL_UR_MAX_CBOR_LEN UR_MAX_MESSAGE_LEN
 
+/*
+ * Canonically decode an anti-exfil UR without applying workflow policy.
+ * This is the scanner classification boundary: a matching experimental type
+ * is either a valid AEXT view or a terminal protected-transport error and must
+ * never fall through to ordinary PSBT/text dispatch.
+ */
+anti_exfil_result_t anti_exfil_ur_probe_result(const ur_result_t *result,
+                                               anti_exfil_aext_view_t *view);
+
 anti_exfil_result_t anti_exfil_ur_decode_result(
     const ur_result_t *result, anti_exfil_network_t expected_network,
     anti_exfil_stage_t expected_stage, anti_exfil_aext_view_t *view);
