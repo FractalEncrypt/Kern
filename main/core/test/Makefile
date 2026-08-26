@@ -127,7 +127,8 @@ ANTI_EXFIL_MEASURE_DEP = anti_exfil_measurement_vectors.generated.h
 ANTI_EXFIL_TRANSPORT_SRC = ../../qr/anti_exfil_aexb.c \
 	../../qr/anti_exfil_aexb.h ../../qr/anti_exfil_aext.c \
 	../../qr/anti_exfil_aext.h ../../qr/anti_exfil_ur.c \
-	../../qr/anti_exfil_ur.h ../anti_exfil/anti_exfil_types.c \
+	../../qr/anti_exfil_ur.h ../../qr/anti_exfil_request.c \
+	../../qr/anti_exfil_request.h ../anti_exfil/anti_exfil_types.c \
 	../anti_exfil/anti_exfil_types.h ../anti_exfil/anti_exfil_semantic.c \
 	../anti_exfil/anti_exfil_semantic.h \
 	anti_exfil_transport_vectors.generated.h
@@ -206,7 +207,7 @@ $(TARGET_ANTI_EXFIL_SIGNER): check-anti-exfil-fixtures $(SRCS_ANTI_EXFIL_SIGNER)
 	$(CC) $(CFLAGS) $(TEST_INCS) -o $@ $(SRCS_ANTI_EXFIL_SIGNER) ../anti_exfil/anti_exfil_signer.c ../anti_exfil/anti_exfil_slots.c ../anti_exfil/anti_exfil_semantic.c ../anti_exfil/anti_exfil_types.c ../anti_exfil_crypto.c ../key.c ../bip32_path.c $(LIBWALLY)
 
 $(TARGET_ANTI_EXFIL_TRANSPORT): check-anti-exfil-fixtures $(SRCS_ANTI_EXFIL_TRANSPORT) $(ANTI_EXFIL_TRANSPORT_SRC) $(CUR_ENVELOPE_SRC) $(LIBWALLY)
-	$(CC) $(CFLAGS) $(TEST_INCS) -o $@ $(SRCS_ANTI_EXFIL_TRANSPORT) ../../qr/anti_exfil_aexb.c ../../qr/anti_exfil_aext.c ../../qr/anti_exfil_ur.c ../anti_exfil/anti_exfil_types.c ../anti_exfil/anti_exfil_semantic.c $(CUR_ENVELOPE_SRC) $(LIBWALLY)
+	$(CC) $(CFLAGS) $(TEST_INCS) -o $@ $(SRCS_ANTI_EXFIL_TRANSPORT) ../../qr/anti_exfil_aexb.c ../../qr/anti_exfil_aext.c ../../qr/anti_exfil_ur.c ../../qr/anti_exfil_request.c ../anti_exfil/anti_exfil_types.c ../anti_exfil/anti_exfil_semantic.c $(CUR_ENVELOPE_SRC) $(LIBWALLY)
 
 $(TARGET_ANTI_EXFIL_MEASURE): check-anti-exfil-fixtures $(SRCS_ANTI_EXFIL_MEASURE) $(ANTI_EXFIL_MEASURE_DEP) $(ANTI_EXFIL_TRANSPORT_SRC) $(CUR_ENVELOPE_SRC) $(LIBWALLY)
 	$(CC) $(CFLAGS) $(TEST_INCS) -o $@ $(SRCS_ANTI_EXFIL_MEASURE) ../../qr/anti_exfil_aexb.c ../../qr/anti_exfil_aext.c ../../qr/anti_exfil_ur.c ../anti_exfil/anti_exfil_types.c ../anti_exfil/anti_exfil_semantic.c $(CUR_ENVELOPE_SRC) $(LIBWALLY)

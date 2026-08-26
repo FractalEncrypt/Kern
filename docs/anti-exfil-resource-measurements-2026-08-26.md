@@ -27,13 +27,45 @@ percent completion independently of anti-exfil policy.
 
 The measured host sizes are 30,296 bytes for `anti_exfil_message_t` and 30,312
 bytes for `anti_exfil_aext_view_t`. These records must remain in static or heap
-storage, never an ESP-IDF task stack. The scanner classification scaffold uses
-heap storage and wipes it before release.
+storage, never an ESP-IDF task stack. The scanner handoff uses heap storage,
+retains an exact copy of the canonical CBOR while its decoded PSBT view is live,
+and wipes both allocations before release.
+
+## Device measurement hook
+
+Each recognized `x-btc-anti-exfil` scan now emits one
+`ANTI_EXFIL_MEASURE` log line containing:
+
+- canonical CBOR bytes and retained payload bytes;
+- free 8-bit heap immediately before the owned copy;
+- free heap after the copy and canonical re-decode;
+- free heap after camera/scanner teardown; and
+- the device's minimum free 8-bit heap watermark.
+
+Capture the line for stage 1 and stage 3 at both 150- and 200-byte fragment
+maxima. The simulator's heap values are fixed stubs and must not be recorded as
+physical evidence. This hook measures the high-pressure scanner-to-workflow
+handoff without selecting a network, stage, retry, or coverage policy.
+
+The measurement binary can emit the actual first fountain window for every
+stage, ready for QR rendering or a coordinator display harness:
+
+```text
+cd main/core/test
+./measure_anti_exfil_transport --emit 150
+./measure_anti_exfil_transport --emit 200
+```
+
+Each line identifies `stage`, `part/current-window-size`, and the complete UR.
+Use the stage 1 and stage 3 lines for signer-side camera measurements. Stages 2
+and 4 remain available to confirm that scanner ownership is carriage-neutral;
+their presence does not make them acceptable signing requests.
 
 ## Physical measurements still required
 
-- minimum free heap and largest free block before scan, after reconstruction,
-  after PSBT parse, after signer output, and after cleanup;
+- largest free block before scan, after reconstruction, after PSBT parse, after
+  signer output, and after cleanup (free/minimum heap at the scanner handoff is
+  now logged automatically);
 - QR decoder task stack high-water mark;
 - decode time and extra fountain frames at 150- and 200-byte fragment maxima;
 - bright/dim room scan distance, glare, display brightness, and frame rate;

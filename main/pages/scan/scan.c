@@ -15,7 +15,7 @@
 #include "../../core/settings.h"
 #include "../../core/storage.h"
 #include "../../core/wallet.h"
-#include "../../qr/anti_exfil_ur.h"
+#include "../../qr/anti_exfil_request.h"
 #include "../../qr/encoder.h"
 #include "../../qr/parser.h"
 #include "../../qr/scanner.h"
@@ -32,6 +32,7 @@
 #include "../shared/kef_decrypt_page.h"
 #include "psbt_sign_policy.h"
 #include "sd_card.h"
+#include <esp_heap_caps.h>
 #include <esp_log.h>
 #include <inttypes.h>
 #include <lvgl.h>
@@ -128,9 +129,11 @@ static void (*return_callback)(void) = NULL;
 // send back-outs to the browser but completed flows back to home.
 static void (*complete_callback)(void) = NULL;
 static void (*saved_return_callback)(void) = NULL;
+static anti_exfil_request_t *current_anti_exfil_request = NULL;
 
 static void return_from_anti_exfil_scaffold(void *unused) {
   (void)unused;
+  anti_exfil_request_destroy(&current_anti_exfil_request);
   if (return_callback)
     return_callback();
 }
@@ -569,43 +572,51 @@ static void process_scan_result(void) {
       // Layer 1: UR type hints
       if (ur_type && strcmp(ur_type, ANTI_EXFIL_AEXT_UR_TYPE) == 0) {
         /*
-         * Classification only. M6 will own setting/network/stage/retry policy
-         * and protected dispatch. A recognized anti-exfil type is consumed
-         * here even when malformed so it can never fall through to ordinary
-         * PSBT, bytes, or text signing.
+         * Classification and lifetime handoff only. M6 will own
+         * setting/network/stage/retry policy and protected signing dispatch.
+         * A recognized anti-exfil type is consumed here even when malformed so
+         * it can never fall through to ordinary PSBT, bytes, or text signing.
          */
-        anti_exfil_aext_view_t *ae_view = calloc(1, sizeof(*ae_view));
-        anti_exfil_result_t ae_result = ANTI_EXFIL_NATIVE_BACKEND;
-        anti_exfil_stage_t ae_stage = 0;
-        if (ae_view) {
-          const ur_result_t result = {
-              .type = (char *)ur_type,
-              .cbor_data = (uint8_t *)cbor_data,
-              .cbor_len = cbor_len,
-          };
-          ae_result = anti_exfil_ur_probe_result(&result, ae_view);
-          if (ae_result == ANTI_EXFIL_OK)
-            ae_stage = ae_view->message.stage;
-          memset(ae_view, 0, sizeof(*ae_view));
-          free(ae_view);
-        }
+        const size_t heap_before =
+            heap_caps_get_free_size(MALLOC_CAP_8BIT);
+        const ur_result_t result = {
+            .type = (char *)ur_type,
+            .cbor_data = (uint8_t *)cbor_data,
+            .cbor_len = cbor_len,
+        };
+        anti_exfil_request_destroy(&current_anti_exfil_request);
+        anti_exfil_result_t ae_result = anti_exfil_request_create(
+            &result, &current_anti_exfil_request);
+        const size_t heap_after_copy =
+            heap_caps_get_free_size(MALLOC_CAP_8BIT);
+        const anti_exfil_aext_view_t *ae_view =
+            anti_exfil_request_view(current_anti_exfil_request);
+        const size_t retained = anti_exfil_request_retained_bytes(
+            current_anti_exfil_request);
         qr_scanner_page_hide();
         qr_scanner_page_destroy();
+        const size_t heap_after_camera_stop =
+            heap_caps_get_free_size(MALLOC_CAP_8BIT);
+        ESP_LOGI("ANTI_EXFIL_MEASURE",
+                 "cbor=%u retained=%u heap_before=%u heap_after_copy=%u "
+                 "heap_after_camera_stop=%u min_free=%u",
+                 (unsigned)cbor_len, (unsigned)retained,
+                 (unsigned)heap_before, (unsigned)heap_after_copy,
+                 (unsigned)heap_after_camera_stop,
+                 (unsigned)heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT));
         if (ae_result == ANTI_EXFIL_OK) {
-          const char *stage_name =
-              ae_stage == ANTI_EXFIL_STAGE_HOST_COMMIT
-                  ? "host commitment"
-                  : ae_stage == ANTI_EXFIL_STAGE_HOST_REVEAL
-                        ? "host reveal"
-                        : "non-request stage";
-          char detail[128];
+          char detail[160];
           snprintf(detail, sizeof(detail),
-                   "Protected %s recognized. Workflow integration is pending.",
-                   stage_name);
+                   "Stage %u, %u signing slots, %u PSBT bytes. Protected "
+                   "review integration is pending.",
+                   (unsigned)ae_view->message.stage,
+                   (unsigned)ae_view->message.slot_count,
+                   (unsigned)ae_view->psbt_len);
           dialog_show_info("Protected signing", detail,
                            return_from_anti_exfil_scaffold, NULL,
                            DIALOG_STYLE_FULLSCREEN);
         } else {
+          anti_exfil_request_destroy(&current_anti_exfil_request);
           dialog_show_error_timeout("Invalid protected signing request",
                                     return_callback, 0);
         }
@@ -2247,6 +2258,7 @@ void scan_page_destroy(void) {
   address_checker_destroy();
 
   cleanup_psbt_data();
+  anti_exfil_request_destroy(&current_anti_exfil_request);
 
   SECURE_FREE_STRING(scanned_mnemonic);
 

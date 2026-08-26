@@ -30,6 +30,10 @@ digest, ordered slot set, commitments, openings, reveals, and compact signatures
   no PSBT.
 - The AEXT adapter passes the original decoded PSBT byte view to the signer. It
   must never parse and reserialize those bytes before the M3 digest check.
+- Scanner dispatch copies the canonical CBOR once into an opaque owned request
+  before camera teardown and re-decodes the AEXT view against that allocation.
+  The PSBT pointer therefore remains a view into the exact retained transport
+  bytes for the full handoff lifetime; destroy wipes the record and byte copy.
 - Wrong UR type, active network, expected stage, outer/inner identity, PSBT
   presence, length, digest, or canonical encoding fails without a fallback into
   ordinary PSBT or text handling.

@@ -5,6 +5,7 @@
 #include "anti_exfil_transport_vectors.generated.h"
 #include "qr/anti_exfil_aexb.h"
 #include "qr/anti_exfil_aext.h"
+#include "qr/anti_exfil_request.h"
 #include "qr/anti_exfil_ur.h"
 
 static anti_exfil_message_t message;
@@ -115,7 +116,41 @@ static void test_fixture(const anti_exfil_transport_fixture_t *fixture) {
   CHECK("decode and route complete pinned UR fountain window",
         decoder_state == UR_DECODER_OK && result == ANTI_EXFIL_OK &&
             view.message.stage == fixture->stage);
+
+  anti_exfil_request_t *request = NULL;
+  result = anti_exfil_request_create(ur_result, &request);
+  size_t owned_cbor_len = 0;
+  const uint8_t *owned_cbor =
+      anti_exfil_request_cbor(request, &owned_cbor_len);
+  const anti_exfil_aext_view_t *owned_view =
+      anti_exfil_request_view(request);
+  CHECK("retain byte-exact canonical CBOR outside scanner",
+        result == ANTI_EXFIL_OK && request && owned_cbor &&
+            owned_cbor_len == fixture->cbor_len &&
+            memcmp(owned_cbor, fixture->cbor, fixture->cbor_len) == 0);
+  const uintptr_t owned_start = (uintptr_t)owned_cbor;
+  const uintptr_t owned_end = owned_start + owned_cbor_len;
+  const uintptr_t psbt_start =
+      owned_view ? (uintptr_t)owned_view->psbt : 0;
+  const uintptr_t psbt_end =
+      owned_view ? psbt_start + owned_view->psbt_len : 0;
+  const int expects_psbt =
+      fixture->stage == ANTI_EXFIL_STAGE_HOST_COMMIT ||
+      fixture->stage == ANTI_EXFIL_STAGE_HOST_REVEAL;
+  CHECK("owned PSBT view follows stage-neutral carriage",
+        owned_view &&
+            (expects_psbt ? owned_view->psbt && psbt_start >= owned_start &&
+                                psbt_end <= owned_end
+                          : !owned_view->psbt && owned_view->psbt_len == 0));
   ur_decoder_free(decoder);
+  CHECK("owned request survives scanner decoder destruction",
+        owned_cbor && owned_view &&
+            owned_view->message.stage == fixture->stage &&
+            memcmp(owned_cbor, fixture->cbor, fixture->cbor_len) == 0 &&
+            anti_exfil_request_retained_bytes(request) >=
+                owned_cbor_len + sizeof(view));
+  anti_exfil_request_destroy(&request);
+  CHECK("owned request destroy clears owner", request == NULL);
 }
 
 int main(void) {
@@ -219,6 +254,20 @@ int main(void) {
         anti_exfil_ur_probe_result(&wrong_type, &view) ==
                 ANTI_EXFIL_INVALID_MESSAGE &&
             all_zero(&view, sizeof(view)));
+
+  anti_exfil_request_t *request = (anti_exfil_request_t *)(uintptr_t)1;
+  anti_exfil_result_t owned_result =
+      anti_exfil_request_create(&wrong_type, &request);
+  CHECK("owned request rejects wrong type atomically",
+        owned_result == ANTI_EXFIL_INVALID_MESSAGE && request == NULL);
+
+  ur_result_t oversized_request = routed;
+  oversized_request.cbor_len = ANTI_EXFIL_UR_MAX_CBOR_LEN + 1;
+  request = (anti_exfil_request_t *)(uintptr_t)1;
+  owned_result = anti_exfil_request_create(&oversized_request, &request);
+  CHECK("owned request enforces size limit before allocation",
+        owned_result == ANTI_EXFIL_SIZE_LIMIT && request == NULL);
+
   CHECK("reject wrong active network at UR route",
         anti_exfil_ur_decode_result(&routed, ANTI_EXFIL_NETWORK_SIGNET,
                                     ANTI_EXFIL_STAGE_HOST_COMMIT, &view) ==
