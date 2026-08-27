@@ -36,6 +36,10 @@ static const char *EXPECTED_OWNED_HELP =
     "re-derived from the keypath. The device trusts the PSBT's keypath "
     "claim without cryptographic verification -- risky if your coordinator "
     "is compromised. Default off -- safer.";
+static const char *ANTI_EXFIL_HELP =
+    "Experimental testnet-only protected signing. Uses two QR exchanges so "
+    "the coordinator contributes randomness to every Kern signature. "
+    "Default off.";
 
 static lv_obj_t *wallet_settings_screen = NULL;
 static lv_obj_t *back_button = NULL;
@@ -113,6 +117,12 @@ static void expected_owned_signing_cb(lv_event_t *e) {
 static void partial_signing_cb(lv_event_t *e) {
   lv_obj_t *target = lv_event_get_target(e);
   settings_set_partial_signing(lv_obj_has_state(target, LV_STATE_CHECKED));
+}
+
+static void anti_exfil_signing_cb(lv_event_t *e) {
+  lv_obj_t *target = lv_event_get_target(e);
+  settings_set_anti_exfil_signing(
+      lv_obj_has_state(target, LV_STATE_CHECKED));
 }
 
 static void refresh_fingerprint_display(void) {
@@ -260,6 +270,11 @@ void wallet_settings_page_create(lv_obj_t *parent, void (*return_cb)(void)) {
   settings_row_toggle(
       content, "Expected-owned signing", settings_get_expected_owned_signing(),
       expected_owned_signing_cb, "Expected-owned signing", EXPECTED_OWNED_HELP);
+
+  settings_row_toggle(content, "Anti-exfil signing",
+                      settings_get_anti_exfil_signing(),
+                      anti_exfil_signing_cb, "Anti-exfil signing",
+                      ANTI_EXFIL_HELP);
 
   /* Session Descriptors moved into the Descriptors sub-page
    * (descriptor_manager_page). This page is one level shallower. */

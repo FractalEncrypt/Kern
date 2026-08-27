@@ -509,3 +509,31 @@ target_link_libraries(kern_sim_storage_smoke PRIVATE
 
 enable_testing()
 add_test(NAME storage_smoke COMMAND kern_sim_storage_smoke)
+
+add_executable(kern_sim_settings_smoke
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/settings_smoke.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../main/core/settings.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/esp_idf_stubs/nvs_sim.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/esp_idf_stubs/stubs.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/esp_idf_stubs/sim_flash.c
+)
+
+target_include_directories(kern_sim_settings_smoke PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/esp_idf_stubs/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform
+    ${CMAKE_CURRENT_SOURCE_DIR}/../main
+)
+
+target_compile_definitions(kern_sim_settings_smoke PRIVATE
+    SIMULATOR=1
+)
+
+target_compile_options(kern_sim_settings_smoke PRIVATE
+    -Wall -Wextra
+)
+
+target_link_libraries(kern_sim_settings_smoke PRIVATE
+    m
+)
+
+add_test(NAME settings_smoke COMMAND kern_sim_settings_smoke)
