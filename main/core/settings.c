@@ -20,6 +20,7 @@ static const char *KEY_QR_FPS = "qr_fps";
 static const char *KEY_PERMISSIVE_SIGNING = "perm_sign";
 static const char *KEY_PARTIAL_SIGNING = "part_sign";
 static const char *KEY_EXPECTED_OWNED_SIGNING = "exp_own_sign";
+static const char *KEY_ANTI_EXFIL_SIGNING = "ae_sign";
 static const char *KEY_SCREENSAVER = "scrn_svr";
 static const char *KEY_SESSION_TIMEOUT = "sess_tout";
 static const char *KEY_DISCLAIMER_VERSION = "disc_ver";
@@ -227,6 +228,14 @@ bool settings_get_expected_owned_signing(void) {
 
 esp_err_t settings_set_expected_owned_signing(bool enabled) {
   return settings_set_bool_and_commit(KEY_EXPECTED_OWNED_SIGNING, enabled);
+}
+
+bool settings_get_anti_exfil_signing(void) {
+  return settings_get_bool_or_default(KEY_ANTI_EXFIL_SIGNING, false);
+}
+
+esp_err_t settings_set_anti_exfil_signing(bool enabled) {
+  return settings_set_bool_and_commit(KEY_ANTI_EXFIL_SIGNING, enabled);
 }
 
 uint16_t settings_get_screensaver_timeout(void) {
