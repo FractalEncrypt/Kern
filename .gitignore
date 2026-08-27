@@ -45,6 +45,7 @@ main/core/test/test_estimated_entropy
 main/core/test/combined.o
 main/core/test/libwally.a
 main/core/test/test_anti_exfil_*
+!main/core/test/test_anti_exfil_*.c
 main/core/test/measure_anti_exfil_transport
 main/core/test/physical_qr_output/
 

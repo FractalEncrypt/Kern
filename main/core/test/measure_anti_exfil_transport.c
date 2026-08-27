@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "anti_exfil_measurement_vectors.generated.h"
+#include "core/anti_exfil/anti_exfil_slots.h"
 #include "qr/anti_exfil_ur.h"
 
 static anti_exfil_aext_view_t scratch;
@@ -54,6 +55,10 @@ int main(int argc, char **argv) {
 
   static const size_t fragment_lengths[] = {30, 50, 100, 150, 200, 250};
   printf("# sizeof_anti_exfil_message=%zu\n", sizeof(anti_exfil_message_t));
+  printf("# sizeof_anti_exfil_slot_set=%zu\n",
+         sizeof(anti_exfil_slot_set_t));
+  printf("# signer_work_records=%zu\n",
+         sizeof(anti_exfil_message_t) + sizeof(anti_exfil_slot_set_t));
   printf("# sizeof_anti_exfil_aext_view=%zu\n", sizeof(anti_exfil_aext_view_t));
   puts("stage,cbor_bytes,max_fragment_bytes,source_parts,max_ur_chars");
   for (size_t i = 0;

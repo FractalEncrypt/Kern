@@ -333,6 +333,7 @@ set(QR_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../main/qr/anti_exfil_aext.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../main/qr/anti_exfil_ur.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../main/qr/anti_exfil_request.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../main/qr/anti_exfil_response.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../main/qr/encoder.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../main/qr/parser.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../main/qr/viewer.c
