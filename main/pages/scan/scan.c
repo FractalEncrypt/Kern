@@ -9,16 +9,20 @@
 #include "scan.h"
 #include "../../../components/cUR/src/types/bytes_type.h"
 #include "../../../components/cUR/src/types/psbt.h"
+#include "../../core/anti_exfil/anti_exfil_signer.h"
 #include "../../core/bip322.h"
 #include "../../core/kef.h"
 #include "../../core/key.h"
 #include "../../core/message_sign.h"
 #include "../../core/psbt.h"
+#include "../../core/settings.h"
 #include "../../core/wallet.h"
 #include "../../qr/anti_exfil_request.h"
+#include "../../qr/anti_exfil_response.h"
 #include "../../qr/encoder.h"
 #include "../../qr/parser.h"
 #include "../../qr/scanner.h"
+#include "../../qr/viewer.h"
 #include "../../ui/dialog.h"
 #include "../../ui/oneshot.h"
 #include "../../ui/theme_widgets.h"
@@ -60,6 +64,7 @@ void scan_defer_with_progress(const char *title, const char *text,
 }
 
 static anti_exfil_request_t *current_anti_exfil_request = NULL;
+static bool anti_exfil_review_active = false;
 
 static void return_from_anti_exfil_scaffold(void *unused) {
   (void)unused;
@@ -130,6 +135,16 @@ void scan_dismiss_progress(void) {
   }
 }
 
+bool scan_anti_exfil_review_active(void) {
+  return anti_exfil_review_active;
+}
+
+static void policy_reject_dismissed_cb(void *unused) {
+  (void)unused;
+  if (scan_ctx.return_cb)
+    scan_ctx.return_cb();
+}
+
 // Classify an already-assembled blob and route it to the matching review
 // screen. Shared by the QR scanner and the SD-card loader, so it must not touch
 // any qr_scanner_page_* state — the caller tears the scanner down first. Takes
@@ -138,6 +153,7 @@ void scan_dismiss_progress(void) {
 static void finish_dispatch(char *qr_content, size_t qr_content_len,
                             bool parse_success, int detected_format) {
   scan_ctx.is_message_sign = false;
+  anti_exfil_review_active = false;
 
   // Layer 2: plaintext/binary heuristics — try each parser in priority order
   if (!parse_success && qr_content) {
@@ -240,6 +256,15 @@ static void finish_dispatch(char *qr_content, size_t qr_content_len,
         return;
       }
 
+      if (settings_get_anti_exfil_signing()) {
+        dialog_show_info(
+            "Protected signing required",
+            "Anti-exfil signing is enabled. Scan an x-btc-anti-exfil "
+            "protected request instead of an ordinary transaction PSBT.",
+            policy_reject_dismissed_cb, NULL, DIALOG_STYLE_FULLSCREEN);
+        return;
+      }
+
       scan_psbt_resume_review(true);
     }
   } else {
@@ -264,12 +289,9 @@ static void process_scan_result(void) {
     if (qr_scanner_get_ur_result(&ur_type, &cbor_data, &cbor_len)) {
       // Layer 1: UR type hints
       if (ur_type && strcmp(ur_type, ANTI_EXFIL_AEXT_UR_TYPE) == 0) {
-        /*
-         * Classification and lifetime handoff only. M6 will own
-         * setting/network/stage/retry policy and protected signing dispatch.
-         * A recognized anti-exfil type is consumed here even when malformed so
-         * it can never fall through to ordinary PSBT, bytes, or text signing.
-         */
+        /* A recognized protected type is consumed even when malformed,
+         * disabled, or unsupported so it can never fall through to ordinary
+         * PSBT, bytes, or text signing. */
         const size_t heap_before =
             heap_caps_get_free_size(MALLOC_CAP_8BIT);
         const ur_result_t result = {
@@ -297,22 +319,81 @@ static void process_scan_result(void) {
                  (unsigned)heap_before, (unsigned)heap_after_copy,
                  (unsigned)heap_after_camera_stop,
                  (unsigned)heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT));
-        if (ae_result == ANTI_EXFIL_OK) {
-          char detail[160];
-          snprintf(detail, sizeof(detail),
-                   "Stage %u, %u signing slots, %u PSBT bytes. Protected "
-                   "review integration is pending.",
-                   (unsigned)ae_view->message.stage,
-                   (unsigned)ae_view->message.slot_count,
-                   (unsigned)ae_view->psbt_len);
-          dialog_show_info("Protected signing", detail,
-                           return_from_anti_exfil_scaffold, NULL,
-                           DIALOG_STYLE_FULLSCREEN);
-        } else {
+        if (ae_result != ANTI_EXFIL_OK) {
           anti_exfil_request_destroy(&current_anti_exfil_request);
           dialog_show_error_timeout("Invalid protected signing request",
                                     scan_ctx.return_cb, 0);
+          return;
         }
+
+        if (!settings_get_anti_exfil_signing()) {
+          dialog_show_info(
+              "Protected signing is disabled",
+              "Enable Anti-exfil signing in Wallet Settings before scanning "
+              "this protected request.",
+              return_from_anti_exfil_scaffold, NULL, DIALOG_STYLE_FULLSCREEN);
+          return;
+        }
+        if (wallet_get_network() != WALLET_NETWORK_TESTNET ||
+            ae_view->message.network == ANTI_EXFIL_NETWORK_MAINNET) {
+          dialog_show_info(
+              "Protected request rejected",
+              "Experimental anti-exfil signing is currently testnet-only.",
+              return_from_anti_exfil_scaffold, NULL, DIALOG_STYLE_FULLSCREEN);
+          return;
+        }
+        if (ae_view->message.stage == ANTI_EXFIL_STAGE_HOST_REVEAL) {
+          dialog_show_info(
+              "Protected signing step 2",
+              "Host-reveal signing remains disabled until its independent "
+              "approval and continuation checks are integrated.",
+              return_from_anti_exfil_scaffold, NULL, DIALOG_STYLE_FULLSCREEN);
+          return;
+        }
+        if (ae_view->message.stage != ANTI_EXFIL_STAGE_HOST_COMMIT) {
+          anti_exfil_request_destroy(&current_anti_exfil_request);
+          dialog_show_error_timeout("Wrong protected signing stage",
+                                    scan_ctx.return_cb, 0);
+          return;
+        }
+
+        anti_exfil_slot_set_t *preflight = calloc(1, sizeof(*preflight));
+        if (!preflight) {
+          anti_exfil_request_destroy(&current_anti_exfil_request);
+          dialog_show_error_timeout("Out of memory", scan_ctx.return_cb, 0);
+          return;
+        }
+        ae_result = anti_exfil_signer_preflight(
+            &ae_view->message, ae_view->psbt, ae_view->psbt_len, preflight);
+        secure_memzero(preflight, sizeof(*preflight));
+        free(preflight);
+        if (ae_result != ANTI_EXFIL_OK) {
+          char detail[128];
+          snprintf(detail, sizeof(detail), "Protected preflight failed: %s",
+                   anti_exfil_result_name(ae_result));
+          anti_exfil_request_destroy(&current_anti_exfil_request);
+          dialog_show_error_timeout(detail, scan_ctx.return_cb, 0);
+          return;
+        }
+
+        scan_psbt_cleanup();
+        if (wally_psbt_from_bytes(ae_view->psbt, ae_view->psbt_len, 0,
+                                  &scan_ctx.psbt) != WALLY_OK) {
+          anti_exfil_request_destroy(&current_anti_exfil_request);
+          dialog_show_error_timeout("Invalid protected PSBT",
+                                    scan_ctx.return_cb, 0);
+          return;
+        }
+        scan_ctx.is_testnet = psbt_detect_network(scan_ctx.psbt);
+        if (!scan_ctx.is_testnet) {
+          scan_psbt_cleanup();
+          anti_exfil_request_destroy(&current_anti_exfil_request);
+          dialog_show_error_timeout("Protected PSBT is not testnet",
+                                    scan_ctx.return_cb, 0);
+          return;
+        }
+        anti_exfil_review_active = true;
+        scan_psbt_resume_review(true);
         return;
       } else if (ur_type && strcmp(ur_type, "crypto-psbt") == 0) {
         // PSBT via UR
@@ -397,6 +478,129 @@ static void deferred_scan_process_cb(lv_timer_t *timer) {
   (void)timer;
   process_scan_result();
   scan_dismiss_progress();
+}
+
+static void free_anti_exfil_parts(char **parts, size_t part_count) {
+  if (!parts)
+    return;
+  for (size_t i = 0; i < part_count; ++i)
+    free(parts[i]);
+  free(parts);
+}
+
+static void anti_exfil_round_one_done_cb(void *unused) {
+  (void)unused;
+  if (scan_ctx.saved_return_cb) {
+    void (*callback)(void) = scan_ctx.saved_return_cb;
+    scan_ctx.saved_return_cb = NULL;
+    callback();
+  }
+}
+
+static void return_from_anti_exfil_response_viewer(void) {
+  ESP_LOGI("ANTI_EXFIL_MEASURE",
+           "ui_phase=viewer_destroy_entry free=%u largest=%u min_free=%u",
+           (unsigned)heap_caps_get_free_size(MALLOC_CAP_8BIT),
+           (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT),
+           (unsigned)heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT));
+  qr_viewer_page_destroy();
+  ESP_LOGI("ANTI_EXFIL_MEASURE",
+           "ui_phase=viewer_destroyed free=%u largest=%u min_free=%u",
+           (unsigned)heap_caps_get_free_size(MALLOC_CAP_8BIT),
+           (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT),
+           (unsigned)heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT));
+  dialog_show_info(
+      "Protected signing",
+      "Step 1 of 2 complete.\n\nThe transaction is not signed. Scan this "
+      "response in the coordinator. Host-reveal continuation remains "
+      "fail-closed in this checkpoint.",
+      anti_exfil_round_one_done_cb, NULL, DIALOG_STYLE_FULLSCREEN);
+}
+
+static void deferred_anti_exfil_prepare_cb(lv_timer_t *timer) {
+  (void)timer;
+  const anti_exfil_aext_view_t *request_view =
+      anti_exfil_request_view(current_anti_exfil_request);
+  if (!anti_exfil_review_active || !request_view ||
+      request_view->message.stage != ANTI_EXFIL_STAGE_HOST_COMMIT ||
+      !settings_get_anti_exfil_signing() ||
+      wallet_get_network() != WALLET_NETWORK_TESTNET) {
+    scan_dismiss_progress();
+    dialog_show_error_timeout("Protected signing state changed", NULL, 0);
+    return;
+  }
+
+  size_t max_fragment_len = 10;
+  const uint16_t density = settings_get_qr_density();
+  if (density > 30)
+    max_fragment_len = (density - 30) / 2;
+
+  anti_exfil_response_t *response = NULL;
+  anti_exfil_result_t result = anti_exfil_response_create(
+      current_anti_exfil_request, max_fragment_len, &response);
+  if (result != ANTI_EXFIL_OK) {
+    scan_dismiss_progress();
+    char detail[128];
+    snprintf(detail, sizeof(detail), "Protected signing failed: %s",
+             anti_exfil_result_name(result));
+    dialog_show_error_timeout(detail, NULL, 0);
+    return;
+  }
+
+  size_t source_parts = anti_exfil_response_ur_part_count(response);
+  size_t part_count = source_parts * 2;
+  if (part_count == 0)
+    part_count = 1;
+  if (part_count > QR_VIEWER_MAX_PARTS)
+    part_count = QR_VIEWER_MAX_PARTS;
+  char **parts = calloc(part_count, sizeof(*parts));
+  if (!parts) {
+    anti_exfil_response_destroy(&response);
+    scan_dismiss_progress();
+    dialog_show_error_timeout("Out of memory", NULL, 0);
+    return;
+  }
+  for (size_t i = 0; i < part_count; ++i) {
+    result = anti_exfil_response_next_part(response, &parts[i]);
+    if (result != ANTI_EXFIL_OK)
+      break;
+  }
+
+  bool viewer_created =
+      result == ANTI_EXFIL_OK &&
+      qr_viewer_page_create_parts(
+          lv_screen_active(), (const char *const *)parts, part_count,
+          "Nonce commitments", return_from_anti_exfil_response_viewer);
+  free_anti_exfil_parts(parts, part_count);
+  anti_exfil_response_destroy(&response);
+  scan_dismiss_progress();
+  if (!viewer_created) {
+    dialog_show_error_timeout("Failed to create protected response QR", NULL,
+                              0);
+    return;
+  }
+
+  ESP_LOGI("ANTI_EXFIL_MEASURE",
+           "ui_phase=viewer_ready free=%u largest=%u min_free=%u",
+           (unsigned)heap_caps_get_free_size(MALLOC_CAP_8BIT),
+           (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT),
+           (unsigned)heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT));
+
+  scan_ctx.saved_return_cb =
+      scan_ctx.complete_cb ? scan_ctx.complete_cb : scan_ctx.return_cb;
+  scan_page_destroy();
+  qr_viewer_page_show();
+}
+
+void scan_anti_exfil_approve_button_cb(lv_event_t *e) {
+  (void)e;
+  if (!anti_exfil_review_active || !current_anti_exfil_request) {
+    dialog_show_error_timeout("No protected request loaded", NULL, 2000);
+    return;
+  }
+  scan_defer_with_progress("Protected signing",
+                           "Creating nonce commitments...",
+                           deferred_anti_exfil_prepare_cb);
 }
 
 static void return_from_qr_scanner_cb(void) {
@@ -587,6 +791,7 @@ void scan_page_destroy(void) {
 
   scan_psbt_cleanup();
   anti_exfil_request_destroy(&current_anti_exfil_request);
+  anti_exfil_review_active = false;
 
   SECURE_FREE_STRING(scan_ctx.scanned_mnemonic);
 

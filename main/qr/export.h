@@ -8,6 +8,9 @@
 // Content is borrowed and must remain valid until qr_export_free().
 typedef struct qr_export qr_export_t;
 qr_export_t *qr_export_create(int format, const char *content, size_t density);
+// Copies an already encoded ordered animation.
+qr_export_t *qr_export_create_parts(const char *const *parts,
+                                    size_t part_count);
 void qr_export_free(qr_export_t *export);
 size_t qr_export_part_count(const qr_export_t *export);
 bool qr_export_is_fountain(const qr_export_t *export);

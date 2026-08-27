@@ -41,6 +41,8 @@ static lv_timer_t *message_timer;
 static lv_timer_t *animation_timer;
 static void (*return_callback)(void);
 static char *qr_content_copy;
+static char **qr_parts_copy;
+static size_t qr_parts_count;
 static int qr_source_format;
 static bool paused;
 static uint16_t qr_density = QR_DENSITY_DEFAULT;
@@ -219,7 +221,11 @@ static export_view_t *prepare_view(uint16_t density) {
   export_view_t *v = calloc(1, sizeof(*v));
   if (!v)
     return NULL;
-  v->source = qr_export_create(qr_source_format, qr_content_copy, density);
+  v->source = qr_parts_copy
+                  ? qr_export_create_parts((const char *const *)qr_parts_copy,
+                                           qr_parts_count)
+                  : qr_export_create(qr_source_format, qr_content_copy,
+                                     density);
   if (!v->source)
     goto fail;
   const char *first = qr_export_frame(v->source, 0);
@@ -611,6 +617,42 @@ bool qr_viewer_page_create_with_format(lv_obj_t *parent, int qr_format,
   return true;
 }
 
+bool qr_viewer_page_create_parts(lv_obj_t *parent,
+                                 const char *const *parts,
+                                 size_t part_count, const char *title,
+                                 void (*return_cb)(void)) {
+  if (!parent || !parts || part_count == 0 ||
+      part_count > QR_VIEWER_MAX_PARTS)
+    return false;
+
+  char **copy = calloc(part_count, sizeof(*copy));
+  if (!copy)
+    return false;
+  for (size_t i = 0; i < part_count; ++i) {
+    if (!parts[i] || !*parts[i] || !(copy[i] = strdup(parts[i]))) {
+      for (size_t j = 0; j < part_count; ++j)
+        free(copy[j]);
+      free(copy);
+      return false;
+    }
+  }
+
+  qr_viewer_page_destroy();
+  session_cleanup_register(qr_viewer_page_destroy);
+  qr_parts_copy = copy;
+  qr_parts_count = part_count;
+  qr_source_format = FORMAT_NONE;
+  qr_density = settings_get_qr_density();
+  qr_shade = settings_get_qr_shade();
+  qr_fps = settings_get_qr_fps();
+  return_callback = return_cb;
+  if (!setup_qr_viewer_ui(parent, title)) {
+    qr_viewer_page_destroy();
+    return false;
+  }
+  return true;
+}
+
 void qr_viewer_page_create(lv_obj_t *parent, const char *content,
                            const char *title, void (*return_cb)(void)) {
   if (!qr_viewer_page_create_with_format(parent, FORMAT_NONE, content, title,
@@ -686,6 +728,13 @@ void qr_viewer_page_destroy(void) {
   view = NULL;
   free(qr_content_copy);
   qr_content_copy = NULL;
+  if (qr_parts_copy) {
+    for (size_t i = 0; i < qr_parts_count; ++i)
+      free(qr_parts_copy[i]);
+    free(qr_parts_copy);
+  }
+  qr_parts_copy = NULL;
+  qr_parts_count = 0;
   if (qr_viewer_screen)
     lv_obj_del(qr_viewer_screen);
   qr_viewer_screen = NULL;

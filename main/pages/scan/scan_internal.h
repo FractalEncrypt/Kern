@@ -58,9 +58,12 @@ extern scan_ctx_t scan_ctx;
 void scan_dismiss_progress(void);
 void scan_defer_with_progress(const char *title, const char *text,
                               lv_timer_cb_t cb);
+bool scan_anti_exfil_review_active(void);
+void scan_anti_exfil_approve_button_cb(lv_event_t *e);
 
 /* scan_review_widgets.c */
-void scan_create_sign_action_row(lv_obj_t *parent, lv_event_cb_t sign_cb);
+void scan_create_sign_action_row(lv_obj_t *parent, const char *action_text,
+                                 lv_event_cb_t action_cb);
 lv_obj_t *scan_create_address_label(lv_obj_t *parent, const char *address,
                                     lv_color_t highlight, int32_t pad_left);
 lv_obj_t *scan_create_btc_value_row(lv_obj_t *parent, const char *prefix,

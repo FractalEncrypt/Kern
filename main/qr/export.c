@@ -19,6 +19,7 @@ struct qr_export {
   BBQrParts *bbqr;
   ur_encoder_t *ur;
   char *frame;
+  char **parts;
   uint32_t frame_index;
   bool failed;
 };
@@ -29,7 +30,34 @@ void qr_export_free(qr_export_t *export) {
   bbqr_parts_free(export->bbqr);
   ur_encoder_free(export->ur);
   free(export->frame);
+  if (export->parts) {
+    for (size_t i = 0; i < export->count; ++i)
+      free(export->parts[i]);
+    free(export->parts);
+  }
   free(export);
+}
+
+qr_export_t *qr_export_create_parts(const char *const *parts,
+                                    size_t part_count) {
+  if (!parts || part_count == 0 || part_count > UINT32_MAX)
+    return NULL;
+  qr_export_t *export = calloc(1, sizeof(*export));
+  if (!export)
+    return NULL;
+  export->parts = calloc(part_count, sizeof(*export->parts));
+  if (!export->parts) {
+    qr_export_free(export);
+    return NULL;
+  }
+  export->count = part_count;
+  for (size_t i = 0; i < part_count; ++i) {
+    if (!parts[i] || !*parts[i] || !(export->parts[i] = strdup(parts[i]))) {
+      qr_export_free(export);
+      return NULL;
+    }
+  }
+  return export;
 }
 
 static bool prepare_pmofn(qr_export_t *export, size_t density) {
@@ -123,6 +151,8 @@ bool qr_export_is_fountain(const qr_export_t *export) {
 }
 
 const char *qr_export_frame(qr_export_t *export, uint32_t index) {
+  if (export->parts)
+    return index < export->count ? export->parts[index] : NULL;
   if (export->frame && export->frame_index == index)
     return export->frame;
   if (export->failed || index == UINT32_MAX)

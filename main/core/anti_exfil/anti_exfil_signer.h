@@ -7,6 +7,15 @@
 #include "anti_exfil_types.h"
 
 /*
+ * Preflight performs every semantic, PSBT, key-ownership, sighash, and exact
+ * slot-set check required before user review. It never derives an opening or
+ * creates a signature. scratch is cleared before return on success or failure.
+ */
+anti_exfil_result_t anti_exfil_signer_preflight(
+    const anti_exfil_message_t *input, const uint8_t *psbt_bytes,
+    size_t psbt_bytes_len, anti_exfil_slot_set_t *scratch);
+
+/*
  * All pointers must be distinct. The large output and scratch records belong
  * in caller-owned static or heap storage, never on an ESP-IDF task stack.
  * output and scratch are cleared on every failure.

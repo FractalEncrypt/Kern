@@ -83,6 +83,28 @@ static anti_exfil_result_t derive_slot_key(
   return ANTI_EXFIL_OK;
 }
 
+anti_exfil_result_t anti_exfil_signer_preflight(
+    const anti_exfil_message_t *input, const uint8_t *psbt_bytes,
+    size_t psbt_bytes_len, anti_exfil_slot_set_t *scratch) {
+  if (!scratch)
+    return ANTI_EXFIL_INVALID_MESSAGE;
+  memset(scratch, 0, sizeof(*scratch));
+  if (!input || !psbt_bytes || psbt_bytes_len == 0 ||
+      (const void *)input == (const void *)scratch)
+    return ANTI_EXFIL_INVALID_MESSAGE;
+
+  anti_exfil_result_t result = anti_exfil_semantic_validate(input);
+  if (result == ANTI_EXFIL_OK &&
+      input->stage != ANTI_EXFIL_STAGE_HOST_COMMIT &&
+      input->stage != ANTI_EXFIL_STAGE_HOST_REVEAL)
+    result = ANTI_EXFIL_WRONG_STAGE;
+  if (result == ANTI_EXFIL_OK)
+    result = validate_authoritative_slots(input, psbt_bytes, psbt_bytes_len,
+                                          scratch);
+  memset(scratch, 0, sizeof(*scratch));
+  return result;
+}
+
 anti_exfil_result_t anti_exfil_signer_prepare(
     const anti_exfil_message_t *host_commit, const uint8_t *psbt_bytes,
     size_t psbt_bytes_len, anti_exfil_message_t *output,

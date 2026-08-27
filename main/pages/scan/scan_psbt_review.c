@@ -881,6 +881,19 @@ static bool create_psbt_info_display(void) {
   scan_ctx.info_container = theme_create_scroll_column(scan_ctx.screen, 10, 10);
   lv_obj_t *c = scan_ctx.info_container;
 
+  if (scan_anti_exfil_review_active()) {
+    theme_create_page_title(c, "Protected signing");
+    lv_obj_t *step = theme_create_label(
+        c,
+        "Step 1 of 2\n\nReview this transaction before creating nonce "
+        "commitments. No signature is created in this step.",
+        false);
+    lv_obj_set_width(step, LV_PCT(100));
+    lv_label_set_long_mode(step, LV_LABEL_LONG_WRAP);
+    lv_obj_set_style_text_color(step, highlight_color(), 0);
+    theme_create_separator(c, primary_color());
+  }
+
   if (!render_diagram(c, &data)) {
     review_data_free(&data);
     return false;
@@ -905,7 +918,10 @@ static bool create_psbt_info_display(void) {
   render_fee_and_notes(c, &data);
   review_data_free(&data);
 
-  scan_create_sign_action_row(c, scan_psbt_sign_button_cb);
+  scan_create_sign_action_row(
+      c, scan_anti_exfil_review_active() ? "Create commitments" : "Sign",
+      scan_anti_exfil_review_active() ? scan_anti_exfil_approve_button_cb
+                                      : scan_psbt_sign_button_cb);
   return true;
 }
 
