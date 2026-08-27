@@ -25,11 +25,30 @@ The source-part count is the first complete fountain window; real scanning may
 need additional mixed parts. The current scanner already reports cUR decoder
 percent completion independently of anti-exfil policy.
 
-The measured host sizes are 30,296 bytes for `anti_exfil_message_t` and 30,312
-bytes for `anti_exfil_aext_view_t`. These records must remain in static or heap
-storage, never an ESP-IDF task stack. The scanner handoff uses heap storage,
-retains an exact copy of the canonical CBOR while its decoded PSBT view is live,
-and wipes both allocations before release.
+The measured host sizes are 30,296 bytes for `anti_exfil_message_t`, 17,456
+bytes for `anti_exfil_slot_set_t`, and 30,312 bytes for
+`anti_exfil_aext_view_t`. The two large M4 signer work records total 47,752
+bytes, excluding allocator overhead and transient libwally allocations. These
+records must remain in static or heap storage, never an ESP-IDF task stack. The
+scanner handoff uses heap storage, retains an exact copy of the canonical CBOR
+while its decoded PSBT view is live, and wipes both allocations before release.
+
+## Headless response bridge
+
+The policy-neutral response bridge now accepts an owned stage-1 or stage-3
+request, invokes the existing stateless M4 signer, constructs the exact
+PSBT-free stage-2 or stage-4 AEXT/CBOR response, and owns its animated cUR
+encoder. Exact fixture tests produce 819-byte/6-part stage-2 and
+1,139-byte/8-part stage-4 responses at a 150-byte fragment maximum.
+
+The bridge deliberately releases and wipes the 47,752 bytes of signer work
+records and the transient AEXT package before allocating the 30,312-byte AEXT
+validation scratch record used to create the cUR encoder. Those large record
+sets therefore do not overlap. This is a lifetime design result, not a physical
+ESP32-P4 peak-heap measurement: libwally and cUR may allocate additional memory.
+Physical heap before signing, after response construction, and after response
+cleanup must be measured when an approved M6 workflow first makes the bridge
+reachable from the device UI.
 
 ## Device measurement hook
 

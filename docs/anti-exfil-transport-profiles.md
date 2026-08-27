@@ -34,6 +34,11 @@ digest, ordered slot set, commitments, openings, reveals, and compact signatures
   before camera teardown and re-decodes the AEXT view against that allocation.
   The PSBT pointer therefore remains a view into the exact retained transport
   bytes for the full handoff lifetime; destroy wipes the record and byte copy.
+- A policy-neutral response bridge consumes only that owned stage-1 or stage-3
+  request, invokes the stateless signer, and owns the exact PSBT-free stage-2 or
+  stage-4 AEXT/CBOR and animated cUR response. It is intentionally not wired to
+  scanner dispatch: a future workflow must enforce settings and explicit user
+  approval before calling the signing operation.
 - Wrong UR type, active network, expected stage, outer/inner identity, PSBT
   presence, length, digest, or canonical encoding fails without a fallback into
   ordinary PSBT or text handling.
@@ -65,6 +70,8 @@ binding. A concrete non-normative preimage is in
 `anti-exfil-signing-context-draft.md`. An in-PSBT normalized-base check remains
 useful profile-specific defense in depth, but is not the universal binding.
 
-Measured AEXT frame counts for the realistic five-slot fixture are recorded in
-`anti-exfil-resource-measurements-2026-08-26.md`. Physical heap and camera
-measurements remain required before changing the provisional operational cap.
+Measured AEXT frame counts and the headless response-bridge memory lifetimes for
+the realistic five-slot fixture are recorded in
+`anti-exfil-resource-measurements-2026-08-26.md`. Physical signer-output heap
+measurements and operational-limit measurements remain required before changing
+the provisional cap.
