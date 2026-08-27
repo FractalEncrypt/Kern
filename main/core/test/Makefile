@@ -125,7 +125,8 @@ SRCS_ANTI_EXFIL_RESPONSE = test_anti_exfil_response.c
 TARGET_ANTI_EXFIL_RESPONSE = test_anti_exfil_response
 TARGET_ANTI_EXFIL_MEASURE = measure_anti_exfil_transport
 SRCS_ANTI_EXFIL_MEASURE = measure_anti_exfil_transport.c
-ANTI_EXFIL_MEASURE_DEP = anti_exfil_measurement_vectors.generated.h
+ANTI_EXFIL_MEASURE_DEP = anti_exfil_measurement_vectors.generated.h \
+	anti_exfil_semantic_vectors.generated.h
 ANTI_EXFIL_TRANSPORT_SRC = ../../qr/anti_exfil_aexb.c \
 	../../qr/anti_exfil_aexb.h ../../qr/anti_exfil_aext.c \
 	../../qr/anti_exfil_aext.h ../../qr/anti_exfil_ur.c \
