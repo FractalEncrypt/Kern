@@ -6,6 +6,24 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef ESP_PLATFORM
+#include <esp_heap_caps.h>
+#include <esp_log.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+
+static void measure_response_phase(const char *phase) {
+  ESP_LOGI("ANTI_EXFIL_MEASURE",
+           "response_phase=%s free=%u largest=%u min_free=%u stack_hwm=%u",
+           phase, (unsigned)heap_caps_get_free_size(MALLOC_CAP_8BIT),
+           (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT),
+           (unsigned)heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT),
+           (unsigned)uxTaskGetStackHighWaterMark(NULL));
+}
+#else
+static void measure_response_phase(const char *phase) { (void)phase; }
+#endif
+
 struct anti_exfil_response {
   uint8_t *canonical_cbor;
   size_t canonical_cbor_len;
@@ -30,6 +48,8 @@ anti_exfil_result_t anti_exfil_response_create(
       max_fragment_len < ANTI_EXFIL_UR_MIN_FRAGMENT_LEN)
     return ANTI_EXFIL_INVALID_MESSAGE;
 
+  measure_response_phase("entry");
+
   const anti_exfil_aext_view_t *request_view =
       anti_exfil_request_view(request);
   if (!request_view)
@@ -52,6 +72,7 @@ anti_exfil_result_t anti_exfil_response_create(
 
   if (!response || !signed_message || !slot_scratch)
     goto cleanup;
+  measure_response_phase("signer_records_allocated");
 
   if (request_view->message.stage == ANTI_EXFIL_STAGE_HOST_COMMIT) {
     result = anti_exfil_signer_prepare(
@@ -64,6 +85,7 @@ anti_exfil_result_t anti_exfil_response_create(
   }
   if (result != ANTI_EXFIL_OK)
     goto cleanup;
+  measure_response_phase("signer_complete");
 
   const anti_exfil_stage_t expected_stage =
       request_view->message.stage == ANTI_EXFIL_STAGE_HOST_COMMIT
@@ -113,6 +135,7 @@ anti_exfil_result_t anti_exfil_response_create(
   slot_scratch = NULL;
   wipe_free(signed_message, sizeof(*signed_message));
   signed_message = NULL;
+  measure_response_phase("signer_records_released");
 
   encoder_scratch = calloc(1, sizeof(*encoder_scratch));
   if (!encoder_scratch) {
@@ -130,6 +153,7 @@ anti_exfil_result_t anti_exfil_response_create(
   cbor = NULL;
   *response_out = response;
   response = NULL;
+  measure_response_phase("response_ready");
 
 cleanup:
   wipe_free(package, package_len);
@@ -139,6 +163,8 @@ cleanup:
   wipe_free(signed_message, sizeof(*signed_message));
   if (response)
     anti_exfil_response_destroy(&response);
+  if (result != ANTI_EXFIL_OK)
+    measure_response_phase("failure_cleanup");
   return result;
 }
 
@@ -178,10 +204,12 @@ anti_exfil_result_t anti_exfil_response_next_part(
 void anti_exfil_response_destroy(anti_exfil_response_t **response_ptr) {
   if (!response_ptr || !*response_ptr)
     return;
+  measure_response_phase("response_destroy_entry");
   anti_exfil_response_t *response = *response_ptr;
   ur_encoder_free(response->encoder);
   wipe_free(response->canonical_cbor, response->canonical_cbor_len);
   secure_memzero(response, sizeof(*response));
   free(response);
   *response_ptr = NULL;
+  measure_response_phase("response_destroyed");
 }

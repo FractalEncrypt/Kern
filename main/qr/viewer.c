@@ -19,8 +19,6 @@
 #define PROGRESS_FRAME_PADD 2
 #define PROGRESS_BLOC_PAD 1
 #define PROGRESS_RECT_MIN_LEN 4
-#define MAX_QR_PARTS 100
-
 #define UR_HEADER_OVERHEAD 30
 
 #define CONTROLS_HIDE_MS 4000
@@ -140,7 +138,8 @@ static void apply_qr_shade(void) {
 }
 
 static void create_progress_indicators(int total_parts) {
-  if (total_parts <= 1 || total_parts > MAX_QR_PARTS || !qr_viewer_screen) {
+  if (total_parts <= 1 || total_parts > QR_VIEWER_MAX_PARTS ||
+      !qr_viewer_screen) {
     return;
   }
 
@@ -241,8 +240,8 @@ static void split_content_into_parts(const char *content) {
   }
 
   qr_parts_count = (content_len + max_chars - 1) / max_chars;
-  if (qr_parts_count > MAX_QR_PARTS) {
-    qr_parts_count = MAX_QR_PARTS;
+  if (qr_parts_count > QR_VIEWER_MAX_PARTS) {
+    qr_parts_count = QR_VIEWER_MAX_PARTS;
   }
 
   int prefix_len = (qr_parts_count > 9) ? 8 : 6;
@@ -369,7 +368,10 @@ static bool generate_ur_parts(void) {
   bool is_single = ur_encoder_is_single_part(encoder);
   size_t seq_len = ur_encoder_seq_len(encoder);
   size_t parts_count =
-      is_single ? 1 : (seq_len * 2 > MAX_QR_PARTS ? MAX_QR_PARTS : seq_len * 2);
+      is_single ? 1
+                : (seq_len * 2 > QR_VIEWER_MAX_PARTS
+                       ? QR_VIEWER_MAX_PARTS
+                       : seq_len * 2);
 
   qr_parts = malloc(parts_count * sizeof(char *));
   if (!qr_parts) {
@@ -665,6 +667,41 @@ bool qr_viewer_page_create_with_format(lv_obj_t *parent, int qr_format,
     free(qr_content_copy);
     qr_content_copy = NULL;
     return false;
+  }
+
+  if (!setup_qr_viewer_ui(parent, title)) {
+    cleanup_qr_parts();
+    return false;
+  }
+  return true;
+}
+
+bool qr_viewer_page_create_parts(lv_obj_t *parent,
+                                 const char *const *parts,
+                                 size_t part_count, const char *title,
+                                 void (*return_cb)(void)) {
+  if (!parent || !parts || part_count == 0 ||
+      part_count > QR_VIEWER_MAX_PARTS)
+    return false;
+
+  cleanup_qr_parts();
+  free(qr_content_copy);
+  qr_content_copy = NULL;
+  load_viewer_settings();
+  return_callback = return_cb;
+  message_timer = NULL;
+  animation_timer = NULL;
+  qr_source_format = FORMAT_NONE;
+
+  qr_parts = calloc(part_count, sizeof(*qr_parts));
+  if (!qr_parts)
+    return false;
+  qr_parts_count = (int)part_count;
+  for (size_t i = 0; i < part_count; ++i) {
+    if (!parts[i] || !(qr_parts[i] = strdup(parts[i]))) {
+      cleanup_qr_parts();
+      return false;
+    }
   }
 
   if (!setup_qr_viewer_ui(parent, title)) {

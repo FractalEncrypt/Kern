@@ -70,8 +70,25 @@ int main(void) {
   CHECK("load pinned fixture seed",
         key_load_from_mnemonic(TEST_MNEMONIC, "", true));
 
+  memset(&scratch, 0xa5, sizeof(scratch));
+  anti_exfil_result_t result = anti_exfil_signer_preflight(
+      &ANTI_EXFIL_SEMANTIC_MESSAGES[0], ANTI_EXFIL_SEMANTIC_PSBT,
+      ANTI_EXFIL_SEMANTIC_PSBT_LEN, &scratch);
+  CHECK("preflight accepts exact complete locally controlled slot set",
+        result == ANTI_EXFIL_OK && all_zero(&scratch, sizeof(scratch)));
+
+  memcpy(&mutated, &ANTI_EXFIL_SEMANTIC_MESSAGES[0], sizeof(mutated));
+  --mutated.slot_count;
+  memset(&scratch, 0xa5, sizeof(scratch));
+  result = anti_exfil_signer_preflight(
+      &mutated, ANTI_EXFIL_SEMANTIC_PSBT, ANTI_EXFIL_SEMANTIC_PSBT_LEN,
+      &scratch);
+  CHECK("preflight rejects incomplete locally controlled slot coverage",
+        result == ANTI_EXFIL_SIGNATURE_SLOT_MISMATCH &&
+            all_zero(&scratch, sizeof(scratch)));
+
   poison();
-  anti_exfil_result_t result = anti_exfil_signer_prepare(
+  result = anti_exfil_signer_prepare(
       &ANTI_EXFIL_SEMANTIC_MESSAGES[0], ANTI_EXFIL_SEMANTIC_PSBT,
       ANTI_EXFIL_SEMANTIC_PSBT_LEN, &output, &scratch);
   CHECK("message 1 produces exact pinned message 2",
