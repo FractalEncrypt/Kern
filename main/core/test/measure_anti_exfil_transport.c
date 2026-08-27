@@ -3,10 +3,84 @@
 #include <string.h>
 
 #include "anti_exfil_measurement_vectors.generated.h"
+#include "anti_exfil_semantic_vectors.generated.h"
 #include "core/anti_exfil/anti_exfil_slots.h"
 #include "qr/anti_exfil_ur.h"
 
 static anti_exfil_aext_view_t scratch;
+
+static int emit_ordinary_psbt_parts(size_t fragment_len) {
+  const size_t psbt_len = ANTI_EXFIL_SEMANTIC_PSBT_LEN;
+  size_t header_len = 0;
+  if (psbt_len <= 0xff)
+    header_len = 2;
+  else if (psbt_len <= 0xffff)
+    header_len = 3;
+  else if (psbt_len <= 0xffffffffu)
+    header_len = 5;
+  else
+    return 1;
+
+  uint8_t *cbor = malloc(header_len + psbt_len);
+  if (!cbor)
+    return 1;
+  if (header_len == 2) {
+    cbor[0] = 0x58;
+    cbor[1] = (uint8_t)psbt_len;
+  } else if (header_len == 3) {
+    cbor[0] = 0x59;
+    cbor[1] = (uint8_t)(psbt_len >> 8);
+    cbor[2] = (uint8_t)psbt_len;
+  } else {
+    cbor[0] = 0x5a;
+    cbor[1] = (uint8_t)(psbt_len >> 24);
+    cbor[2] = (uint8_t)(psbt_len >> 16);
+    cbor[3] = (uint8_t)(psbt_len >> 8);
+    cbor[4] = (uint8_t)psbt_len;
+  }
+  memcpy(cbor + header_len, ANTI_EXFIL_SEMANTIC_PSBT, psbt_len);
+
+  ur_encoder_t *encoder = ur_encoder_new("crypto-psbt", cbor,
+                                         header_len + psbt_len, fragment_len,
+                                         0, 10);
+  ur_decoder_t *decoder = ur_decoder_new();
+  if (!encoder || !decoder) {
+    ur_encoder_free(encoder);
+    ur_decoder_free(decoder);
+    free(cbor);
+    return 1;
+  }
+  const size_t parts = ur_encoder_seq_len(encoder);
+  for (size_t part = 0; part < parts; ++part) {
+    char *encoded = NULL;
+    if (!ur_encoder_next_part(encoder, &encoded) || !encoded) {
+      ur_encoder_free(encoder);
+      ur_decoder_free(decoder);
+      free(cbor);
+      return 1;
+    }
+    ur_decoder_state_t state = ur_decoder_receive_part(decoder, encoded);
+    if (ur_decoder_state_is_error(state)) {
+      free(encoded);
+      ur_encoder_free(encoder);
+      ur_decoder_free(decoder);
+      free(cbor);
+      return 1;
+    }
+    printf("route=crypto-psbt part=%zu/%zu %s\n", part + 1, parts,
+           encoded);
+    free(encoded);
+  }
+  ur_result_t *decoded = ur_decoder_get_result(decoder);
+  const bool roundtrip_ok =
+      decoded && strcmp(decoded->type, "crypto-psbt") == 0 &&
+      decoded->cbor_len == header_len + psbt_len &&
+      memcmp(decoded->cbor_data, cbor, decoded->cbor_len) == 0;
+  ur_encoder_free(encoder);
+  ur_decoder_free(decoder);
+  free(cbor);
+  return roundtrip_ok ? 0 : 1;
+}
 
 static int emit_parts(size_t fragment_len) {
   for (size_t i = 0;
@@ -38,6 +112,15 @@ static int emit_parts(size_t fragment_len) {
 }
 
 int main(int argc, char **argv) {
+  if (argc == 3 && strcmp(argv[1], "--emit-ordinary-psbt") == 0) {
+    char *end = NULL;
+    unsigned long requested = strtoul(argv[2], &end, 10);
+    if (!end || *end != '\0' || requested < 10 || requested > 4096) {
+      fprintf(stderr, "invalid fragment length\n");
+      return 2;
+    }
+    return emit_ordinary_psbt_parts((size_t)requested);
+  }
   if (argc == 3 && strcmp(argv[1], "--emit") == 0) {
     char *end = NULL;
     unsigned long requested = strtoul(argv[2], &end, 10);
@@ -49,7 +132,10 @@ int main(int argc, char **argv) {
     return emit_parts((size_t)requested);
   }
   if (argc != 1) {
-    fprintf(stderr, "usage: %s [--emit FRAGMENT_BYTES]\n", argv[0]);
+    fprintf(stderr,
+            "usage: %s [--emit FRAGMENT_BYTES | "
+            "--emit-ordinary-psbt FRAGMENT_BYTES]\n",
+            argv[0]);
     return 2;
   }
 

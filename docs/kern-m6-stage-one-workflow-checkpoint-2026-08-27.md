@@ -56,11 +56,19 @@ Observed results:
 6. Done displayed a readable full-screen completion message stating that step
    1 of 2 was complete, the transaction was not signed, and host-reveal
    continuation remained fail-closed.
+7. A second stage-1 scan reached review and Back was selected instead of
+   `Create commitments`. The device returned without displaying a response.
+   The serial trace contains the retained-request scan measurement and no
+   subsequent `response_phase=entry` marker.
+8. With Anti-exfil enabled, the same PSBT encoded as a static base64/text QR was
+   refused with `Protected signing required` before transaction review.
+9. The same PSBT encoded as a five-part animated `crypto-psbt` UR was refused
+   with the same message before transaction review.
+10. Anti-exfil, Expected-owned, Permissive, and all other signing toggles were
+    returned to off after testing.
 
-An ordinary-PSBT refusal and review cancellation were not physically exercised
-in this pass. They remain required regression checks before this workflow is
-called complete. The public fixture contains no funds; the temporary policy
-overrides must be returned to off after testing.
+The public fixture contains no funds. The temporary policy overrides were
+needed only to enter review for its synthetic mixed-script inputs.
 
 ## Physical resource measurements
 
@@ -92,6 +100,19 @@ request bytes, free heap 23,174,415 before the owned copy, 23,142,023 after the
 copy, and 25,806,379 after camera shutdown. Its lifetime minimum before signing
 was 22,766,383.
 
+An accidental second complete stage-1 lifecycle provided a repeat cleanup
+sample. It again used 47,136 bytes for the signer records, returned to within
+860 bytes of response entry after releasing them, and recovered 50,220 bytes
+when the viewer was destroyed. Its response-lifecycle lifetime minimum remained
+22,818,491. These two clean lifecycles provide useful repeat evidence but are
+not treated as a long soak test.
+
+The ordinary-route regression pack is generated from the exact pinned
+975-byte PSBT (`fa4ef7e7...d249`). The generator emits a static base64 QR and a
+five-source-part, 200-byte-fragment `crypto-psbt` UR. Before rendering, the C
+emitter feeds every UR source part through the independent decoder and requires
+the reconstructed type and canonical CBOR bytes to match exactly.
+
 ## Verification
 
 - Full host suite and collaboration corpus: passed.
@@ -106,8 +127,8 @@ was 22,766,383.
 
 ## Next boundary
 
-Before implementing stage 3, physically exercise the ordinary-PSBT refusal and
-stage-1 review cancellation paths, then run a short repeated stage-1 lifecycle
-soak with the new destruction markers. Stage 3 requires its own explicit
+Stage 1 is complete at this checkpoint. A longer repeated lifecycle soak remains
+useful during the experimental period but is no longer an untested cleanup
+path. Stage 3 is the next workflow boundary. It requires its own explicit
 approval screen and must preserve the agreed no-retry, exact-session,
 exact-network, frozen-byte, and complete-local-slot constraints.

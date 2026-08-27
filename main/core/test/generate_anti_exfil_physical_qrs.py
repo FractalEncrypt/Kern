@@ -2,6 +2,7 @@
 """Render exact stage-1/stage-3 measurement URs as animated QR packs."""
 
 import argparse
+import base64
 import hashlib
 import html
 import json
@@ -12,7 +13,13 @@ from pathlib import Path
 
 
 LINE = re.compile(r"^stage=(\d+) part=(\d+)/(\d+) (UR:.+)$")
+ORDINARY_LINE = re.compile(
+    r"^route=crypto-psbt part=(\d+)/(\d+) (UR:CRYPTO-PSBT/.+)$")
 ROOT = Path(__file__).resolve().parent
+SEMANTIC_FIXTURE = (
+    ROOT / "fixtures" / "anti_exfil" / "semantic_protocol" /
+    "protocol-v1-semantic-psbt-vector.json"
+)
 
 
 def emit(fragment: int):
@@ -38,6 +45,30 @@ def emit(fragment: int):
     if not all(groups.values()):
         raise RuntimeError("emitter did not produce both signer-side stages")
     return groups
+
+
+def emit_ordinary_psbt(fragment: int):
+    binary = ROOT / "measure_anti_exfil_transport"
+    subprocess.run(["make", binary.name], cwd=ROOT, check=True)
+    output = subprocess.run(
+        [str(binary), "--emit-ordinary-psbt", str(fragment)], cwd=ROOT,
+        check=True, text=True, capture_output=True,
+    ).stdout.splitlines()
+    parts = []
+    for line in output:
+        match = ORDINARY_LINE.match(line)
+        if not match:
+            raise RuntimeError(f"unexpected ordinary emitter output: {line!r}")
+        current, total, ur = match.groups()
+        current, total = int(current), int(total)
+        if current != len(parts) + 1:
+            raise RuntimeError("crypto-psbt: non-contiguous part sequence")
+        parts.append(ur)
+        if current == total and len(parts) != total:
+            raise RuntimeError("crypto-psbt: inconsistent part total")
+    if not parts:
+        raise RuntimeError("ordinary PSBT emitter produced no parts")
+    return parts
 
 
 def viewer(title: str, frames, default_ms: int):
@@ -123,6 +154,55 @@ def main():
                 "source_parts": len(parts), "ur_lines_sha256": digest,
                 "viewer": rel,
             })
+
+    fixture = json.loads(SEMANTIC_FIXTURE.read_text(encoding="utf-8"))
+    psbt = bytes.fromhex(fixture["psbt_hex"])
+    psbt_sha256 = hashlib.sha256(psbt).hexdigest()
+    if psbt_sha256 != fixture["psbt_sha256"]:
+        raise RuntimeError("ordinary regression PSBT does not match its pin")
+
+    ordinary_root = args.output / "ordinary-psbt-regression"
+    text_pack = ordinary_root / "base64-text"
+    text_pack.mkdir(parents=True, exist_ok=True)
+    text_qr = "psbt-base64.png"
+    psbt_base64 = base64.b64encode(psbt).decode("ascii")
+    subprocess.run([
+        qrencode, "-t", "PNG", "-l", "L", "-m", "4", "-s", "8",
+        "-o", str(text_pack / text_qr), psbt_base64,
+    ], check=True)
+    text_title = "Ordinary PSBT — base64/text route"
+    (text_pack / "index.html").write_text(
+        viewer(text_title, [text_qr], args.frame_ms), encoding="utf-8")
+    text_rel = (text_pack / "index.html").relative_to(args.output).as_posix()
+    links.append((text_title, text_rel))
+
+    ur_pack = ordinary_root / "crypto-psbt-ur"
+    ur_pack.mkdir(parents=True, exist_ok=True)
+    ur_parts = emit_ordinary_psbt(200)
+    ur_frames = []
+    for index, ur in enumerate(ur_parts, 1):
+        name = f"part-{index:02d}-of-{len(ur_parts):02d}.png"
+        subprocess.run([
+            qrencode, "-t", "PNG", "-l", "L", "-m", "4", "-s", "8",
+            "-o", str(ur_pack / name), ur,
+        ], check=True)
+        ur_frames.append(name)
+    ur_title = "Ordinary PSBT — animated crypto-psbt UR route"
+    (ur_pack / "index.html").write_text(
+        viewer(ur_title, ur_frames, args.frame_ms), encoding="utf-8")
+    ur_rel = (ur_pack / "index.html").relative_to(args.output).as_posix()
+    links.append((ur_title, ur_rel))
+    manifest["ordinary_psbt_regression"] = {
+        "fixture": SEMANTIC_FIXTURE.relative_to(ROOT).as_posix(),
+        "psbt_bytes": len(psbt),
+        "psbt_sha256": psbt_sha256,
+        "base64_viewer": text_rel,
+        "crypto_psbt_fragment_bytes": 200,
+        "crypto_psbt_source_parts": len(ur_parts),
+        "crypto_psbt_ur_lines_sha256": hashlib.sha256(
+            "\n".join(ur_parts).encode()).hexdigest(),
+        "crypto_psbt_viewer": ur_rel,
+    }
     (args.output / "manifest.json").write_text(
         json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     items = "\n".join(
