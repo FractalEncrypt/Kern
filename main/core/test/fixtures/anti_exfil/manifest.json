@@ -19,6 +19,15 @@
   "profile_interop": {
     "files": {
       "profile_interop/kern-multisig-two-signatures-per-input-v1.json": "95f9992179cb1879d7ab2c95a2a817bc2e0d48ade8425c070a4c63c41632c1cf",
+      "profile_interop/jade/PROVENANCE.json": "f3b8b8d67c69137c0477c5f1509003c6914e51bee4afe6f8aa1aa40086c5338b",
+      "profile_interop/jade/artifacts/journal-c882a0c7d702.json": "6ac75b9a3b8a92aaf0c17b9cb80958023c904cefd9170f923f768fbe370b9f97",
+      "profile_interop/jade/artifacts/session-0788daa2f02d-ec8f5ee080d6.json": "327564c0fa9ef5d8b5e5d8c83bd6455b5b92465f44127a7cf31ee758bb67b3e4",
+      "profile_interop/jade/artifacts/session-3520b40b6569-49ec0bbdee88.json": "f88552742dd818ba990a1570b1b29f4e4b9f0000a722bd317a26f8cd97ca8db2",
+      "profile_interop/jade/artifacts/session-c882a0c7d702-34878a88adca.json": "64197c2dbcb5ac37deab80f621cf92ef7b65a6640b525f4b721890b8bb4a6535",
+      "profile_interop/jade/artifacts/session-c882a0c7d702-57173481ec70.json": "637663e2b3bb8cf9c25091252303db62e46db36a55b6c4266927835ed68781cb",
+      "profile_interop/jade/artifacts/session-c882a0c7d702-65cbe0bd28fb.json": "703b5fb6ad6d387c7782790e7b90c3bfc00972c8f58275acaf61c199ec00863d",
+      "profile_interop/jade/artifacts/session-c882a0c7d702-dbeff91be9ef.json": "2dd5195e34dd5fc1a5fa431f2e157cf43b8cec376818b946215978aad0ef097e",
+      "profile_interop/jade/jade-neutral-profile-mapping-v1.json": "b1deab3ee11e84fed17cdadacfe20a93c9f6b48890b33c6c4a8a7595abe0b4f3",
       "profile_interop/lark/PROVENANCE.json": "a4f6b79118148a46f43d9ffffca76be7418a7187db0605d6e8c077ad717479c5",
       "profile_interop/lark/lark-ae-ecdsa-crypto-v1.json": "c9bb2473782a87a65d7d48be53d8032588d9b73d2f997d32aba0fd5b94361a68",
       "profile_interop/lark/lark-ae-negatives-v1.json": "88b2cc39d83a106714655e224c4c5b03416c585142f0fe43194e4813f279cd85",

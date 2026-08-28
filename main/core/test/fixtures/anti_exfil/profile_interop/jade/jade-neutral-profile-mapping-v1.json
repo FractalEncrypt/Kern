@@ -1,0 +1,150 @@
+{
+  "identity": {
+    "frozen_psbt_length": 383,
+    "frozen_psbt_sha256": "833385ead970e8c176bcc9ae3520ae3cb9e447725a821c769151e6fc84410575",
+    "message_hash": "2951a65a749283810743e1cd038d201c00d3ed17895ac2c0acaac898fa319c3f",
+    "network": "testnet4",
+    "session_id": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+    "signer_pubkey": "02915fd6388a83fd35f41ef8ec5004b372cb616683d3ac114d48131a62549c8d1a",
+    "slot_count": 1
+  },
+  "in_psbt_artifacts": [
+    {
+      "decoded_length": 455,
+      "decoded_sha256": "be411a3909771f51458d38335d2a29e38c0f2819f378dfa89467760e00693715",
+      "path": "../lark/transcript/M1-coordinator-to-signer.psbt.b64",
+      "stage": 1
+    },
+    {
+      "decoded_length": 528,
+      "decoded_sha256": "d8735a990c61ab47ced0223a9e265e686cc652fca1134ad68f3b2fae5632b640",
+      "path": "../lark/transcript/M2-signer-to-coordinator.psbt.b64",
+      "stage": 2
+    },
+    {
+      "decoded_length": 600,
+      "decoded_sha256": "538421ff6a1f48a6d928c96348ac8efaa0f5eeb70770c82d1b0e17f106f6ca03",
+      "path": "../lark/transcript/M3-coordinator-to-signer.psbt.b64",
+      "stage": 3
+    },
+    {
+      "decoded_length": 708,
+      "decoded_sha256": "fc4dfbd4d8b53df10271d6a85d7b65eac269c96f13e0a72226376709e8806126",
+      "path": "../lark/transcript/M4-signer-to-coordinator.psbt.b64",
+      "stage": 4
+    }
+  ],
+  "messages": [
+    {
+      "detached_aext_hex": "4145585401040101000000b70000017f833385ead970e8c176bcc9ae3520ae3cb9e447725a821c769151e6fc844105754145584201040100000000695a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a833385ead970e8c176bcc9ae3520ae3cb9e447725a821c769151e6fc844105750001000000000000000102915fd6388a83fd35f41ef8ec5004b372cb616683d3ac114d48131a62549c8d1a2951a65a749283810743e1cd038d201c00d3ed17895ac2c0acaac898fa319c3fc6d65d57ca32496e0cc6b1cac7a9c4e3ee4fb70c93e34141e996138b4556431a70736274ff01007102000000017a621c7bf4bdb3138a70f2391c9bb6f0adfa4d8fe8b1108aa00f7aaedd8fe80d0000000000fdffffff02d7ad0400000000001600145a46523fd204a0708edf7aac969b6926277dd663c4090000000000001600148c844658f7cc801c793959c3b45e3f3076c321f9144802004f01043587cf03fa5eb51d8000000035a9ab7b836f512581deddd1948ec18fcc0ec540f2fea43b53f1ec1f2c71adfc0356b726b3d35352d759ff7e20863cd463e968af4e388482530193d7822110536210ec6686a85400008001000080000000800001011fe1b704000000000016001435586d675d7044df989f56b80e4c529cde55a5cd01030401000000220602915fd6388a83fd35f41ef8ec5004b372cb616683d3ac114d48131a62549c8d1a18ec6686a85400008001000080000000800100000005000000002202023446e75b4be41ae57a624b1ecdfaca35fa465f58f53bdbde53eef6ba860ff36918ec6686a854000080010000800000008001000000060000000000",
+      "detached_aext_length": 614,
+      "detached_aext_sha256": "861117f0b83714f1dc1a33e6fe1687929f83381427967fec16de07c66560213f",
+      "in_psbt_decoded_sha256": "be411a3909771f51458d38335d2a29e38c0f2819f378dfa89467760e00693715",
+      "logical_message_hex": "4145584201040100000000695a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a833385ead970e8c176bcc9ae3520ae3cb9e447725a821c769151e6fc844105750001000000000000000102915fd6388a83fd35f41ef8ec5004b372cb616683d3ac114d48131a62549c8d1a2951a65a749283810743e1cd038d201c00d3ed17895ac2c0acaac898fa319c3fc6d65d57ca32496e0cc6b1cac7a9c4e3ee4fb70c93e34141e996138b4556431a",
+      "logical_message_length": 183,
+      "logical_message_sha256": "eddc7a0e63c5c95dd6cae4450a9d598591ed53991578a3694ed11f2390b043ae",
+      "mapping": {
+        "authoritative_from_coordinator": [
+          "network",
+          "session_id",
+          "psbt_digest",
+          "input_index",
+          "sighash_type",
+          "signer_pubkey",
+          "message_hash",
+          "host_commitment"
+        ],
+        "lifted_from_signer": []
+      },
+      "stage": 1
+    },
+    {
+      "detached_aext_hex": "4145585401040200000000d800000000000000000000000000000000000000000000000000000000000000000000000041455842010402000000008a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a833385ead970e8c176bcc9ae3520ae3cb9e447725a821c769151e6fc844105750001000000000000000102915fd6388a83fd35f41ef8ec5004b372cb616683d3ac114d48131a62549c8d1a2951a65a749283810743e1cd038d201c00d3ed17895ac2c0acaac898fa319c3fc6d65d57ca32496e0cc6b1cac7a9c4e3ee4fb70c93e34141e996138b4556431a02edd2346fcdb2882c866f081452b16b4528e7281a6667a7a16fd976c3c7579874",
+      "detached_aext_length": 264,
+      "detached_aext_sha256": "23770ea00e7eaa2ca8e52408f0199c93e69d13a36d674060d0d69ae4c2d10aed",
+      "in_psbt_decoded_sha256": "d8735a990c61ab47ced0223a9e265e686cc652fca1134ad68f3b2fae5632b640",
+      "logical_message_hex": "41455842010402000000008a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a833385ead970e8c176bcc9ae3520ae3cb9e447725a821c769151e6fc844105750001000000000000000102915fd6388a83fd35f41ef8ec5004b372cb616683d3ac114d48131a62549c8d1a2951a65a749283810743e1cd038d201c00d3ed17895ac2c0acaac898fa319c3fc6d65d57ca32496e0cc6b1cac7a9c4e3ee4fb70c93e34141e996138b4556431a02edd2346fcdb2882c866f081452b16b4528e7281a6667a7a16fd976c3c7579874",
+      "logical_message_length": 216,
+      "logical_message_sha256": "60359999639e5fd39ba8547ff9529972e339e78b6e39029b7b421599f6bcb971",
+      "mapping": {
+        "authoritative_from_coordinator": [
+          "network",
+          "session_id",
+          "psbt_digest",
+          "input_index",
+          "sighash_type",
+          "signer_pubkey",
+          "message_hash",
+          "host_commitment"
+        ],
+        "lifted_from_signer": [
+          "opening"
+        ]
+      },
+      "stage": 2
+    },
+    {
+      "detached_aext_hex": "4145585401040301000000f80000017f833385ead970e8c176bcc9ae3520ae3cb9e447725a821c769151e6fc844105754145584201040300000000aa5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a833385ead970e8c176bcc9ae3520ae3cb9e447725a821c769151e6fc844105750001000000000000000102915fd6388a83fd35f41ef8ec5004b372cb616683d3ac114d48131a62549c8d1a2951a65a749283810743e1cd038d201c00d3ed17895ac2c0acaac898fa319c3fc6d65d57ca32496e0cc6b1cac7a9c4e3ee4fb70c93e34141e996138b4556431a02edd2346fcdb2882c866f081452b16b4528e7281a6667a7a16fd976c3c757987440d01a3c67c6f762519959eaf013f871b5d024caf70b68cc6552d0a13939493a70736274ff01007102000000017a621c7bf4bdb3138a70f2391c9bb6f0adfa4d8fe8b1108aa00f7aaedd8fe80d0000000000fdffffff02d7ad0400000000001600145a46523fd204a0708edf7aac969b6926277dd663c4090000000000001600148c844658f7cc801c793959c3b45e3f3076c321f9144802004f01043587cf03fa5eb51d8000000035a9ab7b836f512581deddd1948ec18fcc0ec540f2fea43b53f1ec1f2c71adfc0356b726b3d35352d759ff7e20863cd463e968af4e388482530193d7822110536210ec6686a85400008001000080000000800001011fe1b704000000000016001435586d675d7044df989f56b80e4c529cde55a5cd01030401000000220602915fd6388a83fd35f41ef8ec5004b372cb616683d3ac114d48131a62549c8d1a18ec6686a85400008001000080000000800100000005000000002202023446e75b4be41ae57a624b1ecdfaca35fa465f58f53bdbde53eef6ba860ff36918ec6686a854000080010000800000008001000000060000000000",
+      "detached_aext_length": 679,
+      "detached_aext_sha256": "92e0e7ad9f4c7f22b57e997bdd5a50ffaa755467099dcaca0f8c07ac84208306",
+      "in_psbt_decoded_sha256": "538421ff6a1f48a6d928c96348ac8efaa0f5eeb70770c82d1b0e17f106f6ca03",
+      "logical_message_hex": "4145584201040300000000aa5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a833385ead970e8c176bcc9ae3520ae3cb9e447725a821c769151e6fc844105750001000000000000000102915fd6388a83fd35f41ef8ec5004b372cb616683d3ac114d48131a62549c8d1a2951a65a749283810743e1cd038d201c00d3ed17895ac2c0acaac898fa319c3fc6d65d57ca32496e0cc6b1cac7a9c4e3ee4fb70c93e34141e996138b4556431a02edd2346fcdb2882c866f081452b16b4528e7281a6667a7a16fd976c3c757987440d01a3c67c6f762519959eaf013f871b5d024caf70b68cc6552d0a13939493a",
+      "logical_message_length": 248,
+      "logical_message_sha256": "884e06e4e2e0612acf5ecd4014bf52c1984b89271ebe10b679bb939af42cc6a3",
+      "mapping": {
+        "authoritative_from_coordinator": [
+          "network",
+          "session_id",
+          "psbt_digest",
+          "input_index",
+          "sighash_type",
+          "signer_pubkey",
+          "message_hash",
+          "host_commitment"
+        ],
+        "lifted_from_signer": []
+      },
+      "stage": 3
+    },
+    {
+      "detached_aext_hex": "4145585401040400000001180000000000000000000000000000000000000000000000000000000000000000000000004145584201040400000000ca5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a833385ead970e8c176bcc9ae3520ae3cb9e447725a821c769151e6fc844105750001000000000000000102915fd6388a83fd35f41ef8ec5004b372cb616683d3ac114d48131a62549c8d1a2951a65a749283810743e1cd038d201c00d3ed17895ac2c0acaac898fa319c3fc6d65d57ca32496e0cc6b1cac7a9c4e3ee4fb70c93e34141e996138b4556431a02edd2346fcdb2882c866f081452b16b4528e7281a6667a7a16fd976c3c75798748ed9294bd47bb752cc5c12b04c339a52147d15ace176f6d578bbb7db29c194727778889569feab0a2206c45d2603174e01ade535ecbe72ef3b0b555eb163b257",
+      "detached_aext_length": 328,
+      "detached_aext_sha256": "f55c0af11a4255aec873b78271ba283f6fe1d399a55f96024557080decc194e1",
+      "in_psbt_decoded_sha256": "fc4dfbd4d8b53df10271d6a85d7b65eac269c96f13e0a72226376709e8806126",
+      "logical_message_hex": "4145584201040400000000ca5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a833385ead970e8c176bcc9ae3520ae3cb9e447725a821c769151e6fc844105750001000000000000000102915fd6388a83fd35f41ef8ec5004b372cb616683d3ac114d48131a62549c8d1a2951a65a749283810743e1cd038d201c00d3ed17895ac2c0acaac898fa319c3fc6d65d57ca32496e0cc6b1cac7a9c4e3ee4fb70c93e34141e996138b4556431a02edd2346fcdb2882c866f081452b16b4528e7281a6667a7a16fd976c3c75798748ed9294bd47bb752cc5c12b04c339a52147d15ace176f6d578bbb7db29c194727778889569feab0a2206c45d2603174e01ade535ecbe72ef3b0b555eb163b257",
+      "logical_message_length": 280,
+      "logical_message_sha256": "1d0bc8f33fb068592cac21d1548bb3c7dc4c96a3463c02ea479ef33c95b27156",
+      "mapping": {
+        "authoritative_from_coordinator": [
+          "network",
+          "session_id",
+          "psbt_digest",
+          "input_index",
+          "sighash_type",
+          "signer_pubkey",
+          "message_hash",
+          "host_commitment"
+        ],
+        "lifted_from_signer": [
+          "signature_compact"
+        ]
+      },
+      "stage": 4
+    }
+  ],
+  "profile_rules": {
+    "in_psbt_response_allowlist": "stage 2 lifts only opening; stage 4 lifts only the selected-key partial signature",
+    "logical_authority": "canonical AEXB fields",
+    "reserved_namespace": "unknown ae subtypes and ae records outside the expected slot set are rejected",
+    "returned_psbt": "never merged; transaction must match frozen transaction and verified signatures are applied to the frozen original"
+  },
+  "schema": "ae-profile-neutral-mapping-v1",
+  "source": {
+    "drongo_commit": "dc5d836",
+    "drongo_repository": "https://github.com/bitcoinshooter/drongo",
+    "drongo_tag": "jade-in-psbt-profile-2026-08-27",
+    "projected_profile": "AEXT/AEXB",
+    "recorded_profile": "in-PSBT"
+  },
+  "status": "mapping-conformance-not-independent-detached-hardware"
+}
