@@ -38,3 +38,6 @@ static inline size_t heap_caps_get_free_size(uint32_t caps) {
 static inline size_t heap_caps_get_minimum_free_size(uint32_t caps) {
     (void)caps; return 1 * 1024 * 1024;  // 1 MB stub value
 }
+static inline size_t heap_caps_get_largest_free_block(uint32_t caps) {
+    (void)caps; return 4 * 1024 * 1024;  // 4 MB stub value
+}

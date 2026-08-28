@@ -44,6 +44,22 @@ bool anti_exfil_signer_commit(const uint8_t *private_key,
   return true;
 }
 
+bool anti_exfil_host_commit(const uint8_t *host_entropy,
+                            uint8_t *host_commitment) {
+  if (!host_commitment)
+    return false;
+  secure_memzero(host_commitment, ANTI_EXFIL_HOST_COMMITMENT_LEN);
+  if (!host_entropy)
+    return false;
+  if (wally_ae_host_commit_from_bytes(
+          host_entropy, ANTI_EXFIL_HOST_ENTROPY_LEN, EC_FLAG_ECDSA,
+          host_commitment, ANTI_EXFIL_HOST_COMMITMENT_LEN) != WALLY_OK) {
+    secure_memzero(host_commitment, ANTI_EXFIL_HOST_COMMITMENT_LEN);
+    return false;
+  }
+  return true;
+}
+
 bool anti_exfil_sign(const uint8_t *private_key, const uint8_t *message_hash,
                      const uint8_t *host_entropy, uint8_t *compact_signature) {
   if (!compact_signature)
@@ -102,6 +118,7 @@ bool anti_exfil_crypto_self_test(void) {
       0xc8, 0x83, 0x98, 0x13, 0x47, 0xab, 0x7f, 0xc8, 0x22, 0xeb, 0x06,
       0x9a, 0xc5, 0x3c, 0xb9, 0x86, 0x5d, 0x2e, 0x8b, 0xb3};
   uint8_t opening[ANTI_EXFIL_SIGNER_OPENING_LEN];
+  uint8_t recomputed_host_commitment[ANTI_EXFIL_HOST_COMMITMENT_LEN];
   uint8_t signature[ANTI_EXFIL_COMPACT_SIGNATURE_LEN];
   bool ok;
 
@@ -112,6 +129,9 @@ bool anti_exfil_crypto_self_test(void) {
   ok = anti_exfil_signer_commit(private_key, message_hash, host_commitment,
                                 opening) &&
        secure_memcmp(opening, expected_opening, sizeof(opening)) == 0 &&
+       anti_exfil_host_commit(host_entropy, recomputed_host_commitment) &&
+       secure_memcmp(recomputed_host_commitment, host_commitment,
+                     sizeof(host_commitment)) == 0 &&
        anti_exfil_sign(private_key, message_hash, host_entropy, signature) &&
        secure_memcmp(signature, expected_signature, sizeof(signature)) == 0 &&
        anti_exfil_verify((const uint8_t[]){
@@ -129,6 +149,8 @@ bool anti_exfil_crypto_self_test(void) {
   secure_memzero(expected_opening, sizeof(expected_opening));
   secure_memzero(expected_signature, sizeof(expected_signature));
   secure_memzero(opening, sizeof(opening));
+  secure_memzero(recomputed_host_commitment,
+                 sizeof(recomputed_host_commitment));
   secure_memzero(signature, sizeof(signature));
   return ok;
 }
