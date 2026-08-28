@@ -1,0 +1,41 @@
+{
+  "drongo": {
+    "repository": "https://github.com/bitcoinshooter/drongo",
+    "commit": "dc5d836",
+    "annotated_tag": "jade-in-psbt-profile-2026-08-27",
+    "files": {
+      "../lark/transcript/M1-coordinator-to-signer.psbt.b64": "2e6dc9564357a518d9e07a5861c5a118f0460e79",
+      "../lark/transcript/M2-signer-to-coordinator.psbt.b64": "6ddabd8d82ca0f0c2b240ddea836a0369d09c4d4",
+      "../lark/transcript/M3-coordinator-to-signer.psbt.b64": "345445fbdd5bebc3a674c7b9aaee4f42cb6c694f",
+      "../lark/transcript/M4-signer-to-coordinator.psbt.b64": "fdd4d479b2bf174939c6af44ede950a5943479bc"
+    }
+  },
+  "sparrow": {
+    "repository": "https://github.com/bitcoinshooter/sparrow",
+    "commit": "cb2dabb",
+    "annotated_tag": "jade-in-psbt-hardware-2026-08-27",
+    "files": {
+      "artifacts/journal-c882a0c7d702.json": "ac3e0de81ba809e48d1c929cf3678207d86b5f8b",
+      "artifacts/session-0788daa2f02d-ec8f5ee080d6.json": "a51a90735809e25570ef9569fe5f6b9d944d86d7",
+      "artifacts/session-3520b40b6569-49ec0bbdee88.json": "c0c3bc71232221930acce6bd619627752a9c5325",
+      "artifacts/session-c882a0c7d702-34878a88adca.json": "3e5aaa858e2a4532ca8b403d3bf26cf69b2f8d0e",
+      "artifacts/session-c882a0c7d702-57173481ec70.json": "6383adf83bf8f72d21ba2b90cc94b56af5def127",
+      "artifacts/session-c882a0c7d702-65cbe0bd28fb.json": "5bca386f5ef366d38a36a64d50da23a019aee4a3",
+      "artifacts/session-c882a0c7d702-dbeff91be9ef.json": "f2f12b18d8dfaca4adf5185716b26cf2938a655d"
+    }
+  },
+  "content_sha256": {
+    "artifacts/journal-c882a0c7d702.json": "6ac75b9a3b8a92aaf0c17b9cb80958023c904cefd9170f923f768fbe370b9f97",
+    "artifacts/session-0788daa2f02d-ec8f5ee080d6.json": "327564c0fa9ef5d8b5e5d8c83bd6455b5b92465f44127a7cf31ee758bb67b3e4",
+    "artifacts/session-3520b40b6569-49ec0bbdee88.json": "f88552742dd818ba990a1570b1b29f4e4b9f0000a722bd317a26f8cd97ca8db2",
+    "artifacts/session-c882a0c7d702-34878a88adca.json": "64197c2dbcb5ac37deab80f621cf92ef7b65a6640b525f4b721890b8bb4a6535",
+    "artifacts/session-c882a0c7d702-57173481ec70.json": "637663e2b3bb8cf9c25091252303db62e46db36a55b6c4266927835ed68781cb",
+    "artifacts/session-c882a0c7d702-65cbe0bd28fb.json": "703b5fb6ad6d387c7782790e7b90c3bfc00972c8f58275acaf61c199ec00863d",
+    "artifacts/session-c882a0c7d702-dbeff91be9ef.json": "2dd5195e34dd5fc1a5fa431f2e157cf43b8cec376818b946215978aad0ef097e"
+  },
+  "notes": [
+    "Blob ids identify exact upstream Git objects at the pinned commits and annotated tags.",
+    "The Drongo-tagged PSBT objects are byte-identical to the earlier Lark transcript already stored under ../lark/transcript, so they are referenced rather than duplicated.",
+    "The neutral AEXT projection is generated locally from fixed logical constants and the exact in-PSBT recording; it is mapping evidence, not a claim that Jade emitted detached bytes."
+  ]
+}

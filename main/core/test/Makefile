@@ -97,6 +97,7 @@ ANTI_EXFIL_SEMANTIC_SRC = ../anti_exfil/anti_exfil_types.c ../anti_exfil/anti_ex
 ANTI_EXFIL_FIXTURE_SOURCES = generate_anti_exfil_fixtures.py \
 	generate_anti_exfil_transport_fixtures.py \
 	generate_anti_exfil_collaboration_fixtures.py \
+	generate_anti_exfil_profile_mapping.py \
 	check_anti_exfil_collaboration.py \
 	fixtures/anti_exfil/manifest.json \
 	fixtures/anti_exfil/crypto/primitive-opening.json \
