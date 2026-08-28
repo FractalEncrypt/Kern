@@ -83,6 +83,44 @@ static anti_exfil_result_t derive_slot_key(
   return ANTI_EXFIL_OK;
 }
 
+static anti_exfil_result_t validate_host_reveal_continuation(
+    const anti_exfil_message_t *host_reveal,
+    const anti_exfil_slot_set_t *scratch) {
+  for (size_t i = 0; i < host_reveal->slot_count; ++i) {
+    struct ext_key *derived = NULL;
+    uint8_t opening[ANTI_EXFIL_OPENING_LEN];
+    uint8_t commitment[ANTI_EXFIL_HOST_COMMITMENT_LEN];
+    memset(opening, 0, sizeof(opening));
+    memset(commitment, 0, sizeof(commitment));
+
+    anti_exfil_result_t result = derive_slot_key(&scratch->slots[i], &derived);
+    if (result == ANTI_EXFIL_OK &&
+        !anti_exfil_signer_commit(derived->priv_key + 1,
+                                  host_reveal->slots[i].message_hash,
+                                  host_reveal->slots[i].host_commitment,
+                                  opening))
+      result = ANTI_EXFIL_NATIVE_BACKEND;
+    if (derived)
+      bip32_key_free(derived);
+    if (result == ANTI_EXFIL_OK &&
+        memcmp(opening, host_reveal->slots[i].opening, sizeof(opening)) != 0)
+      result = ANTI_EXFIL_OPENING_MISMATCH;
+    if (result == ANTI_EXFIL_OK &&
+        !anti_exfil_host_commit(host_reveal->slots[i].host_reveal,
+                                commitment))
+      result = ANTI_EXFIL_NATIVE_BACKEND;
+    if (result == ANTI_EXFIL_OK &&
+        memcmp(commitment, host_reveal->slots[i].host_commitment,
+               sizeof(commitment)) != 0)
+      result = ANTI_EXFIL_COMMITMENT_MISMATCH;
+    memset(opening, 0, sizeof(opening));
+    memset(commitment, 0, sizeof(commitment));
+    if (result != ANTI_EXFIL_OK)
+      return result;
+  }
+  return ANTI_EXFIL_OK;
+}
+
 anti_exfil_result_t anti_exfil_signer_preflight(
     const anti_exfil_message_t *input, const uint8_t *psbt_bytes,
     size_t psbt_bytes_len, anti_exfil_slot_set_t *scratch) {
@@ -101,6 +139,9 @@ anti_exfil_result_t anti_exfil_signer_preflight(
   if (result == ANTI_EXFIL_OK)
     result = validate_authoritative_slots(input, psbt_bytes, psbt_bytes_len,
                                           scratch);
+  if (result == ANTI_EXFIL_OK &&
+      input->stage == ANTI_EXFIL_STAGE_HOST_REVEAL)
+    result = validate_host_reveal_continuation(input, scratch);
   memset(scratch, 0, sizeof(*scratch));
   return result;
 }

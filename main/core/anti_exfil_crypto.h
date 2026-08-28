@@ -24,6 +24,10 @@ bool anti_exfil_signer_commit(const uint8_t *private_key,
                               const uint8_t *host_commitment,
                               uint8_t *signer_opening);
 
+/* Recompute the host commitment carried from message 1 into message 3. */
+bool anti_exfil_host_commit(const uint8_t *host_entropy,
+                            uint8_t *host_commitment);
+
 /*
  * Produce the compact protected signature for message 4.
  *

@@ -882,12 +882,26 @@ static bool create_psbt_info_display(void) {
   lv_obj_t *c = scan_ctx.info_container;
 
   if (scan_anti_exfil_review_active()) {
+    const bool final_round = scan_anti_exfil_final_round();
+    static const uint8_t zero_session[32] = {0};
+    const uint8_t *session = scan_anti_exfil_session_id();
+    if (!session)
+      session = zero_session;
+    char step_text[320];
+    snprintf(
+        step_text, sizeof(step_text),
+        final_round
+            ? "Step 2 of 2\n\nReview this transaction again before creating "
+              "protected signatures for every controlled signing slot. No "
+              "ordinary signed PSBT is returned.\n\nSession: "
+              "%02x%02x%02x%02x%02x%02x%02x%02x..."
+            : "Step 1 of 2\n\nReview this transaction before creating nonce "
+              "commitments. No signature is created in this step.\n\nSession: "
+              "%02x%02x%02x%02x%02x%02x%02x%02x...",
+        session[0], session[1], session[2], session[3], session[4], session[5],
+        session[6], session[7]);
     theme_create_page_title(c, "Protected signing");
-    lv_obj_t *step = theme_create_label(
-        c,
-        "Step 1 of 2\n\nReview this transaction before creating nonce "
-        "commitments. No signature is created in this step.",
-        false);
+    lv_obj_t *step = theme_create_label(c, step_text, false);
     lv_obj_set_width(step, LV_PCT(100));
     lv_label_set_long_mode(step, LV_LABEL_LONG_WRAP);
     lv_obj_set_style_text_color(step, highlight_color(), 0);
@@ -919,7 +933,11 @@ static bool create_psbt_info_display(void) {
   review_data_free(&data);
 
   scan_create_sign_action_row(
-      c, scan_anti_exfil_review_active() ? "Create commitments" : "Sign",
+      c,
+      scan_anti_exfil_review_active()
+          ? (scan_anti_exfil_final_round() ? "Create signatures"
+                                           : "Create commitments")
+          : "Sign",
       scan_anti_exfil_review_active() ? scan_anti_exfil_approve_button_cb
                                       : scan_psbt_sign_button_cb);
   return true;

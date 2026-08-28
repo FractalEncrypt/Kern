@@ -59,6 +59,8 @@ void scan_dismiss_progress(void);
 void scan_defer_with_progress(const char *title, const char *text,
                               lv_timer_cb_t cb);
 bool scan_anti_exfil_review_active(void);
+bool scan_anti_exfil_final_round(void);
+const uint8_t *scan_anti_exfil_session_id(void);
 void scan_anti_exfil_approve_button_cb(lv_event_t *e);
 
 /* scan_review_widgets.c */

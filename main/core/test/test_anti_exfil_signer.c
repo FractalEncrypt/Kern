@@ -87,6 +87,34 @@ int main(void) {
         result == ANTI_EXFIL_SIGNATURE_SLOT_MISMATCH &&
             all_zero(&scratch, sizeof(scratch)));
 
+  memset(&scratch, 0xa5, sizeof(scratch));
+  result = anti_exfil_signer_preflight(
+      &ANTI_EXFIL_SEMANTIC_MESSAGES[2], ANTI_EXFIL_SEMANTIC_PSBT,
+      ANTI_EXFIL_SEMANTIC_PSBT_LEN, &scratch);
+  CHECK("message 3 preflight verifies exact continuation without signing",
+        result == ANTI_EXFIL_OK && all_zero(&scratch, sizeof(scratch)));
+
+  memcpy(&mutated, &ANTI_EXFIL_SEMANTIC_MESSAGES[2], sizeof(mutated));
+  memcpy(mutated.slots[0].opening, mutated.slots[1].opening,
+         sizeof(mutated.slots[0].opening));
+  memset(&scratch, 0xa5, sizeof(scratch));
+  result = anti_exfil_signer_preflight(
+      &mutated, ANTI_EXFIL_SEMANTIC_PSBT, ANTI_EXFIL_SEMANTIC_PSBT_LEN,
+      &scratch);
+  CHECK("message 3 preflight rejects substituted signer opening",
+        result == ANTI_EXFIL_OPENING_MISMATCH &&
+            all_zero(&scratch, sizeof(scratch)));
+
+  memcpy(&mutated, &ANTI_EXFIL_SEMANTIC_MESSAGES[2], sizeof(mutated));
+  mutated.slots[0].host_reveal[0] ^= 1;
+  memset(&scratch, 0xa5, sizeof(scratch));
+  result = anti_exfil_signer_preflight(
+      &mutated, ANTI_EXFIL_SEMANTIC_PSBT, ANTI_EXFIL_SEMANTIC_PSBT_LEN,
+      &scratch);
+  CHECK("message 3 preflight rejects reveal that does not open commitment",
+        result == ANTI_EXFIL_COMMITMENT_MISMATCH &&
+            all_zero(&scratch, sizeof(scratch)));
+
   poison();
   result = anti_exfil_signer_prepare(
       &ANTI_EXFIL_SEMANTIC_MESSAGES[0], ANTI_EXFIL_SEMANTIC_PSBT,
