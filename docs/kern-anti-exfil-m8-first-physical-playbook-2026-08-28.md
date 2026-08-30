@@ -1,7 +1,7 @@
 # M8 first physical playbook — Sparrow GUI to Kern P2WPKH
 
-Date: 2026-08-28
-Status: prepared for review; stop before Step 1
+Date: 2026-08-28; revised 2026-08-30
+Status: revised after preflight review; no live ceremony has run
 Case reserved: M8-D/P01 attempt 01
 
 ## Goal
@@ -19,14 +19,39 @@ This playbook is intentionally not a fixture-QR test. Do not use
 
 Do not launch the development Sparrow instance, import a wallet, create a PSBT,
 or scan stage 1 until the runbook, evidence recorder, build receipt, and this
-playbook have completed independent review.
+revised playbook have completed review.
+
+## Plain-English setup answers
+
+- **Where does the seed go?** Load the disposable test seed into Kern. Sparrow
+  remains watch-only and receives only Kern's account xpub/output descriptor.
+  Never enter seed words or a SeedQR into Sparrow.
+- **What is one Kern-controlled signing slot?** A slot is one transaction input
+  plus one Kern-controlled public key and sighash. For this test, a
+  single-signature wallet with exactly one selected input automatically gives
+  one slot. You do not locate or configure it separately.
+- **Testnet3 versus Testnet4:** Kern's UI groups public test networks under
+  `Testnet`, but the anti-exfil message preserves the exact network identity.
+  Sparrow's `--network testnet` means Testnet3, so the first run uses the one
+  Testnet3 UTXO belonging to fingerprint `0fb882ff`. Testnet4 wallet history is
+  isolated and will not be selected by this Sparrow instance.
+- **Is the saved SeedQR enough?** It is sufficient to restore the disposable
+  signer seed on Kern. It is not a backup of Sparrow labels or wallet metadata,
+  but this test deliberately creates a fresh watch-only wallet in an isolated
+  Sparrow home.
+- **Who saves the stage artifacts?** Sparrow now records direction, stage,
+  canonical package length, and SHA-256 automatically in its isolated
+  `sparrow.log`. The user does not save or hash the animated QR manually.
+- **When does monitoring start?** Stop before launching Sparrow and coordinate
+  with Codex. Codex starts the Kern serial monitor; then the user performs the
+  physical steps and reports each checkpoint.
 
 ## Required identities
 
-- Sparrow `b99417afe4468a3caa4ccb58d7c7ff4db3fe0429`
+- Sparrow `0f9029a70543358f01af473aab1813ccd49143a1`
 - Drongo `54365d7f09df956e0b3e8baf035b23920073bac3`
 - Sparrow JAR SHA-256
-  `332cc75d2fd406963f0fe5ae91e04a9439ceaf9ea5eeabdfa1d40285a7c0d4bc`
+  `ee26ed2e0d1985166a5fdf23dd68a5a508f0ec7b29c307237aea8b0d1e22d354`
 - Kern flashed firmware receipt DR-KERN-01, SHA-256
   `b9aecca4dc0c894d8b7ff282c160aa3758cd4133c825247954ee15e59e307e1d`
 - Testnet3 and `aext-v1`
@@ -36,39 +61,42 @@ If any identity differs, stop and create a new build/device receipt.
 ## Pre-test preparation
 
 1. Close normal Sparrow completely.
-2. Back up the existing watch-only test wallet/export needed for this test.
-3. Create and use a dedicated development home:
+2. Have the disposable SeedQR for fingerprint `0fb882ff` available. The normal
+   Sparrow wallet is not opened or migrated during this test.
+3. Confirm this dedicated development home exists and is otherwise isolated:
 
    `C:\Users\FractalEncrypt\Documents\SeedSigner_AntiExfil\run\m8-sparrow-home`
 
    Do not point this fork at `%APPDATA%\Sparrow`.
-4. Use only a disposable Testnet3 wallet. The preferred first case is a
-   single-signature BIP84 wallet with exactly one spendable Testnet3 input and
-   one Kern-controlled signing slot.
-5. Do not load a production seed into Kern or Sparrow. Sparrow receives public
-   wallet material only.
-6. Connect the Kern serial monitor before scanning so lifecycle/resource lines
-   are captured from the start. Save a redacted copy after the attempt.
+4. Use the BIP84 account for fingerprint `0fb882ff` at `m/84'/1'/0'`. In the
+   transaction editor, select only its one spendable Testnet3 UTXO. That is the
+   one-input/one-Kern-slot baseline.
+5. Load this disposable seed into Kern when instructed. Sparrow receives only
+   Kern's public account data. Do not load any production seed into either app.
+6. Ask Codex to start the Kern serial monitor before scanning. Codex will
+   capture and later redact the lifecycle/resource lines.
 7. Set camera exposure to the previously successful position and frame the
    animated QR at roughly 75% of the Kern camera preview height.
 
 ## Launch command after review
 
-From the Sparrow checkout:
+"From the Sparrow checkout" means: open an ordinary Windows PowerShell window,
+change into the folder containing this Sparrow source branch, and then run the
+build launcher. Paste these commands one at a time:
 
 ```powershell
-.\gradlew.bat --gradle-user-home C:\Users\FractalEncrypt\Documents\SeedSigner_AntiExfil\run\gradle-home run --args="--dir C:\Users\FractalEncrypt\Documents\SeedSigner_AntiExfil\run\m8-sparrow-home --network testnet"
+cd "C:\Users\FractalEncrypt\Documents\SeedSigner_AntiExfil\run\feasibility-sources\our-sparrow"
+.\gradlew.bat --gradle-user-home C:\Users\FractalEncrypt\Documents\SeedSigner_AntiExfil\run\gradle-home-m8 run --args="--dir C:\Users\FractalEncrypt\Documents\SeedSigner_AntiExfil\run\m8-sparrow-home --network testnet"
 ```
 
-Checkout:
-
-`C:\Users\FractalEncrypt\Documents\SeedSigner_AntiExfil\run\feasibility-sources\our-sparrow`
+The first command is all "from the checkout" means. Leave that PowerShell
+window open while Sparrow runs because its output is supporting evidence.
 
 Confirm the UI says Testnet before importing anything.
 
 ## Wallet setup after review
 
-1. Load the selected disposable test seed on Kern.
+1. Restore the disposable `0fb882ff` seed on Kern from its SeedQR.
 2. Keep Kern on Testnet.
 3. Export its native-SegWit account xpub/keystore QR.
 4. In the isolated Sparrow instance, create or import the corresponding
@@ -78,8 +106,9 @@ Confirm the UI says Testnet before importing anything.
    Specter DIY.
 6. Confirm the wallet fingerprint, derivation, descriptor, and first receive
    address against the existing known test wallet.
-7. Ensure the wallet has exactly the intended Testnet3 UTXO. Do not broadcast
-   or fund a new transaction as part of this playbook.
+7. Wait for Testnet3 synchronization and confirm the intended UTXO appears.
+   Testnet4 history must not appear in this instance. Do not broadcast or fund
+   a new transaction as part of this playbook.
 
 ## Device settings immediately before the ceremony
 
@@ -98,13 +127,23 @@ them.
 
 ### Step 1 — Sparrow creates message 1
 
-1. Create a single-input native-SegWit spend to a disposable Testnet3 address.
-2. Record input count, amount, fee, destination, frozen-PSBT SHA-256, and the
-   Sparrow session identifier. Do not broadcast.
-3. Choose Kern/protected signing. Expected: Sparrow displays an animated
+1. In Sparrow, open the wallet's UTXOs tab and select only the one intended
+   Testnet3 UTXO. Choose `Send Selected` and create a native-SegWit spend to a
+   disposable Testnet3 receiving address. Review the amount and fee.
+2. Create the transaction so Sparrow opens its transaction/PSBT view. Do not
+   finalize or broadcast it.
+3. At the bottom of that view, click `Protected QR` (lock icon), not the
+   ordinary `Sign` button. Expected: Sparrow displays an animated
    `x-btc-anti-exfil` stage-1 request, not an ordinary `crypto-psbt` signing QR.
-4. Save/hash the canonical stage-1 artifact when the development tooling makes
-   it available.
+   Its heading must say to scan the commitment with **Kern**.
+4. No manual save/hash action is required. Leave the QR open and tell Codex
+   `Stage 1 QR is up`. Sparrow has already durably written the session and an
+   INFO line like the following to
+   `m8-sparrow-home\sparrow.log`:
+
+   `Anti-exfil package direction=outgoing stage=HOST_COMMIT bytes=... sha256=...`
+
+   Codex will read that line and enter it in the evidence recorder.
 
 Stop immediately if Sparrow offers `REQUIRED` for Kern, selects another
 profile, loses the session on navigation, or displays an ordinary signing QR.
@@ -118,9 +157,14 @@ profile, loses the session on navigation, or displays an ordinary signing QR.
 3. Press `Create commitments` only after the complete review.
 4. Expected: animated `Nonce commitments`; Kern explicitly states the
    transaction is not signed.
-5. Capture response lifecycle/heap lines and hash the stage-2 artifact.
-6. Scan message 2 into Sparrow before pressing Done on Kern if that makes
-   evidence capture easier.
+5. Leave Kern's message-2 QR displayed and tell Codex `Nonce commitments QR is
+   up`. Codex captures the heap/lifecycle lines.
+6. On Sparrow, close/confirm the stage-1 display so Sparrow opens its
+   anti-exfil scanner. Point Sparrow's camera at Kern's message-2 QR.
+7. Wait until Sparrow accepts it and displays the stage-3 host-reveal QR. This
+   automatically logs the incoming message-2 hash and outgoing message-3 hash.
+8. Only then press Done on Kern. Record this exact order in the receipt:
+   `message 2 scanned by Sparrow before Kern Done`.
 
 Stop if a signature or signed PSBT is returned, review details differ, an
 unexpected policy override is required, or Back/Cancel creates a response.
@@ -130,9 +174,11 @@ unexpected policy override is required, or Back/Cancel creates a response.
 1. Sparrow must validate the complete opening set for the exact controlled
    slot and durably advance the same session.
 2. Expected: Sparrow displays an animated stage-3 host-reveal request for the
-   exact frozen PSBT and session.
-3. Record the session prefix and message-3 hash/length. Compare them with the
-   stage-1 receipt before scanning.
+   exact frozen PSBT and session. Its heading must say to scan the host reveal
+   with **Kern**.
+3. Leave Sparrow's stage-3 QR open and tell Codex `Stage 3 QR is up`. Codex
+   reads the automatically logged message-2/message-3 lengths and hashes and
+   checks the same durable session before you scan it.
 
 Stop if Sparrow silently starts a new session, changes the PSBT, accepts an
 incomplete opening set, or exposes an ordinary signed-PSBT merge path.
@@ -145,9 +191,13 @@ incomplete opening set, or exposes an ordinary signed-PSBT merge path.
 3. Press `Create signatures` only after the independent review.
 4. Expected: animated `Protected signatures`; no ordinary signed PSBT is
    exported.
-5. Capture response lifecycle/heap lines and scan message 4 into Sparrow.
-6. Press Done only after Sparrow has either captured the response or the
-   response evidence has been retained.
+5. Leave Kern's message-4 QR displayed and tell Codex `Protected signatures QR
+   is up`. Codex captures the response heap/lifecycle lines.
+6. On Sparrow, close/confirm the stage-3 display so its anti-exfil scanner
+   opens. Scan Kern's message-4 QR. Sparrow automatically logs the incoming
+   message-4 length and hash.
+7. Wait for Sparrow's completed signed-PSBT view. Only then press Done on Kern
+   and record `message 4 scanned by Sparrow before Kern Done`.
 
 Stop if Kern accepts a different network/PSBT/session/slot set, omits the
 second approval, returns ordinary PSBT state, or offers automatic retry.
@@ -157,7 +207,9 @@ second approval, returns ordinary PSBT state, or offers automatic retry.
 1. Sparrow must verify the ECDSA signature and S2C opening for every expected
    slot.
 2. It must insert only verified signatures into its frozen original PSBT.
-3. Record the final PSBT hash and signature placement.
+3. Stop on Sparrow's completed PSBT view and tell Codex `Sparrow verification
+   view is up`. Codex records the final PSBT hash, signature placement, and
+   protected provenance from the isolated state/logs.
 4. Confirm the transaction is not broadcast.
 5. Export a public Testnet3 evidence copy only if it contains no unintended
    labels or metadata; otherwise retain hashes and redacted logs.

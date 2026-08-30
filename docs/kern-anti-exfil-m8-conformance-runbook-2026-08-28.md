@@ -32,7 +32,7 @@ cell above into a pass until its M8 receipt is recorded.
   commit adds host-side mapping corpus material and does not change firmware.
 - Flashed Kern `kern.bin` SHA-256:
   `b9aecca4dc0c894d8b7ff282c160aa3758cd4133c825247954ee15e59e307e1d`.
-- Sparrow: `b99417afe4468a3caa4ccb58d7c7ff4db3fe0429`.
+- Sparrow: `0f9029a70543358f01af473aab1813ccd49143a1`.
 - Drongo: `54365d7f09df956e0b3e8baf035b23920073bac3`.
 - Lark submodule: `ddffe556f0d1ba6a138be3b362ce74219fed0710`.
 - Profile: canonical `aext-v1`; temporary persisted `AEXT_V1` remains a
@@ -102,6 +102,10 @@ Run one single-input native P2WPKH ceremony in this order:
 2. M8-C: Sparrow GUI to SeedSigner.
 3. M8-B: Sparrow reference tooling to Kern.
 4. M8-A: Sparrow reference tooling to SeedSigner.
+
+If M8-D fails, run the applicable M8-C, M8-B, and M8-A baselines as control
+cases before assigning the failure to Kern, Sparrow GUI, or their integration.
+Do not continue the broader M8-D suite until the baseline failure is understood.
 
 Compare logical signing context, controlled slots, frozen PSBT, verified
 signature placement, and reconstructed PSBT outcome. Transport-specific bytes

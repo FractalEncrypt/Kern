@@ -9,6 +9,9 @@ receipt. Do not paste secret material into this file.
 
 ## Build receipt BR-2026-08-28-01
 
+Status: superseded before live testing by BR-2026-08-30-01. No M8 ceremony
+used these artifacts.
+
 | Item | Recorded value |
 | --- | --- |
 | Sparrow branch | `codex/kern-anti-exfil-m7` |
@@ -31,6 +34,29 @@ receipt. Do not paste secret material into this file.
 The build is suitable for the planned development run. It is not a release or
 reproducible-build claim, and no installer was created.
 
+## Build receipt BR-2026-08-30-01
+
+| Item | Recorded value |
+| --- | --- |
+| Sparrow branch | `codex/kern-anti-exfil-m7` |
+| Sparrow commit | `0f9029a70543358f01af473aab1813ccd49143a1` |
+| Drongo commit | `54365d7f09df956e0b3e8baf035b23920073bac3` |
+| Lark commit | `ddffe556f0d1ba6a138be3b362ce74219fed0710` |
+| Change since BR-2026-08-28-01 | QR prompts use the selected signer model, the generic tooltip no longer names SeedSigner, and INFO logs record canonical package direction, stage, length, and SHA-256 |
+| Build command | `gradlew.bat --gradle-user-home C:\Users\FractalEncrypt\Documents\SeedSigner_AntiExfil\run\gradle-home-m8 clean assemble` |
+| Result | `BUILD SUCCESSFUL` in 14 seconds, 16 tasks executed |
+| Gradle / Java | 9.1.0 / Eclipse Adoptium Temurin 25.0.4+7-LTS |
+| JAR | `build/libs/sparrow-2.5.4.jar`, 15,698,749 bytes |
+| JAR SHA-256 | `ee26ed2e0d1985166a5fdf23dd68a5a508f0ec7b29c307237aea8b0d1e22d354` |
+| ZIP distribution | `build/distributions/sparrow-2.5.4.zip`, 86,872,726 bytes |
+| ZIP SHA-256 | `0288c86ac76172333e4b9000b25ac58a17ac8fade5df4b1b0aba69681eb82374` |
+| TAR distribution | `build/distributions/sparrow-2.5.4.tar`, 93,358,592 bytes |
+| TAR SHA-256 | `193a0293cb44800a6e68232ea3248a3c08e27ad01aad16912dbcd4f1ff4b6c68` |
+
+The canonical package hash is now automatic evidence. Sparrow logs only its
+direction, stage, byte length, and SHA-256; it does not log PSBT bytes, host
+randomness, openings, or signatures.
+
 ## Coordinator test receipt TR-2026-08-28-01
 
 The following focused suites passed against the pinned Sparrow/Drongo source
@@ -42,6 +68,7 @@ after the clean assembly:
 - `SeedSignerImportPolicyTest`
 - `KeystoreFxmlAntiExfilTest`
 - `AntiExfilPolicySelectionTest`
+- `AntiExfilQrExchangeTest`
 
 Gradle reported `BUILD SUCCESSFUL` in 15 seconds. H2 emitted the previously
 observed Windows shutdown warnings after temporary test directories had been
