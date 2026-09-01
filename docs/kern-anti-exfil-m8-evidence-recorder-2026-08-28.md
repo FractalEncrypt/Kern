@@ -94,6 +94,10 @@ Focused `HwAirgappedControllerTest`, `AntiExfilQrExchangeTest`,
 - The operator stopped before transaction creation. `Protected QR` was never
   selected; no anti-exfil session or message was created; M8-D/P01 remains
   `NOT RUN`.
+- Krux has no entry in Sparrow's anti-exfil capability registry, so the
+  mislabeled keystore could not have entered a protected workflow even though
+  its stored policy was Optional. The setup detour was fail-safe by
+  construction as well as by the operator's stop.
 - Root cause: `Kern` existed as an importer class but was omitted from
   `HwAirgappedController`'s displayed importer lists.
 - Sparrow `3b565e3` registers Kern for all applicable policy types and pins the
@@ -220,10 +224,10 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | --- | --- | --- |
 | M8 runbook reviewed | Pass | KimiK3 preflight and follow-up reviews; control-case instruction verified |
 | Evidence recorder reviewed | Pass | Identity chain and superseded receipt handling verified |
-| Sparrow build receipt reviewed | Pending delta review | BR-2026-08-30-01 was reviewed; replacement BR-2026-09-01-01 pins the importer-registry fix and rebuilt artifacts |
+| Sparrow build receipt reviewed | Pass | KimiK3 independently matched the replacement BR-2026-09-01-01 JAR SHA-256 and identity chain |
 | Physical playbook reviewed | Pass | Seed custody, network identity, scan order, and automatic evidence confirmed |
-| Kern importer-registry delta reviewed | Pending | Review Sparrow `3b565e3` plus this updated receipt before relaunching the ceremony |
-| First M8-D/P01 ceremony authorized | Paused | Earlier authorization is suspended until the importer-registry delta and BR-2026-09-01-01 pass review; case remains `NOT RUN` |
+| Kern importer-registry delta reviewed | Pass | KimiK3 approved Sparrow `3b565e3` and Kern evidence commit `3696c57`; UI-only registration change, no protocol or policy-registry delta |
+| First M8-D/P01 ceremony authorized | Yes | Reauthorized 2026-09-01 under BR-2026-09-01-01; replace Krux with Kern before transaction creation; case remains `NOT RUN` until stage 1 begins |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -231,5 +235,6 @@ accepted advancement from preflight to M8-D/P01 attempt 01.
 
 Setup observation SO-2026-09-01-01 subsequently exposed a missing visible Kern
 importer. Because the operator stopped before transaction creation, the earlier
-review remains valid background evidence, but live authorization is paused for
-the narrow Sparrow `3b565e3` delta and replacement build receipt.
+review remains valid background evidence. KimiK3's delta review approved the
+narrow Sparrow `3b565e3` fix and replacement build receipt, so live
+authorization is reinstated with keystore replacement as a mandatory pre-step.
