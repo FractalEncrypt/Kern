@@ -91,6 +91,10 @@ Focused `HwAirgappedControllerTest`, `AntiExfilQrExchangeTest`,
 
 ## Build receipt BR-2026-09-01-02
 
+Status: superseded before live testing by BR-2026-09-01-03. Physical setup
+showed that changing only the SVG width and height resized the visible mark but
+left its 200-unit coordinate bounds controlling JavaFX layout.
+
 | Item | Recorded value |
 | --- | --- |
 | Sparrow branch | `codex/kern-anti-exfil-m7` |
@@ -111,6 +115,29 @@ Focused `HwAirgappedControllerTest`, `AntiExfilQrExchangeTest`,
 Focused `KernWalletModelAssetTest`, `HwAirgappedControllerTest`,
 `KeystoreFxmlAntiExfilTest`, `KernImportTest`, and
 `AntiExfilPolicySelectionTest` passed before this clean assembly.
+
+## Build receipt BR-2026-09-01-03
+
+| Item | Recorded value |
+| --- | --- |
+| Sparrow branch | `codex/kern-anti-exfil-m7` |
+| Sparrow commit | `a967c0a88eb4db5a8b85eae2e7cc8581709def50` |
+| Drongo commit | `54365d7f09df956e0b3e8baf035b23920073bac3` |
+| Lark commit | `ddffe556f0d1ba6a138be3b362ce74219fed0710` |
+| Change since BR-2026-09-01-02 | All four Kern SVG viewBoxes and circle geometry normalized to 50-by-50; regression test now verifies every stroked artwork bound fits that coordinate system |
+| Build command | `gradlew.bat --gradle-user-home C:\Users\FractalEncrypt\Documents\SeedSigner_AntiExfil\run\gradle-home-m8 clean assemble` |
+| Result | `BUILD SUCCESSFUL` in 22 seconds, 16 tasks executed |
+| Gradle / Java | 9.1.0 / Eclipse Adoptium Temurin 25.0.4+7-LTS |
+| JAR | `build/libs/sparrow-2.5.4.jar`, 15,698,847 bytes |
+| JAR SHA-256 | `5c0c1a2405ff5d1de7111c7158a4a5b680a4ccd42d5ff81bc220244e67e16f97` |
+| ZIP distribution | `build/distributions/sparrow-2.5.4.zip`, 86,872,811 bytes |
+| ZIP SHA-256 | `1af4e8b9c6f7b02944b574cdf11dc52f3e9eda339310f06fa9a3911a9cea6662` |
+| TAR distribution | `build/distributions/sparrow-2.5.4.tar`, 93,358,592 bytes |
+| TAR SHA-256 | `10567b5a6841f4ab5c22b4759d99a0a6de772134315e816ce86eb6f5be50bc33` |
+
+The five focused tests named in BR-2026-09-01-02 were rerun from scratch. The
+asset test now parses each SVG and verifies its viewBox, three-ring mark, and
+stroke-inclusive horizontal and vertical bounds.
 
 ## Setup observation SO-2026-09-01-01
 
@@ -147,6 +174,21 @@ Focused `KernWalletModelAssetTest`, `HwAirgappedControllerTest`,
 - Sparrow `6c01dec` changes only the intrinsic dimensions of the four Kern SVG
   assets to the standard 50-by-50 size and pins all variants with a focused
   regression test.
+
+## Setup observation SO-2026-09-01-03
+
+- The operator chose to relaunch BR-2026-09-01-02 before obtaining its planned
+  independent delta review.
+- The Kern mark rendered at the intended visible size, but both the importer
+  tile and keystore pane still retained approximately 200 pixels of layout
+  space. The derivation, tpub, and Protected signing fields remained clipped.
+- The operator again did not apply the replacement and did not create a
+  transaction. No protected QR, session, or protocol message was created;
+  M8-D/P01 remains `NOT RUN`.
+- Root cause: JavaFX layout followed the SVG's 200-unit viewBox/geometry even
+  after its width and height were reduced. Sparrow `a967c0a` normalizes both
+  the coordinate system and artwork geometry and strengthens the regression
+  test to check actual stroke-inclusive bounds.
 
 ## Coordinator test receipt TR-2026-08-28-01
 
@@ -266,10 +308,10 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | --- | --- | --- |
 | M8 runbook reviewed | Pass | KimiK3 preflight and follow-up reviews; control-case instruction verified |
 | Evidence recorder reviewed | Pass | Identity chain and superseded receipt handling verified |
-| Sparrow build receipt reviewed | Pending delta review | BR-2026-09-01-01 was reviewed; replacement BR-2026-09-01-02 pins the Kern asset-sizing fix and rebuilt artifacts |
+| Sparrow build receipt reviewed | Pending delta review | BR-2026-09-01-01 was reviewed; replacement BR-2026-09-01-03 pins the complete Kern SVG coordinate-bound fix and rebuilt artifacts |
 | Physical playbook reviewed | Pass | Seed custody, network identity, scan order, and automatic evidence confirmed |
 | Kern importer-registry delta reviewed | Pass | KimiK3 approved Sparrow `3b565e3` and Kern evidence commit `3696c57`; UI-only registration change, no protocol or policy-registry delta |
-| Kern asset-sizing delta reviewed | Pending | Review Sparrow `6c01dec` plus the replacement BR-2026-09-01-02 receipt before relaunching |
+| Kern asset-sizing delta reviewed | Pending | Review Sparrow `a967c0a` plus the replacement BR-2026-09-01-03 receipt before relaunching |
 | First M8-D/P01 ceremony authorized | Paused | Authorization is suspended until the asset-sizing delta passes review; case remains `NOT RUN` |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
@@ -284,4 +326,4 @@ authorization is reinstated with keystore replacement as a mandatory pre-step.
 
 Setup observation SO-2026-09-01-02 then exposed oversized Kern SVG assets
 before replacement was applied. Live authorization is paused again for the
-narrow Sparrow `6c01dec` asset-sizing delta and BR-2026-09-01-02 review.
+narrow Sparrow `a967c0a` coordinate-bound delta and BR-2026-09-01-03 review.
