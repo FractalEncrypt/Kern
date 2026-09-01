@@ -190,6 +190,20 @@ stroke-inclusive horizontal and vertical bounds.
   the coordinate system and artwork geometry and strengthens the regression
   test to check actual stroke-inclusive bounds.
 
+## Setup verification SV-2026-09-01-01
+
+- The operator physically relaunched BR-2026-09-01-03 and repeated the
+  setup-only Replace-to-Kern flow with the same account QR.
+- The Kern importer tile matched the height and alignment of its neighboring
+  airgapped-device tiles.
+- The keystore pane showed the complete compact Kern mark, Airgapped Wallet
+  (Kern) identity, fingerprint `0fb882ff`, derivation `m/84'/1'/0'`, complete
+  tpub field, and Protected signing set to Optional without clipping.
+- The supplied screenshots show the replacement still staged with Apply
+  available. This verification did not create a transaction, protected QR,
+  session, or protocol message; M8-D/P01 remains `NOT RUN` pending independent
+  review and final application of the identical replacement.
+
 ## Coordinator test receipt TR-2026-08-28-01
 
 The following focused suites passed against the pinned Sparrow/Drongo source
