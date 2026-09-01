@@ -1,7 +1,7 @@
 # Kern anti-exfil M8 evidence recorder
 
 Date opened: 2026-08-28
-Status: preflight only; no live M8 ceremony has been run
+Status: independent preflight review complete; no live M8 ceremony has been run
 
 This is the append-only human-readable index. Store bulky logs, images, QR
 frames, and message artifacts in a case directory and link them from the case
@@ -173,8 +173,12 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 
 | Review item | Status | Notes |
 | --- | --- | --- |
-| M8 runbook reviewed | Pending | |
-| Evidence recorder reviewed | Pending | |
-| Sparrow build receipt reviewed | Pending | |
-| Physical playbook reviewed | Pending | |
-| First M8-D/P01 ceremony authorized | No | Stop point requested by user |
+| M8 runbook reviewed | Pass | KimiK3 preflight and follow-up reviews; control-case instruction verified |
+| Evidence recorder reviewed | Pass | Identity chain and superseded receipt handling verified |
+| Sparrow build receipt reviewed | Pass | On-disk JAR SHA-256 independently matched BR-2026-08-30-01 |
+| Physical playbook reviewed | Pass | Seed custody, network identity, scan order, and automatic evidence confirmed |
+| First M8-D/P01 ceremony authorized | Yes | Authorized 2026-09-01; remains `NOT RUN` until stage 1 begins |
+
+The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
+`5efa6ce`. It found no protocol/validation changes, no blocking issue, and
+accepted advancement from preflight to M8-D/P01 attempt 01.
