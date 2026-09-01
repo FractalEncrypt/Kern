@@ -367,12 +367,12 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | --- | --- | --- |
 | M8 runbook reviewed | Pass | KimiK3 preflight and follow-up reviews; control-case instruction verified |
 | Evidence recorder reviewed | Pass | Identity chain and superseded receipt handling verified |
-| Sparrow build receipt reviewed | Pending delta review | BR-2026-09-01-03 was reviewed; replacement BR-2026-09-01-04 pins the scoped evidence-logging fix and rebuilt artifacts |
+| Sparrow build receipt reviewed | Pass | KimiK3 independently matched the BR-2026-09-01-04 JAR SHA-256 and verified the supersession and identity chain |
 | Physical playbook reviewed | Pass | Seed custody, network identity, scan order, and automatic evidence confirmed |
 | Kern importer-registry delta reviewed | Pass | KimiK3 approved Sparrow `3b565e3` and Kern evidence commit `3696c57`; UI-only registration change, no protocol or policy-registry delta |
 | Kern asset-sizing delta reviewed | Pass | KimiK3 approved Sparrow `a967c0a` and Kern evidence commit `ff1dcbe`; assets-only correction with physical layout verification |
-| Anti-exfil receipt logging delta reviewed | Pending | Review Sparrow `182bc8a` and BR-2026-09-01-04 before relaunching the coordinator |
-| First M8-D/P01 ceremony authorized | Paused | Authorization is suspended until the scoped receipt-logging delta passes review; case remains `NOT RUN` |
+| Anti-exfil receipt logging delta reviewed | Pass | KimiK3 approved Sparrow `182bc8a` and Kern evidence commit `fec7348`; single-class INFO override with runtime effective-level assertion |
+| First M8-D/P01 ceremony authorized | Yes | Reauthorized 2026-09-01 under BR-2026-09-01-04; stop if the Stage-1 runtime receipt is absent; case remains `NOT RUN` until Stage 1 begins |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -396,3 +396,8 @@ would be suppressed by Sparrow's global WARN threshold. Because the operator
 had not created the transaction, live authorization is paused without
 consuming attempt 01 pending review of the scoped Sparrow `182bc8a` logging
 override and BR-2026-09-01-04.
+
+KimiK3's final receipt-logging delta review approved the class-scoped INFO
+override, independently matched the BR-2026-09-01-04 JAR, and accepted the
+recorded supersession chain. Live authorization is reinstated with the first
+Stage-1 runtime receipt as an immediate stop gate if absent.
