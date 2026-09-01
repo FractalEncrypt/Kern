@@ -1,7 +1,8 @@
 # Kern anti-exfil M8 evidence recorder
 
 Date opened: 2026-08-28
-Status: independent preflight review complete; no live M8 ceremony has been run
+Status: M8-D/P01 attempt 01 failed safely at Kern preflight; remediation is
+flashed and attempt 02 is paused for independent review
 
 This is the append-only human-readable index. Store bulky logs, images, QR
 frames, and message artifacts in a case directory and link them from the case
@@ -284,6 +285,20 @@ the Sparrow working tree is clean.
 Before M8-D/P01, verify the device still runs this image or record a new device
 receipt after rebuilding/flashing.
 
+## Device receipt DR-KERN-02
+
+| Item | Recorded value |
+| --- | --- |
+| Device | Waveshare ESP32-P4-WIFI6-Touch-LCD-7B (`wave_7b`) |
+| Kern source | `5180dbb603e01e33698bb388a400f92bff722d4c` |
+| Change from DR-KERN-01 | PSBT-v0 prevout identity and output index resolved through libwally getters; exact live both-UTXO regression added |
+| Build | ESP-IDF 6.0.2; ccache disabled; Ninja response files enabled for the Windows command-line limit |
+| Test gates | authoritative slots 16/16; stateless signer 22/22; response bridge 21/21; full `wave_7b` firmware build pass |
+| Flashed `kern.bin` SHA-256 | `e7df2b55d7c476a0ff67c06aebcd55e7fdf3b7027de98b58022828e85e1f893a` |
+| Firmware size | 1,970,176 bytes (`0x1e1000`) |
+| Flash result | COM6 write and on-device hash verification passed; hard reset completed |
+| M8 readiness | Attempt 02 paused pending independent review of attempt 01, the fix, regression, and this receipt |
+
 ## Matrix ledger
 
 | Cell | P01 baseline | Positive suite | Continuity suite | Negative suite | Soak | Final |
@@ -291,7 +306,29 @@ receipt after rebuilding/flashing.
 | M8-A CLI/SeedSigner | Not run | Not run | Not run | Not run | N/A unless selected | Open |
 | M8-B CLI/Kern | Not run | Not run | Not run | Not run | Not run | Open |
 | M8-C GUI/SeedSigner | Not run | Not run | Not run | Not run | N/A unless selected | Open |
-| M8-D GUI/Kern | Not run | Not run | Not run | Not run | Not run | Open |
+| M8-D GUI/Kern | Fail (P01 attempt 01) | Not run | Not run | Not run | Not run | Open |
+
+## M8-D/P01 attempt 01 — live P2WPKH baseline
+
+| Field | Value |
+| --- | --- |
+| Matrix cell | M8-D GUI/Kern |
+| Result | `FAIL` — safe preflight rejection |
+| Started / completed | 2026-09-01 12:26 EDT / 2026-09-01 |
+| Coordinator | Sparrow `182bc8a7b24641e43cecf324e96eec6314f9b18b`, BR-2026-09-01-04 |
+| Signer | Kern DR-KERN-01 |
+| Network / profile | Testnet3 / `aext-v1` |
+| Wallet / inputs / slots | public fingerprint `0fb882ff`; native P2WPKH; one input; one controlled slot |
+| Frozen-PSBT SHA-256 | `4c9b55d10d4ec0686a282784315c7fdc44f76d36425aa5ebfa00766cc34a6bfd` (559 bytes) |
+| M1 length / SHA-256 | 790 / `5faa5dd8b6767b7235b2eabc4b4accfabf51cfaa0f746bbb8d695bc6284a185e` |
+| M2 / M3 / M4 | Not created |
+| Observed outcome | Kern displayed `Protected preflight failed` / `AE_SIGNATURE_SLOT_MISMATCH` and returned home |
+| Signatures cryptographically verified | N/A; no response, opening, commitment, or signature was created |
+| Broadcast attempted | No |
+| Root cause | PSBT contains agreeing witness and non-witness UTXOs; the anti-exfil path read PSBT-v2-style input members instead of the PSBT-v0 unsigned-transaction prevout exposed by libwally getters |
+| Evidence | `run/m8-evidence/M8-D-P01-attempt-01-receipt.md`; isolated Sparrow log SHA-256 `bba2897065bd66c8938e48daefc1e7db12004619c5bdb6f5115a42e17b339e25`; serial log SHA-256 `898ace45ac2d866953dcceeffd6548e22597e22c2cf766057b2db7140efe629c` |
+| Remediation | Kern `5180dbb`; exact live regression plus DR-KERN-02 build/flash receipt |
+| Follow-up | Attempt 01 is immutable. Attempt 02 must create a fresh Sparrow session after independent review; do not reuse its `.aexs` or `.aexj`. |
 
 ## Case receipt template
 
@@ -372,7 +409,8 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | Kern importer-registry delta reviewed | Pass | KimiK3 approved Sparrow `3b565e3` and Kern evidence commit `3696c57`; UI-only registration change, no protocol or policy-registry delta |
 | Kern asset-sizing delta reviewed | Pass | KimiK3 approved Sparrow `a967c0a` and Kern evidence commit `ff1dcbe`; assets-only correction with physical layout verification |
 | Anti-exfil receipt logging delta reviewed | Pass | KimiK3 approved Sparrow `182bc8a` and Kern evidence commit `fec7348`; single-class INFO override with runtime effective-level assertion |
-| First M8-D/P01 ceremony authorized | Yes | Reauthorized 2026-09-01 under BR-2026-09-01-04; stop if the Stage-1 runtime receipt is absent; case remains `NOT RUN` until Stage 1 begins |
+| M8-D/P01 attempt 01 | Fail | Safe preflight rejection recorded above; no signer response or transaction signature created |
+| M8-D/P01 attempt 02 authorized | No | Paused pending independent review of Kern `5180dbb`, DR-KERN-02, and the immutable attempt-01 evidence |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -401,3 +439,13 @@ KimiK3's final receipt-logging delta review approved the class-scoped INFO
 override, independently matched the BR-2026-09-01-04 JAR, and accepted the
 recorded supersession chain. Live authorization is reinstated with the first
 Stage-1 runtime receipt as an immediate stop gate if absent.
+
+M8-D/P01 attempt 01 then began under the approved identities. Sparrow emitted
+and durably retained canonical M1, but Kern rejected it during authoritative
+slot preflight with `AE_SIGNATURE_SLOT_MISMATCH`. Investigation pinned the
+failure to direct access of PSBT input prevout members that are not
+authoritative for PSBT v0. No response-construction marker appeared and M2-M4
+were never created. Kern `5180dbb` uses the libwally PSBT getters and adds the
+exact live PSBT as a regression; DR-KERN-02 records the passing suites, signed
+firmware hash, and successful flash. Attempt 02 remains unauthorized until an
+independent reviewer accepts that checkpoint.

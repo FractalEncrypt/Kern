@@ -1,8 +1,9 @@
 # M8 first physical playbook — Sparrow GUI to Kern P2WPKH
 
-Date: 2026-08-28; revised 2026-08-30
-Status: revised after preflight review; no live ceremony has run
-Case reserved: M8-D/P01 attempt 01
+Date: 2026-08-28; revised 2026-09-01
+Status: attempt 01 failed safely at preflight; remediation flashed; retest paused
+for independent review
+Case reserved after review: M8-D/P01 attempt 02
 
 ## Goal
 
@@ -52,8 +53,9 @@ revised playbook have completed review.
 - Drongo `54365d7f09df956e0b3e8baf035b23920073bac3`
 - Sparrow JAR SHA-256
   `c273f1e367db31ac1dd06458c9aa7a8f0ae1bd358770f7c61f33f33b7f835f35`
-- Kern flashed firmware receipt DR-KERN-01, SHA-256
-  `b9aecca4dc0c894d8b7ff282c160aa3758cd4133c825247954ee15e59e307e1d`
+- Kern `5180dbb603e01e33698bb388a400f92bff722d4c`, flashed firmware receipt
+  DR-KERN-02, SHA-256
+  `e7df2b55d7c476a0ff67c06aebcd55e7fdf3b7027de98b58022828e85e1f893a`
 - Testnet3 and `aext-v1`
 
 If any identity differs, stop and create a new build/device receipt.
@@ -238,5 +240,8 @@ transaction state to have been trusted.
 
 ## Expected first-test receipt
 
-The first receipt should be `M8-D/P01 attempt 01`. It remains `NOT RUN` until
-the independent review requested at this checkpoint is complete.
+Attempt 01 is an immutable `FAIL` receipt. The next receipt is
+`M8-D/P01 attempt 02`; it remains `NOT RUN` until independent review accepts
+Kern `5180dbb`, DR-KERN-02, and the recorded attempt-01 failure. Create a new
+transaction/session for attempt 02. Do not resume, relabel, or reuse the
+attempt-01 durable session.

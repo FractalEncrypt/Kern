@@ -27,11 +27,11 @@ cell above into a pass until its M8 receipt is recorded.
 
 ## Frozen implementation identities
 
-- Kern source: `9bfda18` on `codex/kern-anti-exfil-m5`. The physical device is
-  running the M6 stage-3 firmware built from `c360341`; the later `9bfda18`
-  commit adds host-side mapping corpus material and does not change firmware.
+- Kern source and flashed firmware: `5180dbb603e01e33698bb388a400f92bff722d4c`
+  on `codex/kern-anti-exfil-m5`. This includes the PSBT-v0 prevout remediation
+  discovered by M8-D/P01 attempt 01 and its exact live regression fixture.
 - Flashed Kern `kern.bin` SHA-256:
-  `b9aecca4dc0c894d8b7ff282c160aa3758cd4133c825247954ee15e59e307e1d`.
+  `e7df2b55d7c476a0ff67c06aebcd55e7fdf3b7027de98b58022828e85e1f893a`.
 - Sparrow: `182bc8a7b24641e43cecf324e96eec6314f9b18b`.
 - Drongo: `54365d7f09df956e0b3e8baf035b23920073bac3`.
 - Lark submodule: `ddffe556f0d1ba6a138be3b362ce74219fed0710`.
