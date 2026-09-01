@@ -17,6 +17,22 @@ static const char *TEST_MNEMONIC =
     "model ensure search plunge galaxy firm exclude brain satoshi meadow "
     "cable roast";
 
+/* Frozen from M8-D/P01 attempt 01. This real Sparrow PSBT carries both the
+ * non-witness and witness UTXO for the controlled native-SegWit input. */
+static const char *LIVE_BOTH_UTXO_PSBT_BASE64 =
+    "cHNidP8BAHECAAAAAdWEUo8q6BjBN8mI6jpGSGFUVCDengOob2RhCFFkL5YVAQAA"
+    "AAD9////ArlsAQAAAAAAFgAUilkw2dRTpxC3xDRilnSme+xIDl+3UwEAAAAAABYA"
+    "FKzBNAcJ6be6vv+SGAbwVwxlK9BYxT5OAE8BBDWHzwNXmUmVgAAAANRFa7R5gYD8"
+    "4Wbha3d1QnjgfYPOBw87on6cXS32WoyqAsPFtPxB7PRTdbujUnBPUVDh9YUBtwrl"
+    "4nc0OcRNGvIyEA+4gv9UAACAAQAAgAAAAIAAAQBxAgAAAAEhanmTVmopvUpzdbW4"
+    "LnrhZc6rw6zHtFbumq2riPxfUwAAAAAA/f///wLfKFkbAAAAABYAFLooCAwoMx3v"
+    "nZVoXQdmL3PftbDJtsACAAAAAAAWABRkIds7UvA81+JBlSlCkIRT65TTSHs6TgAB"
+    "AR+2wAIAAAAAABYAFGQh2ztS8DzX4kGVKUKQhFPrlNNIAQMEAQAAACIGA5Cb4/Ep"
+    "jxM3lx7WNg3ZXUVrK9osj1CHmFbgoPrTjiZwGA+4gv9UAACAAQAAgAAAAIAAAAAA"
+    "AAAAAAAiAgL8QyNHjSNaENgFOvUewNI3/oVHYpVgoK1h4Hc5KpWlzBgPuIL/VAAA"
+    "gAEAAIAAAACAAAAAAAEAAAAAIgICLBXv0IyCKmKH8bQrbDDsztR/HFSEw+fXLnaA"
+    "owWJPScYD7iC/1QAAIABAACAAAAAgAEAAAAAAAAAAA==";
+
 static int passed;
 static int failed;
 
@@ -227,6 +243,57 @@ static void test_network_identity(void) {
   CHECK("public-test networks retain exact protocol identity", exact);
 }
 
+static void test_live_both_utxo_fixture(void) {
+  static const uint8_t expected_digest[ANTI_EXFIL_PSBT_DIGEST_LEN] = {
+      0x4c, 0x9b, 0x55, 0xd1, 0x0d, 0x4e, 0xc0, 0x68,
+      0x6a, 0x28, 0x27, 0x84, 0x31, 0x5c, 0x7f, 0xdc,
+      0x44, 0xf7, 0x6d, 0x36, 0x42, 0x5a, 0xa5, 0xeb,
+      0xfa, 0x00, 0x76, 0x6c, 0xc3, 0x4a, 0x6b, 0xfd};
+  static const uint8_t expected_pubkey[ANTI_EXFIL_PUBKEY_LEN] = {
+      0x03, 0x90, 0x9b, 0xe3, 0xf1, 0x29, 0x8f, 0x13, 0x37, 0x97, 0x1e,
+      0xd6, 0x36, 0x0d, 0xd9, 0x5d, 0x45, 0x6b, 0x2b, 0xda, 0x2c, 0x8f,
+      0x50, 0x87, 0x98, 0x56, 0xe0, 0xa0, 0xfa, 0xd3, 0x8e, 0x26, 0x70};
+  static const uint8_t expected_hash[ANTI_EXFIL_MESSAGE_HASH_LEN] = {
+      0x13, 0x47, 0xca, 0x94, 0x6a, 0xf3, 0xfe, 0x65,
+      0x11, 0xc4, 0x09, 0x76, 0x62, 0x53, 0x8d, 0x9f,
+      0x4e, 0x31, 0x9d, 0xa0, 0xea, 0xb6, 0x4c, 0x66,
+      0x3d, 0x5e, 0x1c, 0x2e, 0x0c, 0x30, 0x03, 0xec};
+  static const uint32_t expected_path[] = {
+      0x80000054, 0x80000001, 0x80000000, 0, 0};
+  uint8_t psbt[1024];
+  size_t psbt_len = 0;
+  anti_exfil_slot_set_t out;
+  int decoded =
+      wally_base64_to_bytes(LIVE_BOTH_UTXO_PSBT_BASE64, 0, psbt,
+                            sizeof(psbt), &psbt_len) == WALLY_OK &&
+      psbt_len == 559;
+  anti_exfil_result_t result =
+      decoded ? anti_exfil_slots_enumerate(psbt, psbt_len,
+                                           ANTI_EXFIL_NETWORK_TESTNET3, &out)
+              : ANTI_EXFIL_NATIVE_BACKEND;
+  int matches = decoded && result == ANTI_EXFIL_OK && out.slot_count == 1 &&
+                out.network == ANTI_EXFIL_NETWORK_TESTNET3 &&
+                memcmp(out.psbt_digest, expected_digest,
+                       sizeof(expected_digest)) == 0 &&
+                out.slots[0].input_index == 0 &&
+                out.slots[0].sighash_type == ANTI_EXFIL_SIGHASH_ALL &&
+                out.slots[0].derivation_path_len == 5 &&
+                memcmp(out.slots[0].derivation_path, expected_path,
+                       sizeof(expected_path)) == 0 &&
+                memcmp(out.slots[0].signer_pubkey, expected_pubkey,
+                       sizeof(expected_pubkey)) == 0 &&
+                memcmp(out.slots[0].message_hash, expected_hash,
+                       sizeof(expected_hash)) == 0;
+  if (!matches)
+    printf("  detail: decoded=%d length=%zu result=%s slots=%zu\n", decoded,
+           psbt_len, anti_exfil_result_name(result),
+           result == ANTI_EXFIL_OK ? out.slot_count : 0);
+  CHECK("accept live P2WPKH with agreeing witness and non-witness UTXOs",
+        matches);
+  memset(psbt, 0, sizeof(psbt));
+  memset(&out, 0, sizeof(out));
+}
+
 int main(void) {
   printf("=== anti-exfil authoritative slot tests ===\n");
   CHECK("initialize key state", key_init());
@@ -234,6 +301,7 @@ int main(void) {
         key_load_from_mnemonic(TEST_MNEMONIC, "", true));
   test_positive_fixture();
   test_network_identity();
+  test_live_both_utxo_fixture();
 
   expect_mutation("reject unsupported sighash atomically", unsupported_sighash,
                   ANTI_EXFIL_SIGNATURE_SLOT_MISMATCH);
