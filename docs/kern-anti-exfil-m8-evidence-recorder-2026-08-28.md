@@ -1,8 +1,8 @@
 # Kern anti-exfil M8 evidence recorder
 
 Date opened: 2026-08-28
-Status: M8-D/P01 attempt 01 failed safely at Kern preflight; remediation is
-flashed and attempt 02 is paused for independent review
+Status: M8-D/P01 attempt 01 failed safely at Kern preflight; remediation and
+physical readback are reviewed; attempt 02 is authorized with a fresh session
 
 This is the append-only human-readable index. Store bulky logs, images, QR
 frames, and message artifacts in a case directory and link them from the case
@@ -297,7 +297,9 @@ receipt after rebuilding/flashing.
 | Flashed `kern.bin` SHA-256 | `e7df2b55d7c476a0ff67c06aebcd55e7fdf3b7027de98b58022828e85e1f893a` |
 | Firmware size | 1,970,176 bytes (`0x1e1000`) |
 | Flash result | COM6 write and on-device hash verification passed; hard reset completed |
-| M8 readiness | Attempt 02 paused pending independent review of attempt 01, the fix, regression, and this receipt |
+| Ceremony-start readback | 1,970,176 application bytes read from `0x20000`; SHA-256 `e7df2b55d7c476a0ff67c06aebcd55e7fdf3b7027de98b58022828e85e1f893a`, exact match to the signed build artifact |
+| Readback evidence | `run/m8-evidence/DR-KERN-02-app-readback.bin`; application partition only, no NVS/seed partition read |
+| M8 readiness | KimiK3 approved `5180dbb`, `e8f3292`, DR-KERN-02, and attempt-01 evidence; COM6 readback condition passed; attempt 02 authorized with a fresh Sparrow session |
 
 ## Matrix ledger
 
@@ -410,7 +412,9 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | Kern asset-sizing delta reviewed | Pass | KimiK3 approved Sparrow `a967c0a` and Kern evidence commit `ff1dcbe`; assets-only correction with physical layout verification |
 | Anti-exfil receipt logging delta reviewed | Pass | KimiK3 approved Sparrow `182bc8a` and Kern evidence commit `fec7348`; single-class INFO override with runtime effective-level assertion |
 | M8-D/P01 attempt 01 | Fail | Safe preflight rejection recorded above; no signer response or transaction signature created |
-| M8-D/P01 attempt 02 authorized | No | Paused pending independent review of Kern `5180dbb`, DR-KERN-02, and the immutable attempt-01 evidence |
+| Anti-exfil preflight fix reviewed | Pass | KimiK3 reviewed Kern `5180dbb`, evidence commit `e8f3292`, DR-KERN-02, and the immutable attempt-01 evidence; getter fix and exact live regression accepted |
+| DR-KERN-02 ceremony-start identity | Pass | COM6 application partition read back before scanning: 1,970,176 bytes, SHA-256 `e7df2b55d7c476a0ff67c06aebcd55e7fdf3b7027de98b58022828e85e1f893a`, exact artifact match |
+| M8-D/P01 attempt 02 authorized | Yes | Fresh Sparrow transaction/session required; attempt-01 `.aexs` and `.aexj` remain immutable and must not be reused |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -448,4 +452,13 @@ authoritative for PSBT v0. No response-construction marker appeared and M2-M4
 were never created. Kern `5180dbb` uses the libwally PSBT getters and adds the
 exact live PSBT as a regression; DR-KERN-02 records the passing suites, signed
 firmware hash, and successful flash. Attempt 02 remains unauthorized until an
-independent reviewer accepts that checkpoint.
+independent reviewer accepts that checkpoint; this was the state before the
+review recorded below.
+
+KimiK3's delta review accepted the getter-based fix, the full live regression,
+the immutable failure classification, and the session non-reuse boundary. At
+ceremony start, the exact application partition was read back from COM6 and
+matched DR-KERN-02's signed `kern.bin` SHA-256 byte for byte; the NVS/seed
+partition was not read. All review conditions are therefore satisfied and
+M8-D/P01 attempt 02 is authorized using a newly created Sparrow transaction and
+session only.
