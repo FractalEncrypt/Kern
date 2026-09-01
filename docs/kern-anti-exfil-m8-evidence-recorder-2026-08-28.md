@@ -118,6 +118,10 @@ Focused `KernWalletModelAssetTest`, `HwAirgappedControllerTest`,
 
 ## Build receipt BR-2026-09-01-03
 
+Status: superseded before live testing by BR-2026-09-01-04. Final live
+baseline inspection found that the global WARN logger suppressed the
+anti-exfil package receipts emitted at INFO.
+
 | Item | Recorded value |
 | --- | --- |
 | Sparrow branch | `codex/kern-anti-exfil-m7` |
@@ -138,6 +142,32 @@ Focused `KernWalletModelAssetTest`, `HwAirgappedControllerTest`,
 The five focused tests named in BR-2026-09-01-02 were rerun from scratch. The
 asset test now parses each SVG and verifies its viewBox, three-ring mark, and
 stroke-inclusive horizontal and vertical bounds.
+
+## Build receipt BR-2026-09-01-04
+
+| Item | Recorded value |
+| --- | --- |
+| Sparrow branch | `codex/kern-anti-exfil-m7` |
+| Sparrow commit | `182bc8a7b24641e43cecf324e96eec6314f9b18b` |
+| Drongo commit | `54365d7f09df956e0b3e8baf035b23920073bac3` |
+| Lark commit | `ddffe556f0d1ba6a138be3b362ce74219fed0710` |
+| Change since BR-2026-09-01-03 | INFO enabled only for `AntiExfilQrExchange`; runtime-level regression assertion added so canonical package receipts cannot be silently suppressed by the global WARN threshold |
+| Build command | `gradlew.bat --gradle-user-home C:\Users\FractalEncrypt\Documents\SeedSigner_AntiExfil\run\gradle-home-m8 clean assemble` |
+| Result | `BUILD SUCCESSFUL` in 22 seconds, 16 tasks executed |
+| Gradle / Java | 9.1.0 / Eclipse Adoptium Temurin 25.0.4+7-LTS |
+| JAR | `build/libs/sparrow-2.5.4.jar`, 15,698,877 bytes |
+| JAR SHA-256 | `c273f1e367db31ac1dd06458c9aa7a8f0ae1bd358770f7c61f33f33b7f835f35` |
+| ZIP distribution | `build/distributions/sparrow-2.5.4.zip`, 86,872,824 bytes |
+| ZIP SHA-256 | `7bb12409798a61b4bf79ce797ab375afab31a0fb2633071e1205c67895a8bdd3` |
+| TAR distribution | `build/distributions/sparrow-2.5.4.tar`, 93,358,592 bytes |
+| TAR SHA-256 | `bf2c23e22e85c9b49e1858291d48a18743ea68d1df9b774a700cdb2f839476b8` |
+
+Focused `AntiExfilQrExchangeTest`, `KernWalletModelAssetTest`,
+`HwAirgappedControllerTest`, `KeystoreFxmlAntiExfilTest`, `KernImportTest`, and
+`AntiExfilPolicySelectionTest` passed. A forced rerun initially met Windows
+dependency-JAR access errors while the Gradle-launched Sparrow process was
+still open; the same focused suite then passed through the normal task graph,
+and the subsequent clean assembly passed after Sparrow closed.
 
 ## Setup observation SO-2026-09-01-01
 
@@ -203,6 +233,21 @@ stroke-inclusive horizontal and vertical bounds.
   available. This verification did not create a transaction, protected QR,
   session, or protocol message; M8-D/P01 remains `NOT RUN` pending independent
   review and final application of the identical replacement.
+
+## Setup observation SO-2026-09-01-04
+
+- After KimiK3 approved the SVG delta, the operator applied the validated Kern
+  replacement and confirmed the one Testnet3 UTXO was unchanged.
+- The operator prepared a self-spend but stopped before transaction creation.
+- Codex connected the Kern COM6 serial evidence monitor, then inspected the
+  isolated Sparrow home before Stage 1. `sparrow.log` was zero bytes.
+- Root cause: `AntiExfilQrExchange` emitted the canonical package receipt at
+  INFO while the root Logback threshold was WARN, so the promised stage
+  length/SHA-256 evidence would have been suppressed.
+- Sparrow `182bc8a` adds an INFO override scoped only to
+  `AntiExfilQrExchange` and a runtime effective-level regression assertion.
+  No transaction, protected QR, session, or protocol message was created;
+  M8-D/P01 remains `NOT RUN`.
 
 ## Coordinator test receipt TR-2026-08-28-01
 
@@ -322,11 +367,12 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | --- | --- | --- |
 | M8 runbook reviewed | Pass | KimiK3 preflight and follow-up reviews; control-case instruction verified |
 | Evidence recorder reviewed | Pass | Identity chain and superseded receipt handling verified |
-| Sparrow build receipt reviewed | Pass | KimiK3 independently matched the BR-2026-09-01-03 JAR SHA-256 and verified the complete supersession and identity chain |
+| Sparrow build receipt reviewed | Pending delta review | BR-2026-09-01-03 was reviewed; replacement BR-2026-09-01-04 pins the scoped evidence-logging fix and rebuilt artifacts |
 | Physical playbook reviewed | Pass | Seed custody, network identity, scan order, and automatic evidence confirmed |
 | Kern importer-registry delta reviewed | Pass | KimiK3 approved Sparrow `3b565e3` and Kern evidence commit `3696c57`; UI-only registration change, no protocol or policy-registry delta |
 | Kern asset-sizing delta reviewed | Pass | KimiK3 approved Sparrow `a967c0a` and Kern evidence commit `ff1dcbe`; assets-only correction with physical layout verification |
-| First M8-D/P01 ceremony authorized | Yes | Reauthorized 2026-09-01 under BR-2026-09-01-03; apply the validated identical Kern replacement before transaction creation; case remains `NOT RUN` until stage 1 begins |
+| Anti-exfil receipt logging delta reviewed | Pending | Review Sparrow `182bc8a` and BR-2026-09-01-04 before relaunching the coordinator |
+| First M8-D/P01 ceremony authorized | Paused | Authorization is suspended until the scoped receipt-logging delta passes review; case remains `NOT RUN` |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -344,3 +390,9 @@ KimiK3's final delta review approved Sparrow `a967c0a`, independently matched
 BR-2026-09-01-03, and accepted SV-2026-09-01-01. Live authorization is
 reinstated with application of the already validated identical Kern
 replacement as the mandatory final setup step.
+
+Setup observation SO-2026-09-01-04 then found the canonical INFO receipts
+would be suppressed by Sparrow's global WARN threshold. Because the operator
+had not created the transaction, live authorization is paused without
+consuming attempt 01 pending review of the scoped Sparrow `182bc8a` logging
+override and BR-2026-09-01-04.

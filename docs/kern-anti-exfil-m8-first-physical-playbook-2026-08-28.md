@@ -48,10 +48,10 @@ revised playbook have completed review.
 
 ## Required identities
 
-- Sparrow `a967c0a88eb4db5a8b85eae2e7cc8581709def50`
+- Sparrow `182bc8a7b24641e43cecf324e96eec6314f9b18b`
 - Drongo `54365d7f09df956e0b3e8baf035b23920073bac3`
 - Sparrow JAR SHA-256
-  `5c0c1a2405ff5d1de7111c7158a4a5b680a4ccd42d5ff81bc220244e67e16f97`
+  `c273f1e367db31ac1dd06458c9aa7a8f0ae1bd358770f7c61f33f33b7f835f35`
 - Kern flashed firmware receipt DR-KERN-01, SHA-256
   `b9aecca4dc0c894d8b7ff282c160aa3758cd4133c825247954ee15e59e307e1d`
 - Testnet3 and `aext-v1`
