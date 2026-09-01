@@ -48,10 +48,10 @@ revised playbook have completed review.
 
 ## Required identities
 
-- Sparrow `0f9029a70543358f01af473aab1813ccd49143a1`
+- Sparrow `3b565e3e5ac15ddc07f6e7aeaf537308c7beb7bf`
 - Drongo `54365d7f09df956e0b3e8baf035b23920073bac3`
 - Sparrow JAR SHA-256
-  `ee26ed2e0d1985166a5fdf23dd68a5a508f0ec7b29c307237aea8b0d1e22d354`
+  `0e0bb9c37cad079e16e7e244a130fa0625891aa072f31e448c201fc6ce52ef21`
 - Kern flashed firmware receipt DR-KERN-01, SHA-256
   `b9aecca4dc0c894d8b7ff282c160aa3758cd4133c825247954ee15e59e307e1d`
 - Testnet3 and `aext-v1`
@@ -109,6 +109,12 @@ Confirm the UI says Testnet before importing anything.
 7. Wait for Testnet3 synchronization and confirm the intended UTXO appears.
    Testnet4 history must not appear in this instance. Do not broadcast or fund
    a new transaction as part of this playbook.
+
+If an earlier preflight build created the same watch-only wallet as another
+model, open Settings, select its keystore, choose `Replace`, select **Kern**,
+and rescan the same Kern account QR. Apply only after the fingerprint,
+derivation, and tpub match exactly. This changes device/profile metadata; it
+must not change the descriptor, addresses, or UTXO.
 
 ## Device settings immediately before the ceremony
 

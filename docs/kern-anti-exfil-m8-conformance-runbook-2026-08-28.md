@@ -32,7 +32,7 @@ cell above into a pass until its M8 receipt is recorded.
   commit adds host-side mapping corpus material and does not change firmware.
 - Flashed Kern `kern.bin` SHA-256:
   `b9aecca4dc0c894d8b7ff282c160aa3758cd4133c825247954ee15e59e307e1d`.
-- Sparrow: `0f9029a70543358f01af473aab1813ccd49143a1`.
+- Sparrow: `3b565e3e5ac15ddc07f6e7aeaf537308c7beb7bf`.
 - Drongo: `54365d7f09df956e0b3e8baf035b23920073bac3`.
 - Lark submodule: `ddffe556f0d1ba6a138be3b362ce74219fed0710`.
 - Profile: canonical `aext-v1`; temporary persisted `AEXT_V1` remains a

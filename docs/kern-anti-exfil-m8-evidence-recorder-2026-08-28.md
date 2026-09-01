@@ -36,6 +36,10 @@ reproducible-build claim, and no installer was created.
 
 ## Build receipt BR-2026-08-30-01
 
+Status: superseded before live testing by BR-2026-09-01-01. A setup-only launch
+revealed that Kern was absent from the importer registry; no transaction or
+anti-exfil session was created with this artifact.
+
 | Item | Recorded value |
 | --- | --- |
 | Sparrow branch | `codex/kern-anti-exfil-m7` |
@@ -56,6 +60,47 @@ reproducible-build claim, and no installer was created.
 The canonical package hash is now automatic evidence. Sparrow logs only its
 direction, stage, byte length, and SHA-256; it does not log PSBT bytes, host
 randomness, openings, or signatures.
+
+## Build receipt BR-2026-09-01-01
+
+| Item | Recorded value |
+| --- | --- |
+| Sparrow branch | `codex/kern-anti-exfil-m7` |
+| Sparrow commit | `3b565e3e5ac15ddc07f6e7aeaf537308c7beb7bf` |
+| Drongo commit | `54365d7f09df956e0b3e8baf035b23920073bac3` |
+| Lark commit | `ddffe556f0d1ba6a138be3b362ce74219fed0710` |
+| Change since BR-2026-08-30-01 | Kern registered once in the single-HD, single-SP, and multisig airgapped importer lists; focused registry test added |
+| Build command | `gradlew.bat --gradle-user-home C:\Users\FractalEncrypt\Documents\SeedSigner_AntiExfil\run\gradle-home-m8 clean assemble` |
+| Result | `BUILD SUCCESSFUL` in 15 seconds, 16 tasks executed |
+| Gradle / Java | 9.1.0 / Eclipse Adoptium Temurin 25.0.4+7-LTS |
+| JAR | `build/libs/sparrow-2.5.4.jar`, 15,698,835 bytes |
+| JAR SHA-256 | `0e0bb9c37cad079e16e7e244a130fa0625891aa072f31e448c201fc6ce52ef21` |
+| ZIP distribution | `build/distributions/sparrow-2.5.4.zip`, 86,872,801 bytes |
+| ZIP SHA-256 | `8e14ff2e1913474d2c6d588e4304148f5ac878da64ee20e25313abb2b326e927` |
+| TAR distribution | `build/distributions/sparrow-2.5.4.tar`, 93,358,592 bytes |
+| TAR SHA-256 | `d84e823af4ca68c04deb2996da984eceb6d2b2b45d8b6bde96d9f72aa02fe274` |
+
+Focused `HwAirgappedControllerTest`, `AntiExfilQrExchangeTest`,
+`KernImportTest`, `AntiExfilPolicyPersistenceTest`, and
+`AntiExfilPolicySelectionTest` passed before this clean assembly.
+
+## Setup observation SO-2026-09-01-01
+
+- The first isolated Sparrow launch used BR-2026-08-30-01.
+- The airgapped importer UI did not list Kern. The operator selected Krux for
+  the matching public key and set protected signing Optional.
+- Fingerprint `0fb882ff`, derivation `m/84'/1'/0'`, the tpub, and the one
+  Testnet3 UTXO loaded, but the keystore model was visibly Krux.
+- The operator stopped before transaction creation. `Protected QR` was never
+  selected; no anti-exfil session or message was created; M8-D/P01 remains
+  `NOT RUN`.
+- Root cause: `Kern` existed as an importer class but was omitted from
+  `HwAirgappedController`'s displayed importer lists.
+- Sparrow `3b565e3` registers Kern for all applicable policy types and pins the
+  registry with a focused regression test.
+- Recovery: relaunch BR-2026-09-01-01 and replace the Krux keystore metadata by
+  selecting Kern and rescanning the identical account QR. Descriptor/address/
+  UTXO identity must remain unchanged.
 
 ## Coordinator test receipt TR-2026-08-28-01
 
@@ -175,10 +220,16 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | --- | --- | --- |
 | M8 runbook reviewed | Pass | KimiK3 preflight and follow-up reviews; control-case instruction verified |
 | Evidence recorder reviewed | Pass | Identity chain and superseded receipt handling verified |
-| Sparrow build receipt reviewed | Pass | On-disk JAR SHA-256 independently matched BR-2026-08-30-01 |
+| Sparrow build receipt reviewed | Pending delta review | BR-2026-08-30-01 was reviewed; replacement BR-2026-09-01-01 pins the importer-registry fix and rebuilt artifacts |
 | Physical playbook reviewed | Pass | Seed custody, network identity, scan order, and automatic evidence confirmed |
-| First M8-D/P01 ceremony authorized | Yes | Authorized 2026-09-01; remains `NOT RUN` until stage 1 begins |
+| Kern importer-registry delta reviewed | Pending | Review Sparrow `3b565e3` plus this updated receipt before relaunching the ceremony |
+| First M8-D/P01 ceremony authorized | Paused | Earlier authorization is suspended until the importer-registry delta and BR-2026-09-01-01 pass review; case remains `NOT RUN` |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
 accepted advancement from preflight to M8-D/P01 attempt 01.
+
+Setup observation SO-2026-09-01-01 subsequently exposed a missing visible Kern
+importer. Because the operator stopped before transaction creation, the earlier
+review remains valid background evidence, but live authorization is paused for
+the narrow Sparrow `3b565e3` delta and replacement build receipt.
