@@ -63,6 +63,11 @@ randomness, openings, or signatures.
 
 ## Build receipt BR-2026-09-01-01
 
+Status: superseded before live testing by BR-2026-09-01-02. A setup-only
+replacement attempt exposed oversized Kern SVG assets that clipped the
+keystore fields; the operator did not apply the replacement or create a
+transaction.
+
 | Item | Recorded value |
 | --- | --- |
 | Sparrow branch | `codex/kern-anti-exfil-m7` |
@@ -82,6 +87,29 @@ randomness, openings, or signatures.
 
 Focused `HwAirgappedControllerTest`, `AntiExfilQrExchangeTest`,
 `KernImportTest`, `AntiExfilPolicyPersistenceTest`, and
+`AntiExfilPolicySelectionTest` passed before this clean assembly.
+
+## Build receipt BR-2026-09-01-02
+
+| Item | Recorded value |
+| --- | --- |
+| Sparrow branch | `codex/kern-anti-exfil-m7` |
+| Sparrow commit | `6c01dec2a861d4a1ade082b3cdc15ac4c6d8f602` |
+| Drongo commit | `54365d7f09df956e0b3e8baf035b23920073bac3` |
+| Lark commit | `ddffe556f0d1ba6a138be3b362ce74219fed0710` |
+| Change since BR-2026-09-01-01 | Kern's four wallet-model SVG assets now use Sparrow's standard 50-by-50 intrinsic dimensions; focused asset regression test added |
+| Build command | `gradlew.bat --gradle-user-home C:\Users\FractalEncrypt\Documents\SeedSigner_AntiExfil\run\gradle-home-m8 clean assemble` |
+| Result | `BUILD SUCCESSFUL` in 24 seconds, 16 tasks executed |
+| Gradle / Java | 9.1.0 / Eclipse Adoptium Temurin 25.0.4+7-LTS |
+| JAR | `build/libs/sparrow-2.5.4.jar`, 15,698,843 bytes |
+| JAR SHA-256 | `b41085f3cd587b267bb42380caedaf895a57120d16f58b54d2038566ab680f79` |
+| ZIP distribution | `build/distributions/sparrow-2.5.4.zip`, 86,872,803 bytes |
+| ZIP SHA-256 | `388d196ec7152d4025382f60410d8324aee03f8899dc49c36cb57f2e68a44c12` |
+| TAR distribution | `build/distributions/sparrow-2.5.4.tar`, 93,358,592 bytes |
+| TAR SHA-256 | `453a5122530703adbb65e97a9d65fe52f03ae7eaa7de56ff9fde6d9c6fe62080` |
+
+Focused `KernWalletModelAssetTest`, `HwAirgappedControllerTest`,
+`KeystoreFxmlAntiExfilTest`, `KernImportTest`, and
 `AntiExfilPolicySelectionTest` passed before this clean assembly.
 
 ## Setup observation SO-2026-09-01-01
@@ -105,6 +133,20 @@ Focused `HwAirgappedControllerTest`, `AntiExfilQrExchangeTest`,
 - Recovery: relaunch BR-2026-09-01-01 and replace the Krux keystore metadata by
   selecting Kern and rescanning the identical account QR. Descriptor/address/
   UTXO identity must remain unchanged.
+
+## Setup observation SO-2026-09-01-02
+
+- The operator relaunched BR-2026-09-01-01 and selected the now-visible Kern
+  importer for keystore replacement.
+- The Kern identity and fingerprint `0fb882ff` were visible, but Kern's
+  200-by-200 intrinsic SVG size expanded the fixed keystore pane and clipped
+  the derivation, tpub, and Protected signing fields.
+- The operator did not apply the replacement and did not create a transaction.
+  No protected QR, session, or protocol message was created; M8-D/P01 remains
+  `NOT RUN`.
+- Sparrow `6c01dec` changes only the intrinsic dimensions of the four Kern SVG
+  assets to the standard 50-by-50 size and pins all variants with a focused
+  regression test.
 
 ## Coordinator test receipt TR-2026-08-28-01
 
@@ -224,10 +266,11 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | --- | --- | --- |
 | M8 runbook reviewed | Pass | KimiK3 preflight and follow-up reviews; control-case instruction verified |
 | Evidence recorder reviewed | Pass | Identity chain and superseded receipt handling verified |
-| Sparrow build receipt reviewed | Pass | KimiK3 independently matched the replacement BR-2026-09-01-01 JAR SHA-256 and identity chain |
+| Sparrow build receipt reviewed | Pending delta review | BR-2026-09-01-01 was reviewed; replacement BR-2026-09-01-02 pins the Kern asset-sizing fix and rebuilt artifacts |
 | Physical playbook reviewed | Pass | Seed custody, network identity, scan order, and automatic evidence confirmed |
 | Kern importer-registry delta reviewed | Pass | KimiK3 approved Sparrow `3b565e3` and Kern evidence commit `3696c57`; UI-only registration change, no protocol or policy-registry delta |
-| First M8-D/P01 ceremony authorized | Yes | Reauthorized 2026-09-01 under BR-2026-09-01-01; replace Krux with Kern before transaction creation; case remains `NOT RUN` until stage 1 begins |
+| Kern asset-sizing delta reviewed | Pending | Review Sparrow `6c01dec` plus the replacement BR-2026-09-01-02 receipt before relaunching |
+| First M8-D/P01 ceremony authorized | Paused | Authorization is suspended until the asset-sizing delta passes review; case remains `NOT RUN` |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -238,3 +281,7 @@ importer. Because the operator stopped before transaction creation, the earlier
 review remains valid background evidence. KimiK3's delta review approved the
 narrow Sparrow `3b565e3` fix and replacement build receipt, so live
 authorization is reinstated with keystore replacement as a mandatory pre-step.
+
+Setup observation SO-2026-09-01-02 then exposed oversized Kern SVG assets
+before replacement was applied. Live authorization is paused again for the
+narrow Sparrow `6c01dec` asset-sizing delta and BR-2026-09-01-02 review.
