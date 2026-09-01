@@ -322,11 +322,11 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | --- | --- | --- |
 | M8 runbook reviewed | Pass | KimiK3 preflight and follow-up reviews; control-case instruction verified |
 | Evidence recorder reviewed | Pass | Identity chain and superseded receipt handling verified |
-| Sparrow build receipt reviewed | Pending delta review | BR-2026-09-01-01 was reviewed; replacement BR-2026-09-01-03 pins the complete Kern SVG coordinate-bound fix and rebuilt artifacts |
+| Sparrow build receipt reviewed | Pass | KimiK3 independently matched the BR-2026-09-01-03 JAR SHA-256 and verified the complete supersession and identity chain |
 | Physical playbook reviewed | Pass | Seed custody, network identity, scan order, and automatic evidence confirmed |
 | Kern importer-registry delta reviewed | Pass | KimiK3 approved Sparrow `3b565e3` and Kern evidence commit `3696c57`; UI-only registration change, no protocol or policy-registry delta |
-| Kern asset-sizing delta reviewed | Pending | Review Sparrow `a967c0a` plus the replacement BR-2026-09-01-03 receipt before relaunching |
-| First M8-D/P01 ceremony authorized | Paused | Authorization is suspended until the asset-sizing delta passes review; case remains `NOT RUN` |
+| Kern asset-sizing delta reviewed | Pass | KimiK3 approved Sparrow `a967c0a` and Kern evidence commit `ff1dcbe`; assets-only correction with physical layout verification |
+| First M8-D/P01 ceremony authorized | Yes | Reauthorized 2026-09-01 under BR-2026-09-01-03; apply the validated identical Kern replacement before transaction creation; case remains `NOT RUN` until stage 1 begins |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -338,6 +338,9 @@ review remains valid background evidence. KimiK3's delta review approved the
 narrow Sparrow `3b565e3` fix and replacement build receipt, so live
 authorization is reinstated with keystore replacement as a mandatory pre-step.
 
-Setup observation SO-2026-09-01-02 then exposed oversized Kern SVG assets
-before replacement was applied. Live authorization is paused again for the
-narrow Sparrow `a967c0a` coordinate-bound delta and BR-2026-09-01-03 review.
+Setup observations SO-2026-09-01-02 and SO-2026-09-01-03 then exposed the
+Kern SVG sizing and coordinate-bound defects before replacement was applied.
+KimiK3's final delta review approved Sparrow `a967c0a`, independently matched
+BR-2026-09-01-03, and accepted SV-2026-09-01-01. Live authorization is
+reinstated with application of the already validated identical Kern
+replacement as the mandatory final setup step.
