@@ -123,15 +123,21 @@ resolve_utxo(const struct wally_psbt *psbt, size_t input_index,
     *previous_out = NULL;
 
   if (*previous_out) {
+    uint8_t declared_txid[WALLY_TXHASH_LEN];
     uint8_t actual_txid[WALLY_TXHASH_LEN];
-    const struct wally_psbt_input *input = &psbt->inputs[input_index];
-    if (wally_tx_get_txid(*previous_out, actual_txid, sizeof(actual_txid)) !=
+    uint32_t output_index = 0;
+    if (wally_psbt_get_input_previous_txid(
+            psbt, input_index, declared_txid, sizeof(declared_txid)) !=
             WALLY_OK ||
-        memcmp(actual_txid, input->txhash, sizeof(actual_txid)) != 0 ||
-        input->index >= (*previous_out)->num_outputs)
+        wally_psbt_get_input_output_index(psbt, input_index, &output_index) !=
+            WALLY_OK ||
+        wally_tx_get_txid(*previous_out, actual_txid, sizeof(actual_txid)) !=
+            WALLY_OK ||
+        memcmp(actual_txid, declared_txid, sizeof(actual_txid)) != 0 ||
+        output_index >= (*previous_out)->num_outputs)
       return NULL;
     const struct wally_tx_output *previous =
-        &(*previous_out)->outputs[input->index];
+        &(*previous_out)->outputs[output_index];
     if (*witness_out &&
         (previous->satoshi != (*witness_out)->satoshi ||
          previous->script_len != (*witness_out)->script_len ||
