@@ -1,8 +1,8 @@
 # Kern anti-exfil M8 evidence recorder
 
 Date opened: 2026-08-28
-Status: M8-D/P01 attempt 01 failed safely at Kern preflight; remediation and
-physical readback are reviewed; attempt 02 is authorized with a fresh session
+Status: M8-D/P01 attempt 02 passed the full live Sparrow GUI/Kern ceremony;
+attempt 01 remains an immutable safe preflight failure
 
 This is the append-only human-readable index. Store bulky logs, images, QR
 frames, and message artifacts in a case directory and link them from the case
@@ -308,7 +308,7 @@ receipt after rebuilding/flashing.
 | M8-A CLI/SeedSigner | Not run | Not run | Not run | Not run | N/A unless selected | Open |
 | M8-B CLI/Kern | Not run | Not run | Not run | Not run | Not run | Open |
 | M8-C GUI/SeedSigner | Not run | Not run | Not run | Not run | N/A unless selected | Open |
-| M8-D GUI/Kern | Fail (P01 attempt 01) | Not run | Not run | Not run | Not run | Open |
+| M8-D GUI/Kern | Pass (attempt 02; attempt 01 failure preserved) | Not run | Not run | Not run | Not run | Open |
 
 ## M8-D/P01 attempt 01 — live P2WPKH baseline
 
@@ -331,6 +331,32 @@ receipt after rebuilding/flashing.
 | Evidence | `run/m8-evidence/M8-D-P01-attempt-01-receipt.md`; isolated Sparrow log SHA-256 `bba2897065bd66c8938e48daefc1e7db12004619c5bdb6f5115a42e17b339e25`; serial log SHA-256 `898ace45ac2d866953dcceeffd6548e22597e22c2cf766057b2db7140efe629c` |
 | Remediation | Kern `5180dbb`; exact live regression plus DR-KERN-02 build/flash receipt |
 | Follow-up | Attempt 01 is immutable. Attempt 02 must create a fresh Sparrow session after independent review; do not reuse its `.aexs` or `.aexj`. |
+
+## M8-D/P01 attempt 02 — live P2WPKH baseline
+
+| Field | Value |
+| --- | --- |
+| Matrix cell | M8-D GUI/Kern |
+| Result | `PASS` |
+| Started / completed | 2026-09-01 16:37 EDT / 2026-09-01 16:49 EDT |
+| Coordinator / signer | Sparrow `182bc8a7b24641e43cecf324e96eec6314f9b18b` / Kern DR-KERN-02 |
+| Network / profile | Testnet3 / `aext-v1` |
+| Wallet / inputs / slots | public fingerprint `0fb882ff`; native P2WPKH; one input; one controlled slot |
+| Frozen-PSBT SHA-256 | `c88217365dba5a9d2caca02dfa7ded5f8a67c8e7d085e6ab4df30fb0c9fbbeed` (559 bytes) |
+| M1 | 790 bytes / `6a88cb063845cfa63df52522b562a7e665940bb1f84b3c0dc0dea5148db4e8ee` |
+| M2 | 264 bytes / `0ceba9d71c63db76bc3031089d39da13deb438f2aa4f8303dc59e896095f3347` |
+| M3 | 855 bytes / `329e316c111dc5628bb1674cd360e008627baa26d9c68d0a5fd8606e2c6f08be` |
+| M4 | 328 bytes / `3a91446b7e3bd60ff661d22bc6b6486f411af55e37b10f8cfdb6af484a5c0004` |
+| Final reconstructed PSBT | 667 bytes / `b717c65b22ef616900750c0eea5320cf78fdcca0e598e12f34d83bf7a64b85cb` |
+| Verification | Sparrow accepted complete openings, exact-session reveal, S2C proof, and ECDSA signature; AEXS phase is `COMPLETE`; one complete Kern signature displayed |
+| Transaction review | input 180,406 sats; recipient 11,111; change 169,225; fee 70; reviewed independently at both stages |
+| User control | explicit `Create commitments` and independent `Create signatures` approvals; M2 and M4 scanned by Sparrow before Kern Done |
+| Transport boundary | Kern returned only M2/M4 protected URs; no ordinary signed PSBT returned by signer |
+| Broadcast attempted | No |
+| Resource result | heap recovered after both viewers; largest block/lifetime minimum stable; stack high-water 10,236 throughout both signer phases |
+| Cleanup | Sparrow closed; Kern Anti-exfil and all ordinary signing toggles Off; isolated home and both attempt records preserved |
+| Evidence | `run/m8-evidence/M8-D-P01-attempt-02-receipt.md`; Sparrow log `dbaf1ba0...93f84`; Kern serial log `07dd5ad8...6d8782`; two completion screenshots and signed PSBT hash-pinned in the receipt |
+| UX observations | Stage-3 disclosure looks like a warning despite being informational; completion text says to scan M4 even after it has already been scanned |
 
 ## Case receipt template
 
@@ -415,6 +441,7 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | Anti-exfil preflight fix reviewed | Pass | KimiK3 reviewed Kern `5180dbb`, evidence commit `e8f3292`, DR-KERN-02, and the immutable attempt-01 evidence; getter fix and exact live regression accepted |
 | DR-KERN-02 ceremony-start identity | Pass | COM6 application partition read back before scanning: 1,970,176 bytes, SHA-256 `e7df2b55d7c476a0ff67c06aebcd55e7fdf3b7027de98b58022828e85e1f893a`, exact artifact match |
 | M8-D/P01 attempt 02 authorized | Yes | Fresh Sparrow transaction/session required; attempt-01 `.aexs` and `.aexj` remain immutable and must not be reused |
+| M8-D/P01 attempt 02 outcome | Pass | Full M1-M4 ceremony, coordinator verification, signed-PSBT reconstruction, cleanup, and no-broadcast gate all passed; UX wording observations are non-blocking |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -462,3 +489,13 @@ matched DR-KERN-02's signed `kern.bin` SHA-256 byte for byte; the NVS/seed
 partition was not read. All review conditions are therefore satisfied and
 M8-D/P01 attempt 02 is authorized using a newly created Sparrow transaction and
 session only.
+
+Attempt 02 used a distinct M1, frozen PSBT, and durable session. Kern passed
+both authoritative preflights and independent approvals, Sparrow durably
+advanced M2 to M3 before Kern's first Done action, and Sparrow accepted and
+verified M4 before Kern's second Done action. The coordinator reconstructed a
+667-byte signed PSBT and displayed one complete Kern signature; broadcast was
+not attempted. Both viewer cleanups restored heap, the old failed session and
+abort journal remained hash-identical, all toggles were returned Off, and the
+isolated Sparrow home was preserved. M8-D/P01 is therefore `PASS`; the broader
+positive, continuity, negative, and soak gates remain open.
