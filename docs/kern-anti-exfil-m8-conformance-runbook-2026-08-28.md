@@ -35,6 +35,10 @@ cell above into a pass until its M8 receipt is recorded.
 - Sparrow: `182bc8a7b24641e43cecf324e96eec6314f9b18b`.
 - Drongo: `54365d7f09df956e0b3e8baf035b23920073bac3`.
 - Lark submodule: `ddffe556f0d1ba6a138be3b362ce74219fed0710`.
+- SeedSigner app: `214793df4f51466179b792420921b8cdd8d0c1ac`.
+- SeedSignerOS: `0bf1dc92519906c7db265055abfb07e0ee344342`;
+  instrumented Pi Zero image SHA-256
+  `adc2b58ae9dd57e884ec33b0e39ebf608ee8cc468d3fa7c563a1f1f808550fb3`.
 - Profile: canonical `aext-v1`; temporary persisted `AEXT_V1` remains a
   read-only compatibility spelling.
 

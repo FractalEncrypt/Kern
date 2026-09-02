@@ -301,6 +301,25 @@ receipt after rebuilding/flashing.
 | Readback evidence | `run/m8-evidence/DR-KERN-02-app-readback.bin`; application partition only, no NVS/seed partition read |
 | M8 readiness | KimiK3 approved `5180dbb`, `e8f3292`, DR-KERN-02, and attempt-01 evidence; COM6 readback condition passed; attempt 02 authorized with a fresh Sparrow session |
 
+## Device receipt DR-SEEDSIGNER-01
+
+| Item | Recorded value |
+| --- | --- |
+| Device | SeedSigner on Raspberry Pi Zero; operator-selected display configuration |
+| SeedSigner app source | `214793df4f51466179b792420921b8cdd8d0c1ac`; tag `anti-exfil-review-v1-finalized-input-tested-2026-08-22` |
+| SeedSignerOS source | `0bf1dc92519906c7db265055abfb07e0ee344342`; Buildroot `bf2a2858aa675a14b60f1f9142c65b32652609c1` |
+| App overlay preparation | 130 source files copied with non-destructive `/E`; all 130 SHA-256 comparisons matched; generated `version.json` identifies `dev` / `FractalEncrypt` / `214793d` / `2026-08-22T20:36:48` |
+| Build mode | Clean Pi Zero instrumented build: `--pi0 --skip-repo --anti-exfil-test --app-commit-id=214793df4f51466179b792420921b8cdd8d0c1ac`; no `--no-clean` |
+| Build result | Docker Compose `build-images-1` exited with code 0 after the SeedSignerOS post-image script |
+| Image | `seedsigner_os.214793df4f51466179b792420921b8cdd8d0c1ac.pi0.anti-exfil-test.img` |
+| Image size / SHA-256 | 52,428,800 bytes / `adc2b58ae9dd57e884ec33b0e39ebf608ee8cc468d3fa7c563a1f1f808550fb3` |
+| Independent local artifact check | Size and SHA-256 re-read from the completed image and matched the build log exactly |
+| Flash / boot observation | Operator reports the new image is loaded, the ordinary UI booted, and disposable test seed `0fb882ff` is loaded |
+| Signer settings | Persistent settings enabled; Testnet selected; Anti-exfil signing `Required`; display type selected |
+| Boot self-test receipt | Pass: exit code `0`; `status: ok`; backend `native-secp256k1-zkp`; opening and signature vectors match; `production_fallback: false` |
+| Preserved boot evidence | `run/m8-evidence/DR-SEEDSIGNER-01-selftest.exit-code`, SHA-256 `9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa`; `run/m8-evidence/DR-SEEDSIGNER-01-selftest.json`, SHA-256 `9e4e516372cafebefd670a54bbf195b5c86f130512237dabb03ecaaa6f98fcb2` |
+| Ceremony status | M8-C/P01 remains `NOT RUN`; Sparrow has not been launched for this attempt and no stage-1 message has been created |
+
 ## Matrix ledger
 
 | Cell | P01 baseline | Positive suite | Continuity suite | Negative suite | Soak | Final |
@@ -443,6 +462,8 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | M8-D/P01 attempt 02 authorized | Yes | Fresh Sparrow transaction/session required; attempt-01 `.aexs` and `.aexj` remain immutable and must not be reused |
 | M8-D/P01 attempt 02 outcome | Pass | Full M1-M4 ceremony, coordinator verification, signed-PSBT reconstruction, cleanup, and no-broadcast gate all passed; UX wording observations are non-blocking |
 | M8-D/P01 attempt 02 evidence review | Pass | KimiK3 accepted commit `ef4bf9e`, independently matched the signed PSBT, screenshots, serial log, firmware readback, resource transcription, cleanup boundary, and immutable attempt-01 evidence; M1-M4/session hashes retained their stated evidence-boundary caveat |
+| DR-SEEDSIGNER-01 image receipt | Pending independent review | Image identity is frozen and locally re-hashed; byte-exact boot receipts prove the native backend and no production fallback |
+| M8-C/P01 authorized | No | Await independent review of DR-SEEDSIGNER-01; no Sparrow stage-1 message may be created yet |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -505,3 +526,14 @@ KimiK3's independent review accepted the `PASS` classification and confirmed
 that both wording observations are non-blocking UI polish. It recommended
 keeping the remaining matrix and coverage gates open and advancing the formal
 baseline order to M8-C/P01, Sparrow GUI to SeedSigner.
+
+DR-SEEDSIGNER-01 then froze the newly built final SeedSigner artifact for that
+cell. The clean instrumented Pi Zero build completed successfully and its
+52,428,800-byte image independently matched the build-emitted SHA-256. The
+operator reports a successful flash and normal boot with the disposable seed
+loaded, Testnet selected, persistent settings enabled, and anti-exfil policy
+set to `Required`. The SD boot partition then yielded exit code `0` and a
+byte-preserved self-test receipt naming the native secp256k1-zkp backend,
+matching both opening and signature vectors, and reporting
+`production_fallback: false`. M8-C/P01 remains `NOT RUN` pending independent
+review of DR-SEEDSIGNER-01 before Sparrow creates message 1.
