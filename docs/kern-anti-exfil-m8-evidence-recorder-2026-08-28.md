@@ -358,7 +358,7 @@ receipt after rebuilding/flashing.
 | M8-A CLI/SeedSigner | Not run | Not run | Not run | Not run | N/A unless selected | Open |
 | M8-B CLI/Kern | Not run | Not run | Not run | Not run | Not run | Open |
 | M8-C GUI/SeedSigner | Pass (attempt 01; independently reviewed) | P02 pass pending independent review | Not run | Not run | N/A unless selected | Open |
-| M8-D GUI/Kern | Pass (attempt 02; attempt 01 failure preserved) | Not run | Not run | Not run | Not run | Open |
+| M8-D GUI/Kern | Pass (attempt 02; attempt 01 failure preserved) | P02 pass pending independent review | Not run | Not run | Not run | Open |
 
 ## M8-D/P01 attempt 01 — live P2WPKH baseline
 
@@ -529,6 +529,8 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | FP-2026-09-02-01 | Pass as fixture preparation | Public Testnet3 transaction independently matched its source, four intended outputs, 113-sat fee, and confirmation in block 5,127,974; it is not counted as an M8 protocol pass |
 | P02 and M8-X01 physical playbook | Pass for Parts A-C | KimiK3 accepted Kern `efcf47d`, independently verified FP-2026-09-02-01 and the P02/mixed-case methodology, and authorized M8-C/P02 followed by M8-D/P02. M8-X01 remains gated behind independent acceptance of both P02 receipts and their shared-PSBT comparison. |
 | M8-C/P02 attempt 01 outcome | Pass pending independent review | Two-input/two-slot SeedSigner ceremony completed over FP-M8-P02-01; both signatures independently verified, signature removal reproduced the frozen PSBT exactly, cleanup completed, and broadcast was not attempted. M8-D/P02 remains next; M8-X01 remains gated. |
+| M8-D/P02 attempt 01 outcome | Pass pending independent review | The byte-identical fixture completed on Kern with two verified signatures, stable physical resource measurements, exact signed-PSBT/final-transaction reconstruction, complete cleanup, and no broadcast. |
+| P02 shared-fixture comparison | Pass pending independent review | Both devices used the same ordered slots and sighashes; all four low-S ECDSA signatures verify; both results recover the exact frozen PSBT and reconstruct valid complete transactions. M8-X01 remains unauthorized pending review. |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -649,3 +651,24 @@ SeedSigner anti-exfil was disabled, and `0fb882ff` was discarded. M8-C/P02 is
 `PASS` pending independent review; M8-D/P02 remains the next authorized case,
 and M8-X01 remains gated behind review of both P02 receipts and their shared
 comparison.
+
+M8-D/P02 attempt 01 then reopened the byte-identical FP-M8-P02-01 fixture in
+the dedicated Kern Sparrow profile. Kern showed both inputs and the same
+recipient, change, and fee at two independent approval screens without a
+warning. Sparrow accepted M2 before Kern's first Done action, then accepted M4,
+verified two protected signatures, and reconstructed the complete result.
+Independent verification recovered the frozen PSBT after removing only Kern's
+two partial signatures, recomputed the same two SeedSigner-case sighashes,
+verified both low-S ECDSA signatures, matched Sparrow's direct finalized PSBT
+witnesses, and matched its saved final transaction byte for byte. Physical
+measurements stayed stable across both rounds and both viewer cleanups. Sparrow
+was closed, all Kern signing toggles were returned Off, and broadcast was not
+attempted. M8-D/P02 and the pairwise comparison are `PASS` pending independent
+review; M8-X01 remains unauthorized.
+
+While resolving the P02 protocol IDs, the earlier M8-C/P01 receipt's
+`d0fdef...` value was identified as Sparrow's wallet storage directory rather
+than the AEXB `session_id`. The accepted receipt is preserved unchanged; a
+separate dated erratum records the actual M8-C/P01 ID and both directly decoded
+P02 IDs. This corrects an evidence label only and does not alter any transcript,
+PSBT, signature, or result.
