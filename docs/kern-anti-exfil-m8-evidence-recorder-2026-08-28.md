@@ -1,8 +1,8 @@
 # Kern anti-exfil M8 evidence recorder
 
 Date opened: 2026-08-28
-Status: M8-D/P01 attempt 02 passed the full live Sparrow GUI/Kern ceremony;
-attempt 01 remains an immutable safe preflight failure
+Status: M8-D/P01 attempt 02 passed the full live Sparrow GUI/Kern ceremony and
+independent evidence review; attempt 01 remains an immutable safe failure
 
 This is the append-only human-readable index. Store bulky logs, images, QR
 frames, and message artifacts in a case directory and link them from the case
@@ -442,6 +442,7 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | DR-KERN-02 ceremony-start identity | Pass | COM6 application partition read back before scanning: 1,970,176 bytes, SHA-256 `e7df2b55d7c476a0ff67c06aebcd55e7fdf3b7027de98b58022828e85e1f893a`, exact artifact match |
 | M8-D/P01 attempt 02 authorized | Yes | Fresh Sparrow transaction/session required; attempt-01 `.aexs` and `.aexj` remain immutable and must not be reused |
 | M8-D/P01 attempt 02 outcome | Pass | Full M1-M4 ceremony, coordinator verification, signed-PSBT reconstruction, cleanup, and no-broadcast gate all passed; UX wording observations are non-blocking |
+| M8-D/P01 attempt 02 evidence review | Pass | KimiK3 accepted commit `ef4bf9e`, independently matched the signed PSBT, screenshots, serial log, firmware readback, resource transcription, cleanup boundary, and immutable attempt-01 evidence; M1-M4/session hashes retained their stated evidence-boundary caveat |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -499,3 +500,8 @@ not attempted. Both viewer cleanups restored heap, the old failed session and
 abort journal remained hash-identical, all toggles were returned Off, and the
 isolated Sparrow home was preserved. M8-D/P01 is therefore `PASS`; the broader
 positive, continuity, negative, and soak gates remain open.
+
+KimiK3's independent review accepted the `PASS` classification and confirmed
+that both wording observations are non-blocking UI polish. It recommended
+keeping the remaining matrix and coverage gates open and advancing the formal
+baseline order to M8-C/P01, Sparrow GUI to SeedSigner.

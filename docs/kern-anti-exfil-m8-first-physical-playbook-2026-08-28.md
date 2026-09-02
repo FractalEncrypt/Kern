@@ -1,7 +1,8 @@
 # M8 first physical playbook — Sparrow GUI to Kern P2WPKH
 
 Date: 2026-08-28; revised 2026-09-01
-Status: M8-D/P01 attempt 02 completed successfully without broadcast
+Status: M8-D/P01 attempt 02 completed successfully without broadcast and was
+accepted by independent evidence review
 Completed case: M8-D/P01 attempt 02; attempt 01 remains an immutable failure
 
 ## Goal
