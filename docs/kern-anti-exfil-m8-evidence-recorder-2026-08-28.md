@@ -462,8 +462,8 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | M8-D/P01 attempt 02 authorized | Yes | Fresh Sparrow transaction/session required; attempt-01 `.aexs` and `.aexj` remain immutable and must not be reused |
 | M8-D/P01 attempt 02 outcome | Pass | Full M1-M4 ceremony, coordinator verification, signed-PSBT reconstruction, cleanup, and no-broadcast gate all passed; UX wording observations are non-blocking |
 | M8-D/P01 attempt 02 evidence review | Pass | KimiK3 accepted commit `ef4bf9e`, independently matched the signed PSBT, screenshots, serial log, firmware readback, resource transcription, cleanup boundary, and immutable attempt-01 evidence; M1-M4/session hashes retained their stated evidence-boundary caveat |
-| DR-SEEDSIGNER-01 image receipt | Pending independent review | Image identity is frozen and locally re-hashed; byte-exact boot receipts prove the native backend and no production fallback |
-| M8-C/P01 authorized | No | Await independent review of DR-SEEDSIGNER-01; no Sparrow stage-1 message may be created yet |
+| DR-SEEDSIGNER-01 image receipt | Pass | KimiK3 reviewed Kern `d19a2773`, independently matched the app/OS/Buildroot/image identity chain and both byte-exact boot receipts, and accepted the operator-versus-artifact evidence boundary |
+| M8-C/P01 authorized | Yes | Fresh Sparrow transaction/session required under DR-SEEDSIGNER-01; preserve M8-D evidence and do not reuse any prior ceremony state |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -537,3 +537,13 @@ byte-preserved self-test receipt naming the native secp256k1-zkp backend,
 matching both opening and signature vectors, and reporting
 `production_fallback: false`. M8-C/P01 remains `NOT RUN` pending independent
 review of DR-SEEDSIGNER-01 before Sparrow creates message 1.
+
+KimiK3's independent review of `d19a2773` accepted DR-SEEDSIGNER-01 and
+authorized M8-C/P01. It independently resolved the app tag and commit, matched
+the SeedSignerOS and Buildroot pins, re-hashed the 50 MiB image and both boot
+receipts, and confirmed that operator-reported flash/settings observations are
+not presented as artifact-derived facts. The build-log statements remain
+process evidence and the SeedSignerOS checkout is shallow-grafted; neither
+caveat blocks this physical baseline. M8-C/P01 must use a fresh Sparrow
+transaction and session, and remains `NOT RUN` until its first message is
+created.
