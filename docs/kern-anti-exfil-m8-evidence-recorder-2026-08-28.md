@@ -534,6 +534,7 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | M8-D/P02 attempt 01 evidence review | Pass | KimiK3 reviewed Kern `f259fda`, independently matched the closed Sparrow and serial logs, durable AEXS state, resource measurements, signatures, and final transaction. |
 | P02 shared-fixture comparison | Pass | Both devices used the same ordered slots and sighashes; all four low-S ECDSA signatures verify; both results recover the exact frozen PSBT and reconstruct valid complete transactions. KimiK3 independently reproduced these findings. |
 | M8-X01 authorized | Yes | Part D may start under the frozen playbook. Part G broadcast remains separately gated behind review of the pristine, intermediate, and final PSBT evidence. |
+| M8-X01 Part D pristine fixture | Pass | One-input native-P2WSH PSBT frozen read-only before signing: 1,607 bytes, SHA-256 `483294e990e74f412a31719b765147ea20c403bf8b2200c4722bb4c7fb0edec0`; strict independent inspection passed and Part E Kern-first signing may start. |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
