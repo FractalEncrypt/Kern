@@ -326,7 +326,7 @@ receipt after rebuilding/flashing.
 | --- | --- | --- | --- | --- | --- | --- |
 | M8-A CLI/SeedSigner | Not run | Not run | Not run | Not run | N/A unless selected | Open |
 | M8-B CLI/Kern | Not run | Not run | Not run | Not run | Not run | Open |
-| M8-C GUI/SeedSigner | Not run | Not run | Not run | Not run | N/A unless selected | Open |
+| M8-C GUI/SeedSigner | Pass (attempt 01; pending independent review) | Not run | Not run | Not run | N/A unless selected | Open |
 | M8-D GUI/Kern | Pass (attempt 02; attempt 01 failure preserved) | Not run | Not run | Not run | Not run | Open |
 
 ## M8-D/P01 attempt 01 — live P2WPKH baseline
@@ -376,6 +376,30 @@ receipt after rebuilding/flashing.
 | Cleanup | Sparrow closed; Kern Anti-exfil and all ordinary signing toggles Off; isolated home and both attempt records preserved |
 | Evidence | `run/m8-evidence/M8-D-P01-attempt-02-receipt.md`; Sparrow log `dbaf1ba0...93f84`; Kern serial log `07dd5ad8...6d8782`; two completion screenshots and signed PSBT hash-pinned in the receipt |
 | UX observations | Stage-3 disclosure looks like a warning despite being informational; completion text says to scan M4 even after it has already been scanned |
+
+## M8-C/P01 attempt 01 — live P2WPKH baseline
+
+| Field | Value |
+| --- | --- |
+| Matrix cell | M8-C GUI/SeedSigner |
+| Result | `PASS` pending independent review |
+| Started / completed | 2026-09-02 10:06 EDT / 2026-09-02 10:24 EDT |
+| Coordinator / signer | Sparrow `182bc8a7b24641e43cecf324e96eec6314f9b18b` / SeedSigner DR-SEEDSIGNER-01 |
+| Network / profile | Testnet3 / `aext-v1` |
+| Wallet / inputs / slots | public fingerprint `0fb882ff`; native P2WPKH; one 180,406-sat input; one controlled slot |
+| Frozen PSBT | 443 bytes / `015dcae44cf373c38f41723165c6ebc8baacb08b85c6a350a476d4ad755de97f` |
+| M1 | 674 bytes / `b63ee4d195384642c6d14a96885e36a58c84b63454090ac7f3d1d2b2516908e4` |
+| M2 | 264 bytes / `bc4b58247ab8e6bb362183c3cd66a39cbf90cdd533ca4cd5ccf8af528c4826f3` |
+| M3 | 739 bytes / `d38049b53a7c611f21764a87213f862286ebe5af28c9ce1892de21ce19311aa5` |
+| M4 | 328 bytes / `2280486467839556f26e355333a50ef9a26d0428b0467a7c3d0389ec8753ccea` |
+| Final reconstructed PSBT | 551 bytes / `47a6db1f3dc735e5cf6f5195f6986c28404e8770b83c7d4d54ab1d801e7618a6` |
+| Verification | Sparrow completed exact-session opening/S2C/ECDSA verification; independent host parse found one controlled slot and one valid signature and reproduced the frozen PSBT after removing only that signature |
+| Transaction review | recipient 11,111 sats; change 169,225; fee 70; independently reviewed at both stages with no warnings |
+| User control | explicit `Create nonce commitment` and independent `Approve protected signature` actions; M2 was accepted and M3 persisted before SeedSigner's first response QR was dismissed |
+| Broadcast attempted | No |
+| Cleanup | Sparrow closed; SeedSigner anti-exfil Disabled; disposable seed discarded; dedicated M8-C profile and evidence preserved |
+| Evidence | `run/m8-evidence/M8-C-P01-attempt-01-receipt.md`; Sparrow log `18d5ae60...56dea`; completion screenshot `666a263f...3f0f`; original and signed PSBTs preserved |
+| UX observation | SeedSigner's animated response viewer has no labeled Done control; two button presses exited M4 to the main menu |
 
 ## Case receipt template
 
@@ -464,6 +488,8 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | M8-D/P01 attempt 02 evidence review | Pass | KimiK3 accepted commit `ef4bf9e`, independently matched the signed PSBT, screenshots, serial log, firmware readback, resource transcription, cleanup boundary, and immutable attempt-01 evidence; M1-M4/session hashes retained their stated evidence-boundary caveat |
 | DR-SEEDSIGNER-01 image receipt | Pass | KimiK3 reviewed Kern `d19a2773`, independently matched the app/OS/Buildroot/image identity chain and both byte-exact boot receipts, and accepted the operator-versus-artifact evidence boundary |
 | M8-C/P01 authorized | Yes | Fresh Sparrow transaction/session required under DR-SEEDSIGNER-01; preserve M8-D evidence and do not reuse any prior ceremony state |
+| M8-C/P01 attempt 01 outcome | Pass pending review | Full M1-M4 ceremony, independent approvals, coordinator verification, signed-PSBT reconstruction, cleanup, and no-broadcast gate passed |
+| M8-C/P01 attempt 01 evidence review | Pending | Await independent review of the receipt, signed PSBT, screenshot, closed log, and durable-session hashes |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -547,3 +573,15 @@ process evidence and the SeedSignerOS checkout is shallow-grafted; neither
 caveat blocks this physical baseline. M8-C/P01 must use a fresh Sparrow
 transaction and session, and remains `NOT RUN` until its first message is
 created.
+
+M8-C/P01 attempt 01 then completed a fresh four-message session using a
+separate Sparrow profile and the accepted SeedSigner image. SeedSigner showed
+matching transaction values with no warning at both independent approval
+stages. Sparrow accepted M2 before M3 was displayed, then accepted M4 and
+showed one complete SeedSigner signature plus the final transaction; broadcast
+was not attempted. A separate host-side parse verified the only partial
+signature against the locally recomputed sighash and reconstructed the frozen
+PSBT after removing only that signature. Sparrow was closed, SeedSigner was
+returned to Disabled, and the test seed was discarded. The baseline is marked
+`PASS` pending independent review; every broader M8-C suite and both remaining
+reference-tool cells stay open.
