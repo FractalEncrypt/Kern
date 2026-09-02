@@ -320,6 +320,20 @@ receipt after rebuilding/flashing.
 | Preserved boot evidence | `run/m8-evidence/DR-SEEDSIGNER-01-selftest.exit-code`, SHA-256 `9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa`; `run/m8-evidence/DR-SEEDSIGNER-01-selftest.json`, SHA-256 `9e4e516372cafebefd670a54bbf195b5c86f130512237dabb03ecaaa6f98fcb2` |
 | Ceremony status | M8-C/P01 remains `NOT RUN`; Sparrow has not been launched for this attempt and no stage-1 message has been created |
 
+## Fixture preparation FP-2026-09-02-01
+
+| Item | Recorded value |
+| --- | --- |
+| Purpose | Create two real Testnet3 P2WPKH inputs for P02 and two real native-P2WSH inputs for later multisig cases |
+| Transaction | `61a05816882fb79f5142137d5514cbcbd76f46772977325b7bfd0f493b9079da` |
+| Source | `15962f64510861646fa8039ede2054546148463aea88c937c118e82a8f5284d5:1`, P2WPKH, 180,406 sats |
+| Outputs | vout 0 P2WSH 11,111 sats; vout 1 P2WPKH 111,444 sats; vout 2 P2WSH 36,369 sats; vout 3 P2WPKH 21,369 sats |
+| Fee | 113 sats; inputs and outputs balance exactly |
+| Confirmation | Confirmed in Testnet3 block 5,127,974 before the playbook was frozen |
+| Classification | Setup transaction only; it predates and is not counted as any M8 P02/P04/P07 ceremony |
+| Operator note | Broadcast before the detailed preparation receipt was written; no protected ceremony was active, and the confirmed outputs now provide the intended test inventory |
+| Next use | vout 1 + 3 form the shared P02 input set; one P2WSH output will later form the single-input M8-X01 mixed-device case |
+
 ## Matrix ledger
 
 | Cell | P01 baseline | Positive suite | Continuity suite | Negative suite | Soak | Final |
@@ -495,6 +509,8 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | M8-C/P01 authorized | Yes | Fresh Sparrow transaction/session required under DR-SEEDSIGNER-01; preserve M8-D evidence and do not reuse any prior ceremony state |
 | M8-C/P01 attempt 01 outcome | Pass | Full M1-M4 ceremony, independent approvals, coordinator verification, signed-PSBT reconstruction, cleanup, and no-broadcast gate passed |
 | M8-C/P01 attempt 01 evidence review | Pass | KimiK3 accepted Kern `1281b54`; independently re-parsed the durable session, recomputed BIP143 and ECDSA, stripped exactly one signature to reproduce the frozen PSBT, and matched the log/screenshot/artifact hashes |
+| FP-2026-09-02-01 | Pass as fixture preparation | Public Testnet3 transaction independently matched its source, four intended outputs, 113-sat fee, and confirmation in block 5,127,974; it is not counted as an M8 protocol pass |
+| P02 and M8-X01 physical playbook | Pending independent review | Shared unsigned-PSBT comparison runs M8-C/P02 before M8-D/P02; mixed Kern-then-SeedSigner P2WSH signing and broadcast remain gated behind both reviewed P02 passes |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
