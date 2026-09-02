@@ -334,6 +334,23 @@ receipt after rebuilding/flashing.
 | Operator note | Broadcast before the detailed preparation receipt was written; no protected ceremony was active, and the confirmed outputs now provide the intended test inventory |
 | Next use | vout 1 + 3 form the shared P02 input set; one P2WSH output will later form the single-input M8-X01 mixed-device case |
 
+## Shared P02 unsigned fixture FP-M8-P02-01
+
+| Item | Recorded value |
+| --- | --- |
+| Evidence file | `run/m8-evidence/M8-P02-shared-unsigned.psbt` |
+| Size / SHA-256 | 586 bytes / `b034ca05e2180611fcd357400fc997838a37348eead460359b47a2f60d71dbac` |
+| Immutability | Exact byte-for-byte copy of the operator-saved PSBT; destination marked read-only before either device signs |
+| Network / account | Testnet3; native P2WPKH; fingerprint `0fb882ff`; account origin `m/84'/1'/0'` |
+| Unsigned transaction ID | `ffa3da5bbd7672de91075d3657dbb1fd200b77fa7921134fe2913126fb2ae3ba` |
+| Inputs | `61a05816...079da:1`, 111,444 sats, path `m/84'/1'/0'/1/0`; `61a05816...079da:3`, 21,369 sats, path `m/84'/1'/0'/0/1` |
+| Outputs / fee | 11,111 sats recipient; 121,598 sats change; 104-sat fee; inputs and outputs balance exactly |
+| Slot/signature state | Two distinct locally controlled signing slots; zero partial signatures; zero finalized inputs |
+| Validation | Complete strict map parse, exact unsigned-transaction match, derivation/fingerprint checks, and transaction/value assertions passed |
+| Supporting receipt | `run/m8-evidence/M8-P02-shared-unsigned-receipt.md`; setup screenshot SHA-256 `42ac08d5a3e7d0436013d5713c10bd2eb989f23ec3a2aff8d922b1b340a1159b` |
+| Shared-use rule | M8-C/P02 and M8-D/P02 must each reopen this file independently and write separate signed results; neither result is broadcast |
+| Ceremony state at freeze | No M1, session, response, or signature had been created |
+
 ## Matrix ledger
 
 | Cell | P01 baseline | Positive suite | Continuity suite | Negative suite | Soak | Final |
@@ -510,7 +527,7 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | M8-C/P01 attempt 01 outcome | Pass | Full M1-M4 ceremony, independent approvals, coordinator verification, signed-PSBT reconstruction, cleanup, and no-broadcast gate passed |
 | M8-C/P01 attempt 01 evidence review | Pass | KimiK3 accepted Kern `1281b54`; independently re-parsed the durable session, recomputed BIP143 and ECDSA, stripped exactly one signature to reproduce the frozen PSBT, and matched the log/screenshot/artifact hashes |
 | FP-2026-09-02-01 | Pass as fixture preparation | Public Testnet3 transaction independently matched its source, four intended outputs, 113-sat fee, and confirmation in block 5,127,974; it is not counted as an M8 protocol pass |
-| P02 and M8-X01 physical playbook | Pending independent review | Shared unsigned-PSBT comparison runs M8-C/P02 before M8-D/P02; mixed Kern-then-SeedSigner P2WSH signing and broadcast remain gated behind both reviewed P02 passes |
+| P02 and M8-X01 physical playbook | Pass for Parts A-C | KimiK3 accepted Kern `efcf47d`, independently verified FP-2026-09-02-01 and the P02/mixed-case methodology, and authorized M8-C/P02 followed by M8-D/P02. M8-X01 remains gated behind independent acceptance of both P02 receipts and their shared-PSBT comparison. |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
