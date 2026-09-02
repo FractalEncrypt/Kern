@@ -1,7 +1,7 @@
 # M8 P02 and mixed-device multisig physical playbook
 
 Date: 2026-09-02
-Status: prepared; no P02 or mixed-device ceremony has started
+Status: P02 pair independently accepted; M8-X01 Part D authorized, not started
 Scope: disposable Testnet3 funds and `aext-v1` only
 
 ## Purpose
@@ -140,9 +140,27 @@ Do not start the mixed multisig transaction until an independent reviewer has
 accepted both P02 receipts and the shared-PSBT comparison. This prevents a
 mixed-device success from obscuring a per-device multi-input defect.
 
+Gate satisfied: KimiK3 accepted both P02 receipts, the shared-fixture
+comparison, and the session-ID erratum in its review of Kern `f259fda`.
+M8-X01 preparation is authorized. Part G broadcast authorization remains a
+separate later gate.
+
 ## Part D — prepare M8-X01 native-P2WSH transaction
 
-Use a fresh isolated Sparrow profile and import the exact 2-of-3 descriptor.
+Close every normal or M8 Sparrow window. Use this new, dedicated profile only:
+
+`C:\Users\FractalEncrypt\Documents\SeedSigner_AntiExfil\run\m8-x01-sparrow-home`
+
+Launch it from PowerShell with:
+
+```powershell
+cd "C:\Users\FractalEncrypt\Documents\SeedSigner_AntiExfil\run\feasibility-sources\our-sparrow"
+.\gradlew.bat --gradle-user-home C:\Users\FractalEncrypt\Documents\SeedSigner_AntiExfil\run\gradle-home-m8 run --args="--dir C:\Users\FractalEncrypt\Documents\SeedSigner_AntiExfil\run\m8-x01-sparrow-home --network testnet"
+```
+
+Import the exact 2-of-3 descriptor into that profile. Do not create a
+transaction until the wallet has synchronized, the sole intended input is
+visible, and every item below has been checked.
 Verify all three fingerprints and `m/48'/1'/0'/2'` origins. Assign the models
 and policies exactly as follows:
 

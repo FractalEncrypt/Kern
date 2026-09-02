@@ -1,7 +1,7 @@
 # M8 P02 shared-fixture comparison checkpoint
 
 Date: 2026-09-02
-Status: M8-C/P02 and M8-D/P02 pass locally; independent review pending
+Status: M8-C/P02 and M8-D/P02 independently accepted; M8-X01 authorized
 Scope: Sparrow GUI with SeedSigner and Kern, two-input native P2WPKH
 
 ## Frozen input
@@ -34,7 +34,7 @@ own session and neither consumed the other's signed result.
 | M3 bytes / SHA-256 | 1,052 / `a7a0bba6...b9a78` | 1,052 / `9db5fbb0...fc3974` |
 | M4 bytes / SHA-256 | 530 / `1b64d94e...d63590` | 530 / `6f638afb...cfabab` |
 | Signed PSBT | 800 bytes / `2c7bb496...e96209` | 801 bytes / `6594cd5d...4b9bd4` |
-| DER lengths | 71, 71 | 71, 72 |
+| Signature witness-item lengths (DER + sighash byte) | 71, 71 | 71, 72 |
 | Final txid | `ffa3da5b...ae3ba` | `ffa3da5b...ae3ba` |
 | Final wtxid | `e51f6916...82fcb2` | `d95d0483...c15d30` |
 | Broadcast | No | No |
@@ -116,6 +116,11 @@ changed by this label correction.
 
 ## Review gate
 
+KimiK3's independent review of Kern `f259fda` accepted all five findings below.
+It independently re-hashed all 19 receipted files, reproduced the pairwise
+verification with a separate parser and ECDSA checker, accepted both P02
+device results and the session-ID erratum, and authorized M8-X01.
+
 Requested independent findings:
 
 1. accept or reject M8-C/P02 as a two-input/two-slot SeedSigner pass;
@@ -126,5 +131,6 @@ Requested independent findings:
    accepted P01 receipt; and
 5. authorize M8-X01 only if all preceding findings pass.
 
-Until that review is accepted, the native-P2WSH mixed Kern-then-SeedSigner
-transaction and its one deliberate Testnet3 broadcast remain prohibited.
+That review is accepted. Part D of the physical playbook may now begin. The
+eventual Testnet3 broadcast remains separately gated until the pristine,
+intermediate, and final M8-X01 evidence passes the Part G pre-broadcast review.
