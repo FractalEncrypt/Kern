@@ -326,7 +326,7 @@ receipt after rebuilding/flashing.
 | --- | --- | --- | --- | --- | --- | --- |
 | M8-A CLI/SeedSigner | Not run | Not run | Not run | Not run | N/A unless selected | Open |
 | M8-B CLI/Kern | Not run | Not run | Not run | Not run | Not run | Open |
-| M8-C GUI/SeedSigner | Pass (attempt 01; pending independent review) | Not run | Not run | Not run | N/A unless selected | Open |
+| M8-C GUI/SeedSigner | Pass (attempt 01; independently reviewed) | Not run | Not run | Not run | N/A unless selected | Open |
 | M8-D GUI/Kern | Pass (attempt 02; attempt 01 failure preserved) | Not run | Not run | Not run | Not run | Open |
 
 ## M8-D/P01 attempt 01 — live P2WPKH baseline
@@ -400,6 +400,11 @@ receipt after rebuilding/flashing.
 | Cleanup | Sparrow closed; SeedSigner anti-exfil Disabled; disposable seed discarded; dedicated M8-C profile and evidence preserved |
 | Evidence | `run/m8-evidence/M8-C-P01-attempt-01-receipt.md`; Sparrow log `18d5ae60...56dea`; completion screenshot `666a263f...3f0f`; original and signed PSBTs preserved |
 | UX observation | SeedSigner's animated response viewer has no labeled Done control; two button presses exited M4 to the main menu |
+
+The 73-byte abort-journal SHA-256 equals M8-D attempt 01's journal because
+both files encode the same deterministic empty-journal state. It is not
+evidence of session reuse; the M8-C session ID, profile, frozen PSBT, and
+durable session file are distinct.
 
 ## Case receipt template
 
@@ -488,8 +493,8 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | M8-D/P01 attempt 02 evidence review | Pass | KimiK3 accepted commit `ef4bf9e`, independently matched the signed PSBT, screenshots, serial log, firmware readback, resource transcription, cleanup boundary, and immutable attempt-01 evidence; M1-M4/session hashes retained their stated evidence-boundary caveat |
 | DR-SEEDSIGNER-01 image receipt | Pass | KimiK3 reviewed Kern `d19a2773`, independently matched the app/OS/Buildroot/image identity chain and both byte-exact boot receipts, and accepted the operator-versus-artifact evidence boundary |
 | M8-C/P01 authorized | Yes | Fresh Sparrow transaction/session required under DR-SEEDSIGNER-01; preserve M8-D evidence and do not reuse any prior ceremony state |
-| M8-C/P01 attempt 01 outcome | Pass pending review | Full M1-M4 ceremony, independent approvals, coordinator verification, signed-PSBT reconstruction, cleanup, and no-broadcast gate passed |
-| M8-C/P01 attempt 01 evidence review | Pending | Await independent review of the receipt, signed PSBT, screenshot, closed log, and durable-session hashes |
+| M8-C/P01 attempt 01 outcome | Pass | Full M1-M4 ceremony, independent approvals, coordinator verification, signed-PSBT reconstruction, cleanup, and no-broadcast gate passed |
+| M8-C/P01 attempt 01 evidence review | Pass | KimiK3 accepted Kern `1281b54`; independently re-parsed the durable session, recomputed BIP143 and ECDSA, stripped exactly one signature to reproduce the frozen PSBT, and matched the log/screenshot/artifact hashes |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -585,3 +590,13 @@ PSBT after removing only that signature. Sparrow was closed, SeedSigner was
 returned to Disabled, and the test seed was discarded. The baseline is marked
 `PASS` pending independent review; every broader M8-C suite and both remaining
 reference-tool cells stay open.
+
+KimiK3's independent review accepted M8-C/P01 as `PASS`. It matched every
+preserved artifact hash and M1-M4 log receipt, decoded the AEXS version and
+`COMPLETE` phase, independently recomputed the BIP143 sighash and verified the
+low-S signature without relying on the project crypto libraries, and removed
+exactly that signature to recover the byte-identical frozen PSBT. It also
+confirmed the setup-only model correction, cleanup boundary, and SeedSigner
+QR-exit observation. M2 and M4 remain hash-only package evidence because their
+canonical bytes were not separately retained. The broader M8-C suites and
+M8-A/M8-B remain open.
