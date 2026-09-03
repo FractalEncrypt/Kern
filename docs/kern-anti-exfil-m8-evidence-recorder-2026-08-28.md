@@ -2,7 +2,8 @@
 
 Date opened: 2026-08-28
 Status: M8-X01 attempt 02 Parts E/F are independently accepted; its single
-deliberate Testnet3 Part G broadcast is authorized and awaiting execution
+deliberate Testnet3 Part G broadcast confirmed and cleanup is complete;
+independent post-broadcast review remains pending
 
 This is the append-only human-readable index. Store bulky logs, images, QR
 frames, and message artifacts in a case directory and link them from the case
@@ -575,6 +576,10 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | M8-X01 attempt 02 evidence review | Pass | KimiK3 hash-matched all 18 artifacts, independently decoded both complete AEXS transcripts, reconstructed the byte-exact lineage and final witness, verified both signatures, and matched the UI/resource evidence. |
 | M8-X01 mixed-device signing | Pass | One Kern protected signature followed by one SeedSigner protected signature completed the intended native-P2WSH 2-of-3 transaction without the reserve signer. |
 | M8-X01 Part G broadcast authorized | Yes | KimiK3 authorized exactly one Testnet3 broadcast of txid `6854c031978839983e6cb2bcf064a432f126fbbbdbec7c969e9202e554442496`; record timestamp, response, explorer URL, and confirmation height. |
+| M8-X01 Part G broadcast outcome | Pass, initially unconfirmed | Sparrow broadcast exactly once and displayed the authorized txid as `Unconfirmed`, signed by `SeedSigner 2, Kern`. A public Testnet3 API returned the exact transaction with `confirmed: false`, the expected input, 25,055/11,111-sat outputs, and 203-sat fee. |
+| M8-X01 post-broadcast cleanup | Pass | Sparrow closed and isolated profile preserved; Kern all signing toggles Off and seed unloaded; SeedSigner anti-exfil Disabled and all seeds discarded. |
+| M8-X01 confirmation | Pass, pending review | Confirmed in Testnet3 block `5,128,025`, block hash `00000000000000b7f5b9c43ab49553c6d8b7a11f828810386d8e647ac8e292e6`, block time `2026-09-03T03:50:12Z`; separate confirmed API response preserves the update without altering initial evidence. |
+| M8-X01 post-broadcast evidence review | Pending | Review `M8-X01-attempt-02-broadcast-receipt.md`, 3,810 bytes, SHA-256 `235bc43fc48e13002ce5f140bb560da6aaf4ffac9ad165d10b26058ce7444f9e`, plus its unconfirmed/confirmed responses, screenshot, final closed Sparrow log, and cleanup statement. |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -787,3 +792,23 @@ the mixed-device signing result are accepted as `PASS`. Exactly one Testnet3
 broadcast of txid
 `6854c031978839983e6cb2bcf064a432f126fbbbdbec7c969e9202e554442496`
 is authorized; post-broadcast evidence and cleanup remain required.
+
+The operator then pressed Broadcast Transaction exactly once. Sparrow showed
+the authorized txid as `Unconfirmed` and identified `SeedSigner 2, Kern` as its
+signers. A separately saved public Testnet3 response returned the exact txid,
+the intended `61a05816...:2` input, 25,055-sat change, 11,111-sat recipient,
+203-sat fee, expected two-signature witness, and `confirmed: false`. The
+initial screenshot and response are read-only and hash-pinned in
+`M8-X01-attempt-02-broadcast-receipt.md`; their capture time is not presented
+as the network's exact first-seen time.
+
+After capture, Sparrow was fully closed and its isolated profile preserved.
+Kern was left with all signing toggles Off and its seed unloaded. SeedSigner
+anti-exfil was set to Disabled and all seeds were discarded. The closed
+Sparrow log was frozen read-only. Part G's broadcast action and cleanup are
+therefore `PASS`. A later public response confirmed the exact transaction in
+Testnet3 block `5,128,025` at `2026-09-03T03:50:12Z`; the response is preserved
+separately so the initial unconfirmed evidence remains unchanged. Independent
+post-broadcast review remains pending. The observed Kern stage transition—returning to Home after
+Step 1 without directing the user to resume Step 2—is an explicit next-session
+UX/lifecycle task, not a completed M8 protocol gate.
