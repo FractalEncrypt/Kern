@@ -1,8 +1,8 @@
 # Kern anti-exfil M8 evidence recorder
 
 Date opened: 2026-08-28
-Status: M8-X01 attempt 02 completed Kern-then-SeedSigner Parts E/F and passed
-local verification; Part G broadcast remains blocked pending independent review
+Status: M8-X01 attempt 02 Parts E/F are independently accepted; its single
+deliberate Testnet3 Part G broadcast is authorized and awaiting execution
 
 This is the append-only human-readable index. Store bulky logs, images, QR
 frames, and message artifacts in a case directory and link them from the case
@@ -570,9 +570,11 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | Mixed-policy signer-selection fix | Pass | KimiK3 accepted Sparrow `a53d9e1`: chooser eligibility is compatibility-only while every Required provenance, software-signing, UI, and editor enforcement path remains intact. |
 | BR-2026-09-02-01 | Pass | KimiK3 independently matched the JAR SHA-256, clean source identity, submodule pins, build environment, artifact sizes, and passing focused/full anti-exfil tests. |
 | M8-X01 attempt 02 authorized | Yes | Use BR-2026-09-02-01, a fresh coordinator session, the corrected policy table, explicit `Kern (0fb882ff)` chooser selection, and the Kern QR-header stop gate before scanning. |
-| M8-X01 attempt 02 Parts E/F | Pass pending review | Explicit Kern-first and `b4899a09` SeedSigner-second sessions completed; Sparrow retained both protected signatures, reached exactly 2-of-3, and did not broadcast. Receipt: 10,438 bytes, SHA-256 `f8b576923e61ac73bbcdfabc54b2a2fefd144206bac3bdb22dbe554065596d59`. |
-| M8-X01 independent verifier | Pass pending review | Pristine → Kern intermediate → SeedSigner signed state and final witness reconstruction pass; both low-S ECDSA signatures verify, Kern's signature is retained exactly, and reserve `2a0726f2` is absent. |
-| M8-X01 Part G broadcast authorized | No | Keep Sparrow open and do not broadcast until an independent reviewer accepts the attempt-02 receipt and all pre-broadcast artifacts. |
+| M8-X01 attempt 02 Parts E/F | Pass | Explicit Kern-first and `b4899a09` SeedSigner-second sessions completed; Sparrow retained both protected signatures, reached exactly 2-of-3, and did not broadcast. Receipt: 10,438 bytes, SHA-256 `f8b576923e61ac73bbcdfabc54b2a2fefd144206bac3bdb22dbe554065596d59`. |
+| M8-X01 independent verifier | Pass | Pristine → Kern intermediate → SeedSigner signed state and final witness reconstruction pass; both low-S ECDSA signatures verify, Kern's signature is retained exactly, and reserve `2a0726f2` is absent. KimiK3 reproduced these results with independent parser/curve code. |
+| M8-X01 attempt 02 evidence review | Pass | KimiK3 hash-matched all 18 artifacts, independently decoded both complete AEXS transcripts, reconstructed the byte-exact lineage and final witness, verified both signatures, and matched the UI/resource evidence. |
+| M8-X01 mixed-device signing | Pass | One Kern protected signature followed by one SeedSigner protected signature completed the intended native-P2WSH 2-of-3 transaction without the reserve signer. |
+| M8-X01 Part G broadcast authorized | Yes | KimiK3 authorized exactly one Testnet3 broadcast of txid `6854c031978839983e6cb2bcf064a432f126fbbbdbec7c969e9202e554442496`; record timestamp, response, explorer URL, and confirmation height. |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -775,3 +777,13 @@ sighash, verifies both low-S ECDSA signatures, proves the exact Kern signature
 survived into the final witness, excludes the reserve signer, and reconstructs
 the saved 392-byte transaction exactly. Parts E/F are `PASS` pending review.
 Part G remains unauthorized.
+
+KimiK3 then independently hash-matched all 18 pre-broadcast artifacts and
+re-derived both complete transcripts, the pristine/intermediate/final lineage,
+the shared BIP143 digest, both low-S ECDSA signatures, exact Kern-signature
+retention, reserve-signer absence, final witness ordering, txid, and wtxid. It
+also matched the screenshots and Kern resource measurements. Parts E/F and
+the mixed-device signing result are accepted as `PASS`. Exactly one Testnet3
+broadcast of txid
+`6854c031978839983e6cb2bcf064a432f126fbbbdbec7c969e9202e554442496`
+is authorized; post-broadcast evidence and cleanup remain required.
