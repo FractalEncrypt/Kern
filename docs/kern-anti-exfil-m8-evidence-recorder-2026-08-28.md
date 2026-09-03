@@ -1,8 +1,8 @@
 # Kern anti-exfil M8 evidence recorder
 
 Date opened: 2026-08-28
-Status: M8-X01 attempt 01 is an independently accepted safe pre-M2 failure;
-attempt 02 is authorized under BR-2026-09-02-01 with explicit signer selection
+Status: M8-X01 attempt 02 completed Kern-then-SeedSigner Parts E/F and passed
+local verification; Part G broadcast remains blocked pending independent review
 
 This is the append-only human-readable index. Store bulky logs, images, QR
 frames, and message artifacts in a case directory and link them from the case
@@ -570,6 +570,9 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | Mixed-policy signer-selection fix | Pass | KimiK3 accepted Sparrow `a53d9e1`: chooser eligibility is compatibility-only while every Required provenance, software-signing, UI, and editor enforcement path remains intact. |
 | BR-2026-09-02-01 | Pass | KimiK3 independently matched the JAR SHA-256, clean source identity, submodule pins, build environment, artifact sizes, and passing focused/full anti-exfil tests. |
 | M8-X01 attempt 02 authorized | Yes | Use BR-2026-09-02-01, a fresh coordinator session, the corrected policy table, explicit `Kern (0fb882ff)` chooser selection, and the Kern QR-header stop gate before scanning. |
+| M8-X01 attempt 02 Parts E/F | Pass pending review | Explicit Kern-first and `b4899a09` SeedSigner-second sessions completed; Sparrow retained both protected signatures, reached exactly 2-of-3, and did not broadcast. Receipt: 10,438 bytes, SHA-256 `f8b576923e61ac73bbcdfabc54b2a2fefd144206bac3bdb22dbe554065596d59`. |
+| M8-X01 independent verifier | Pass pending review | Pristine → Kern intermediate → SeedSigner signed state and final witness reconstruction pass; both low-S ECDSA signatures verify, Kern's signature is retained exactly, and reserve `2a0726f2` is absent. |
+| M8-X01 Part G broadcast authorized | No | Keep Sparrow open and do not broadcast until an independent reviewer accepts the attempt-02 receipt and all pre-broadcast artifacts. |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -747,3 +750,28 @@ was created, and every replacement-build identity matches. Attempt 02 is now
 authorized under the boundaries above. The reviewer noted non-blockingly that
 future safe-failure receipts should preserve raw M1 as its own artifact; the
 phase-0 AEXS is conclusive for this accepted attempt, so it will not be rerun.
+
+M8-X01 attempt 02 then used BR-2026-09-02-01 and the corrected policy table.
+Sparrow displayed all compatible signers; the operator explicitly selected
+Kern `0fb882ff`, confirmed the Kern-labeled M1 header, and completed both
+independently approved rounds. Sparrow produced a 1,715-byte intermediate with
+exactly Kern's protected signature and no final/broadcast state. Removing that
+signature reproduces the pristine PSBT byte for byte. Kern's heap, largest
+block, lifetime minimum, and stack measurements stayed stable; both viewer
+cleanups returned to the same free-heap value.
+
+The operator next explicitly selected SeedSigner `b4899a09`. SeedSigner asked
+for the already registered descriptor again, so the operator closed M1, loaded
+the descriptor, and reopened the protected flow. Sparrow redisplayed the same
+1,946-byte M1 with the same hash, proving no ceremony substitution. Both
+SeedSigner rounds then completed with independent approvals. Sparrow retained
+Kern, added SeedSigner 2, reached exactly 2-of-3, and enabled—but did not use—
+View Final Transaction and Broadcast Transaction.
+
+The pre-broadcast receipt and independent verifier preserve both completed
+AEXS records, logs, journals, provenance index, pristine/intermediate/final
+artifacts, and screenshots. The verifier independently recomputes the BIP143
+sighash, verifies both low-S ECDSA signatures, proves the exact Kern signature
+survived into the final witness, excludes the reserve signer, and reconstructs
+the saved 392-byte transaction exactly. Parts E/F are `PASS` pending review.
+Part G remains unauthorized.
