@@ -145,6 +145,14 @@ comparison, and the session-ID erratum in its review of Kern `f259fda`.
 M8-X01 preparation is authorized. Part G broadcast authorization remains a
 separate later gate.
 
+Attempt-01 addendum: BR-2026-09-01-04 filtered the Optional Kern signer from
+the chooser because the wallet contained a Required reserve SeedSigner. Kern
+correctly rejected the resulting SeedSigner-addressed M1 before M2. KimiK3
+accepted this safe failure, Sparrow's narrow `a53d9e1` chooser fix, and
+BR-2026-09-02-01. Attempt 02 is authorized with a fresh session, the exact
+policy table below, explicit `Kern (0fb882ff)` selection, and the QR-header
+stop gate in Part E. Do not reuse attempt-01 coordinator state.
+
 ## Part D — prepare M8-X01 native-P2WSH transaction
 
 Close every normal or M8 Sparrow window. Use this new, dedicated profile only:

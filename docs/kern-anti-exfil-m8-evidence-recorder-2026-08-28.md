@@ -1,8 +1,8 @@
 # Kern anti-exfil M8 evidence recorder
 
 Date opened: 2026-08-28
-Status: M8-X01 attempt 01 failed safely before M2 after Sparrow addressed the
-wrong signer; its evidence and the replacement selection fix await review
+Status: M8-X01 attempt 01 is an independently accepted safe pre-M2 failure;
+attempt 02 is authorized under BR-2026-09-02-01 with explicit signer selection
 
 This is the append-only human-readable index. Store bulky logs, images, QR
 frames, and message artifacts in a case directory and link them from the case
@@ -567,9 +567,9 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | M8-X01 authorized | Yes | Part D may start under the frozen playbook. Part G broadcast remains separately gated behind review of the pristine, intermediate, and final PSBT evidence. |
 | M8-X01 Part D pristine fixture | Pass | One-input native-P2WSH PSBT frozen read-only before signing: 1,607 bytes, SHA-256 `483294e990e74f412a31719b765147ea20c403bf8b2200c4722bb4c7fb0edec0`; strict independent inspection passed and Part E Kern-first signing may start. |
 | M8-X01 attempt 01 | Fail safe | BR-2026-09-01-04 addressed the sole Required reserve SeedSigner instead of Optional Kern; Kern rejected the mismatched slot before M2 and no signature or response was created. Receipt: 4,776 bytes, SHA-256 `ad3f641c3b224a60816b4479d424e494a9bd5c3b8bd853ab451a8091b19331a5`. |
-| Mixed-policy signer-selection fix | Pending review | Sparrow `a53d9e1` retains all compatible signers in the explicit chooser while leaving Required provenance enforcement intact; focused and complete anti-exfil tests pass. |
-| BR-2026-09-02-01 | Pending review | Replacement JAR and distributions built and hash-pinned; no live ceremony may use them yet. |
-| M8-X01 attempt 02 authorized | No | Requires independent acceptance of attempt 01, Sparrow `a53d9e1`, and BR-2026-09-02-01; then use a fresh session and explicitly select `Kern (0fb882ff)`. |
+| Mixed-policy signer-selection fix | Pass | KimiK3 accepted Sparrow `a53d9e1`: chooser eligibility is compatibility-only while every Required provenance, software-signing, UI, and editor enforcement path remains intact. |
+| BR-2026-09-02-01 | Pass | KimiK3 independently matched the JAR SHA-256, clean source identity, submodule pins, build environment, artifact sizes, and passing focused/full anti-exfil tests. |
+| M8-X01 attempt 02 authorized | Yes | Use BR-2026-09-02-01, a fresh coordinator session, the corrected policy table, explicit `Kern (0fb882ff)` chooser selection, and the Kern QR-header stop gate before scanning. |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -738,3 +738,12 @@ still governs provenance enforcement for signatures attributable to that
 keystore. The replacement build is BR-2026-09-02-01. M8-X01 attempt 02 is
 paused pending independent review and must use a fresh session plus explicit
 selection of `Kern (0fb882ff)`.
+
+KimiK3 independently accepted Sparrow `a53d9e1`, Kern `88c1571`,
+BR-2026-09-02-01, and the attempt-01 safe-failure classification. It confirmed
+that Required enforcement remains intact, the regression exactly models the
+mixed wallet, the retained phase-0 AEXS and logs prove no M2 or signer response
+was created, and every replacement-build identity matches. Attempt 02 is now
+authorized under the boundaries above. The reviewer noted non-blockingly that
+future safe-failure receipts should preserve raw M1 as its own artifact; the
+phase-0 AEXS is conclusive for this accepted attempt, so it will not be rerun.
