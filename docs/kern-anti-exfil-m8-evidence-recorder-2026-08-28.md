@@ -1,8 +1,8 @@
 # Kern anti-exfil M8 evidence recorder
 
 Date opened: 2026-08-28
-Status: M8-D/P01 attempt 02 passed the full live Sparrow GUI/Kern ceremony and
-independent evidence review; attempt 01 remains an immutable safe failure
+Status: M8-X01 attempt 01 failed safely before M2 after Sparrow addressed the
+wrong signer; its evidence and the replacement selection fix await review
 
 This is the append-only human-readable index. Store bulky logs, images, QR
 frames, and message artifacts in a case directory and link them from the case
@@ -146,6 +146,10 @@ stroke-inclusive horizontal and vertical bounds.
 
 ## Build receipt BR-2026-09-01-04
 
+Status: superseded for future ceremonies by BR-2026-09-02-01 after M8-X01
+attempt 01 exposed the mixed-policy signer-selection defect. The accepted
+P01/P02 results produced with this build remain valid evidence.
+
 | Item | Recorded value |
 | --- | --- |
 | Sparrow branch | `codex/kern-anti-exfil-m7` |
@@ -169,6 +173,33 @@ Focused `AntiExfilQrExchangeTest`, `KernWalletModelAssetTest`,
 dependency-JAR access errors while the Gradle-launched Sparrow process was
 still open; the same focused suite then passed through the normal task graph,
 and the subsequent clean assembly passed after Sparrow closed.
+
+## Build receipt BR-2026-09-02-01
+
+Status: built and hash-pinned; live use paused pending independent review of
+the signer-selection delta and M8-X01 attempt-01 failure evidence.
+
+| Item | Recorded value |
+| --- | --- |
+| Sparrow branch | `codex/kern-anti-exfil-m7` |
+| Sparrow commit | `a53d9e166bb480df9f53f0bc4399545a4a1b5be8` |
+| Drongo commit | `54365d7f09df956e0b3e8baf035b23920073bac3` |
+| Lark commit | `ddffe556f0d1ba6a138be3b362ce74219fed0710` |
+| Change since BR-2026-09-01-04 | Protected signer selection now offers every compatible protected-capable keystore regardless of Optional/Required rank; mixed-policy regression added |
+| Build command | `gradlew.bat --gradle-user-home C:\Users\FractalEncrypt\Documents\SeedSigner_AntiExfil\run\gradle-home-m8 clean assemble` |
+| Result | `BUILD SUCCESSFUL` in 29 seconds, 16 tasks executed |
+| Gradle / Java | 9.1.0 / Eclipse Adoptium Temurin 25.0.4+7-LTS |
+| JAR | `build/libs/sparrow-2.5.4.jar`, 15,698,734 bytes |
+| JAR SHA-256 | `fae73cc86b8be4dcc5c0bbcb2669f7a36f59361e9e0d9963fe5517398a1e9f53` |
+| ZIP distribution | `build/distributions/sparrow-2.5.4.zip`, 86,872,709 bytes |
+| ZIP SHA-256 | `3e7793887628bcca75e63754f2cd184ff2bc3ac920bcfefc8baf2341d208f429` |
+| TAR distribution | `build/distributions/sparrow-2.5.4.tar`, 93,358,592 bytes |
+| TAR SHA-256 | `fdf9f3b6d491f432347f25d833b27f958b7f17c5f1b702f165f43620e811e053` |
+
+The focused `AntiExfilPolicySelectionTest` and the complete root-project
+`*AntiExfil*` test selection were forced from a clean test state and passed.
+Required-signature provenance enforcement tests remain unchanged and passed.
+This remains a development build, not a release or reproducible-build claim.
 
 ## Setup observation SO-2026-09-01-01
 
@@ -535,6 +566,10 @@ Copy this section for every attempt; never edit a failed attempt into a pass.
 | P02 shared-fixture comparison | Pass | Both devices used the same ordered slots and sighashes; all four low-S ECDSA signatures verify; both results recover the exact frozen PSBT and reconstruct valid complete transactions. KimiK3 independently reproduced these findings. |
 | M8-X01 authorized | Yes | Part D may start under the frozen playbook. Part G broadcast remains separately gated behind review of the pristine, intermediate, and final PSBT evidence. |
 | M8-X01 Part D pristine fixture | Pass | One-input native-P2WSH PSBT frozen read-only before signing: 1,607 bytes, SHA-256 `483294e990e74f412a31719b765147ea20c403bf8b2200c4722bb4c7fb0edec0`; strict independent inspection passed and Part E Kern-first signing may start. |
+| M8-X01 attempt 01 | Fail safe | BR-2026-09-01-04 addressed the sole Required reserve SeedSigner instead of Optional Kern; Kern rejected the mismatched slot before M2 and no signature or response was created. Receipt: 4,776 bytes, SHA-256 `ad3f641c3b224a60816b4479d424e494a9bd5c3b8bd853ab451a8091b19331a5`. |
+| Mixed-policy signer-selection fix | Pending review | Sparrow `a53d9e1` retains all compatible signers in the explicit chooser while leaving Required provenance enforcement intact; focused and complete anti-exfil tests pass. |
+| BR-2026-09-02-01 | Pending review | Replacement JAR and distributions built and hash-pinned; no live ceremony may use them yet. |
+| M8-X01 attempt 02 authorized | No | Requires independent acceptance of attempt 01, Sparrow `a53d9e1`, and BR-2026-09-02-01; then use a fresh session and explicitly select `Kern (0fb882ff)`. |
 
 The follow-up review covered Sparrow `b0463a2` and `0f9029a` plus Kern docs
 `5efa6ce`. It found no protocol/validation changes, no blocking issue, and
@@ -686,3 +721,20 @@ session-ID erratum as an evidence-label correction with no change to protocol
 bytes or prior results. M8-C/P02, M8-D/P02, and their shared comparison are now
 independently accepted. M8-X01 Part D is authorized; its one Testnet3 broadcast
 remains gated behind review of the pristine, intermediate, and final evidence.
+
+M8-X01 attempt 01 then created M1 under BR-2026-09-01-04, but the QR dialog
+said to scan the commitment with SeedSigner. The wallet's actual policy state
+had `2a0726f2` Required while both `b4899a09` and Kern `0fb882ff` were
+Optional. Sparrow's selection helper therefore removed both Optional signers
+and silently selected the sole Required reserve SeedSigner. Decoding the
+retained M1 confirms its only slot carries `2a0726f2`'s pubkey rather than
+Kern's. Kern correctly rejected it twice with `AE_SIGNATURE_SLOT_MISMATCH`;
+there is no response-construction marker and M2-M4 were never created.
+
+The failed attempt, phase-0 AEXS, journal, logs, prompt, and wallet-policy
+screenshots are frozen in `M8-X01-attempt-01-receipt.md`. Sparrow `a53d9e1`
+now treats compatibility—not policy rank—as chooser eligibility. Required
+still governs provenance enforcement for signatures attributable to that
+keystore. The replacement build is BR-2026-09-02-01. M8-X01 attempt 02 is
+paused pending independent review and must use a fresh session plus explicit
+selection of `Kern (0fb882ff)`.

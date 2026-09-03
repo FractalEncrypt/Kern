@@ -32,7 +32,7 @@ cell above into a pass until its M8 receipt is recorded.
   discovered by M8-D/P01 attempt 01 and its exact live regression fixture.
 - Flashed Kern `kern.bin` SHA-256:
   `e7df2b55d7c476a0ff67c06aebcd55e7fdf3b7027de98b58022828e85e1f893a`.
-- Sparrow: `182bc8a7b24641e43cecf324e96eec6314f9b18b`.
+- Sparrow: `a53d9e166bb480df9f53f0bc4399545a4a1b5be8`.
 - Drongo: `54365d7f09df956e0b3e8baf035b23920073bac3`.
 - Lark submodule: `ddffe556f0d1ba6a138be3b362ce74219fed0710`.
 - SeedSigner app: `214793df4f51466179b792420921b8cdd8d0c1ac`.

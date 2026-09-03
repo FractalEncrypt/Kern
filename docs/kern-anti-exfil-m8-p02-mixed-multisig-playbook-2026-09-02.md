@@ -37,7 +37,7 @@ spend these outputs outside this playbook.
 
 ## Frozen identities
 
-- Sparrow: `182bc8a7b24641e43cecf324e96eec6314f9b18b`
+- Sparrow: `a53d9e166bb480df9f53f0bc4399545a4a1b5be8`
 - Drongo: `54365d7f09df956e0b3e8baf035b23920073bac3`
 - Kern: DR-KERN-02
 - SeedSigner: DR-SEEDSIGNER-01
@@ -180,8 +180,10 @@ value, and save/hash the pristine unsigned PSBT before either signer acts.
 
 1. Load `0fb882ff` in Kern and verify the registered descriptor, Testnet, and
    anti-exfil On.
-2. Start both monitors and initiate protected signing for only the Kern
-   keystore.
+2. Start both monitors and initiate protected signing. In Sparrow's signer
+   chooser, explicitly select `Kern (0fb882ff)`. Before scanning anything,
+   require the QR dialog header to say `scan this commitment with Kern`; if it
+   names SeedSigner or any other device, close the dialog and stop the attempt.
 3. Complete M1 through M4 with independent stage-1 and stage-3 approvals.
 4. Sparrow must show exactly one verified Kern partial signature and must not
    consider the 2-of-3 transaction complete.
@@ -193,9 +195,11 @@ value, and save/hash the pristine unsigned PSBT before either signer acts.
 1. Keep Sparrow on the exact intermediate transaction. Load `b4899a09` in
    DR-SEEDSIGNER-01, confirm Testnet and anti-exfil `Required`, and verify the
    same registered descriptor.
-2. Initiate protected signing for only the `b4899a09` SeedSigner keystore.
-   Its fresh M1 legitimately freezes a PSBT already containing Kern's partial
-   signature.
+2. Initiate protected signing and explicitly select
+   `SeedSigner 2 (b4899a09)` (or the equivalent label with that exact
+   fingerprint) in Sparrow's signer chooser. Before scanning anything, require
+   the QR dialog header to name SeedSigner. Its fresh M1 legitimately freezes
+   a PSBT already containing Kern's partial signature.
 3. Complete M1 through M4 with both independent SeedSigner approvals.
 4. Sparrow must retain the Kern signature, verify the new SeedSigner
    opening/S2C/ECDSA evidence, show exactly two signatures on the input, and
