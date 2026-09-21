@@ -1,0 +1,5 @@
+# These imported protocol corpora are pinned by SHA-256 over their original
+# CRLF bytes. Keep Git from normalizing them so fixture checks are portable.
+main/core/test/fixtures/anti_exfil/semantic_protocol/protocol-v1-negative-vectors.json -text
+main/core/test/fixtures/anti_exfil/semantic_protocol/protocol-v1-semantic-psbt-vector.json -text
+main/core/test/fixtures/anti_exfil/transport/protocol-v1-multislot-vectors.json -text
