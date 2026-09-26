@@ -1,5 +1,10 @@
 # These imported protocol corpora are pinned by SHA-256 over their original
 # CRLF bytes. Keep Git from normalizing them so fixture checks are portable.
-main/core/test/fixtures/anti_exfil/semantic_protocol/protocol-v1-negative-vectors.json -text
-main/core/test/fixtures/anti_exfil/semantic_protocol/protocol-v1-semantic-psbt-vector.json -text
-main/core/test/fixtures/anti_exfil/transport/protocol-v1-multislot-vectors.json -text
+# The manifest also binds LF files, scripts, and base64 transcripts. Treat the
+# complete corpus as byte-preserved data so checkout settings cannot change any
+# manifest-bound content.
+main/core/test/fixtures/anti_exfil/** -text
+
+# CI and local toolchain scripts execute inside Linux containers even when the
+# checkout was created by Git for Windows.
+*.sh text eol=lf
