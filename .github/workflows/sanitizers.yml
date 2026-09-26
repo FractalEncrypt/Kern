@@ -1,0 +1,36 @@
+name: Host sanitizers
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+
+jobs:
+  clang-asan-lsan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build pinned Clang toolchain
+        run: ./scripts/run-pinned-toolchain.sh build
+
+      - name: Print immutable image identity
+        run: docker image inspect kern-clang-toolchain:18.1.8 --format '{{.Id}} {{json .RepoDigests}}'
+
+      - name: Run positive controls and real host targets twice
+        run: |
+          mkdir -p "$RUNNER_TEMP/kern-sanitizer"
+          ./scripts/run-pinned-toolchain.sh sanitize-clang "$RUNNER_TEMP/kern-sanitizer" 2
+
+      - name: Upload raw sanitizer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clang-asan-lsan-evidence
+          path: ${{ runner.temp }}/kern-sanitizer/
+          if-no-files-found: error
+          retention-days: 30
