@@ -1,5 +1,28 @@
 # Contributing to Kern
 
+## C and header formatting
+
+Kern uses clang-format 18.1.8 from the digest-pinned toolchain declared in
+`ci/toolchain.env`. Do not use an arbitrary `clang-format` from `PATH`.
+
+The CI-equivalent local check is:
+
+```sh
+./scripts/run-pinned-toolchain.sh format --check
+```
+
+Apply the formatter with:
+
+```sh
+./scripts/run-pinned-toolchain.sh format
+```
+
+`./scripts/format.sh --print-files` prints the deterministic source manifest.
+The scope is `main/` plus the explicitly listed first-party component trees in
+that script. Vendored `components/libwally-core`, `stb_image.h`, build outputs,
+and `*.generated.h` are excluded. Generated headers remain governed by their
+generators and byte-for-byte generator checks.
+
 Thank you for your interest in contributing to Kern! This document outlines the guidelines for contributing to the project.
 
 Kern is a research and development project exploring new hardware and Bitcoin self-custody ideas. Contributions are welcome in that spirit: the goal is to learn and publish, not to ship a product.

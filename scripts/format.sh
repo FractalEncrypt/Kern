@@ -1,65 +1,96 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Script to run clang-format on all .c and .h files in project source directories
-# Covers main/ and first-party components (excludes libwally-core)
+# Run the repository-authoritative clang-format over a deterministic source set.
 
-set -e
-
-# Usage: ./scripts/format.sh [--check]
-#   --check   Dry-run mode: exit 1 if any file needs formatting (for CI)
-
-CHECK_MODE=false
-if [ "${1:-}" = "--check" ]; then
-    CHECK_MODE=true
-fi
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || (cd "$SCRIPT_DIR/.." && pwd))"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+# shellcheck disable=SC1091
+. "$REPO_ROOT/ci/toolchain.env"
 
-DIRS=(
-    "$REPO_ROOT/main"
-    "$REPO_ROOT/components/bbqr"
-    "$REPO_ROOT/components/cUR"
-    "$REPO_ROOT/components/deflate_codec"
-    "$REPO_ROOT/components/k_quirc"
-    "$REPO_ROOT/components/sd_card"
-    "$REPO_ROOT/components/video"
-    "$REPO_ROOT/components/wave_4b"
-    "$REPO_ROOT/components/wave_35"
-    "$REPO_ROOT/components/wave_43"
-    "$REPO_ROOT/components/crowpanel"
-    "$REPO_ROOT/components/wave_7b"
-)
+MODE=format
+case "${1:-}" in
+  '') ;;
+  --check) MODE=check ;;
+  --print-files) MODE=print ;;
+  *) echo "Usage: $0 [--check|--print-files]" >&2; exit 2 ;;
+esac
 
-if $CHECK_MODE; then
-    echo "Checking clang-format on project source files..."
-    FORMAT_ARGS="--dry-run -Werror"
-else
-    echo "Running clang-format on project source files..."
-    FORMAT_ARGS="-i"
+FORMATTER="${CLANG_FORMAT:-clang-format}"
+if ! command -v "$FORMATTER" >/dev/null 2>&1; then
+  echo "Required formatter not found: $FORMATTER" >&2
+  echo "Run: ./scripts/run-pinned-toolchain.sh format --check" >&2
+  exit 2
 fi
 
-FAILED=false
+FORMATTER_ID="$($FORMATTER --version)"
+ACTUAL_VERSION="$(printf '%s\n' "$FORMATTER_ID" | sed -nE 's/.* version ([0-9]+\.[0-9]+\.[0-9]+).*/\1/p')"
+echo "Formatter: $FORMATTER_ID" >&2
+if [ "$ACTUAL_VERSION" != "$CLANG_FORMAT_VERSION" ]; then
+  echo "Formatter version mismatch: required $CLANG_FORMAT_VERSION, found ${ACTUAL_VERSION:-unknown}." >&2
+  echo "Run: ./scripts/run-pinned-toolchain.sh format ${1:-}" >&2
+  exit 2
+fi
 
-for dir in "${DIRS[@]}"; do
-    if [ ! -d "$dir" ]; then
-        echo "Warning: $dir not found, skipping"
-        continue
-    fi
-    while IFS= read -r -d '' file; do
-        if ! clang-format $FORMAT_ARGS "$file"; then
-            FAILED=true
-        fi
-    done < <(find "$dir" -type f \( -name "*.c" -o -name "*.h" \) -not -path "*/build/*" \
-        -not -name "stb_image.h" \
-        -print0)
+DIRS=(
+  "$REPO_ROOT/main"
+  "$REPO_ROOT/components/bbqr"
+  "$REPO_ROOT/components/cUR"
+  "$REPO_ROOT/components/deflate_codec"
+  "$REPO_ROOT/components/k_quirc"
+  "$REPO_ROOT/components/sd_card"
+  "$REPO_ROOT/components/video"
+  "$REPO_ROOT/components/wave_4b"
+  "$REPO_ROOT/components/wave_35"
+  "$REPO_ROOT/components/wave_43"
+  "$REPO_ROOT/components/crowpanel"
+  "$REPO_ROOT/components/wave_7b"
+)
+
+for directory in "${DIRS[@]}"; do
+  if [ ! -d "$directory" ]; then
+    echo "Required formatter source directory is missing: ${directory#"$REPO_ROOT/"}" >&2
+    echo "Initialize repository submodules before formatting." >&2
+    exit 2
+  fi
 done
 
-if $CHECK_MODE && $FAILED; then
-    echo "Format check failed!"
-    exit 1
-elif $CHECK_MODE; then
-    echo "Format check passed!"
+mapfile -d '' FILES < <(
+  find "${DIRS[@]}" -type f \( -name '*.c' -o -name '*.h' \) \
+    -not -path '*/build/*' \
+    -not -name 'stb_image.h' \
+    -not -name '*.generated.h' \
+    -print0 | LC_ALL=C sort -z
+)
+
+if [ "$MODE" = print ]; then
+  for file in "${FILES[@]}"; do
+    printf '%s\n' "${file#"$REPO_ROOT/"}"
+  done
+  exit 0
+fi
+
+echo "Declared formatter files: ${#FILES[@]}"
+FAILED=0
+for file in "${FILES[@]}"; do
+  if [ "$MODE" = check ]; then
+    if ! "$FORMATTER" --dry-run -Werror "$file" >/dev/null 2>&1; then
+      printf 'needs formatting: %s\n' "${file#"$REPO_ROOT/"}" >&2
+      FAILED=1
+    fi
+  else
+    "$FORMATTER" -i "$file"
+  fi
+done
+
+if [ "$FAILED" -ne 0 ]; then
+  echo "Format check failed." >&2
+  exit 1
+fi
+
+if [ "$MODE" = check ]; then
+  echo "Format check passed."
 else
-    echo "Formatting complete!"
+  echo "Formatting complete."
 fi

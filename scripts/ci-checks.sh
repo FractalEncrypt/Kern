@@ -6,6 +6,13 @@
 
 set -euo pipefail
 
+SKIP_FORMAT=false
+case "${1:-}" in
+  '') ;;
+  --skip-format) SKIP_FORMAT=true ;;
+  *) echo "Usage: $0 [--skip-format]" >&2; exit 2 ;;
+esac
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || (cd "$SCRIPT_DIR/.." && pwd))"
 cd "$REPO_ROOT"
@@ -13,8 +20,12 @@ cd "$REPO_ROOT"
 echo "=== Commit under test ==="
 git log -1 --oneline
 
-echo "=== format check ==="
-"$SCRIPT_DIR/format.sh" --check
+if $SKIP_FORMAT; then
+    echo "=== format check skipped (PR tip is checked in the pinned formatter job) ==="
+else
+    echo "=== format check ==="
+    "$SCRIPT_DIR/format.sh" --check
+fi
 
 echo "=== tests ==="
 "$SCRIPT_DIR/test.sh"

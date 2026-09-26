@@ -7,15 +7,14 @@ permissions:
 jobs:
   format-check:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
       with:
         submodules: 'recursive'
-    - name: Install clang-format
-      run: sudo apt-get update && sudo apt-get install -y clang-format
-    - name: Check formatting
-      run: ./scripts/format.sh --check
+    - name: Check formatting with pinned clang-format
+      run: ./scripts/run-pinned-toolchain.sh format --check
 
   test:
     runs-on: ubuntu-latest

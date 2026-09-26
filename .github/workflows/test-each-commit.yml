@@ -72,8 +72,8 @@ jobs:
       - name: Show commit
         run: git log -1 --oneline
 
-      - name: Install check dependencies
-        run: apt-get update && apt-get install -y clang-format zlib1g-dev
+      - name: Install test dependencies
+        run: apt-get update && apt-get install -y zlib1g-dev
 
       - name: Configure git identity (required by rebase)
         run: |
@@ -83,4 +83,11 @@ jobs:
       - name: Run checks on each commit (excluding PR tip)
         run: |
           . $IDF_PATH/export.sh
-          bash scripts/ci-checks.sh
+          # Formatting is intentionally a PR-tip check. This permits a reviewable
+          # tooling-pin commit followed by a formatter-only mechanical commit.
+          bash scripts/test.sh
+          idf.py \
+            -B build_wave_4b \
+            -D SDKCONFIG=build_wave_4b/sdkconfig \
+            -D 'SDKCONFIG_DEFAULTS=sdkconfig.defaults;sdkconfig.defaults.wave_4b' \
+            build
