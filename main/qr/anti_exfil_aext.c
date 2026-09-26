@@ -41,19 +41,20 @@ size_t anti_exfil_aext_encoded_len(const anti_exfil_message_t *message,
   return ANTI_EXFIL_AEXT_HEADER_LEN + message_len + psbt_len;
 }
 
-anti_exfil_result_t anti_exfil_aext_encode(
-    const anti_exfil_message_t *message, const uint8_t *psbt, size_t psbt_len,
-    uint8_t *output, size_t output_capacity, size_t *output_len) {
+anti_exfil_result_t anti_exfil_aext_encode(const anti_exfil_message_t *message,
+                                           const uint8_t *psbt, size_t psbt_len,
+                                           uint8_t *output,
+                                           size_t output_capacity,
+                                           size_t *output_len) {
   if (output_len)
     *output_len = 0;
-  if (!message || !output || !output_len ||
-      (psbt_len != 0 && !psbt) || (psbt_len == 0 && psbt))
+  if (!message || !output || !output_len || (psbt_len != 0 && !psbt) ||
+      (psbt_len == 0 && psbt))
     return ANTI_EXFIL_INVALID_MESSAGE;
   const size_t package_len = anti_exfil_aext_encoded_len(message, psbt_len);
   if (!package_len || output_capacity < package_len ||
-      (psbt_len &&
-       (psbt_len < sizeof(PSBT_MAGIC) ||
-        memcmp(psbt, PSBT_MAGIC, sizeof(PSBT_MAGIC)) != 0)))
+      (psbt_len && (psbt_len < sizeof(PSBT_MAGIC) ||
+                    memcmp(psbt, PSBT_MAGIC, sizeof(PSBT_MAGIC)) != 0)))
     return ANTI_EXFIL_INVALID_MESSAGE;
 
   uint8_t digest[ANTI_EXFIL_PSBT_DIGEST_LEN] = {0};
@@ -106,8 +107,8 @@ anti_exfil_result_t anti_exfil_aext_decode(const uint8_t *encoded,
   if (message_len < ANTI_EXFIL_AEXB_HEADER_LEN ||
       message_len > ANTI_EXFIL_AEXB_MAX_LEN ||
       psbt_len > ANTI_EXFIL_AEXT_MAX_PSBT_LEN ||
-      encoded_len != ANTI_EXFIL_AEXT_HEADER_LEN + (size_t)message_len +
-                         (size_t)psbt_len ||
+      encoded_len !=
+          ANTI_EXFIL_AEXT_HEADER_LEN + (size_t)message_len + (size_t)psbt_len ||
       (encoded[7] != 0) != (psbt_len != 0))
     return ANTI_EXFIL_INVALID_MESSAGE;
 
@@ -166,9 +167,11 @@ size_t anti_exfil_aext_cbor_encoded_len(size_t package_len) {
              : 0;
 }
 
-anti_exfil_result_t anti_exfil_aext_cbor_encode(
-    const uint8_t *package, size_t package_len, uint8_t *output,
-    size_t output_capacity, size_t *output_len) {
+anti_exfil_result_t anti_exfil_aext_cbor_encode(const uint8_t *package,
+                                                size_t package_len,
+                                                uint8_t *output,
+                                                size_t output_capacity,
+                                                size_t *output_len) {
   if (output_len)
     *output_len = 0;
   const size_t encoded_len = anti_exfil_aext_cbor_encoded_len(package_len);
@@ -194,9 +197,10 @@ anti_exfil_result_t anti_exfil_aext_cbor_encode(
   return ANTI_EXFIL_OK;
 }
 
-anti_exfil_result_t anti_exfil_aext_cbor_decode(
-    const uint8_t *cbor, size_t cbor_len, const uint8_t **package,
-    size_t *package_len) {
+anti_exfil_result_t anti_exfil_aext_cbor_decode(const uint8_t *cbor,
+                                                size_t cbor_len,
+                                                const uint8_t **package,
+                                                size_t *package_len) {
   if (package)
     *package = NULL;
   if (package_len)

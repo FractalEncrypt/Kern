@@ -65,20 +65,19 @@ static bool is_p2tr(const uint8_t *script, size_t script_len) {
 static bool get_script(const struct wally_psbt *psbt, size_t input_index,
                        bool witness, uint8_t *out, size_t out_capacity,
                        size_t *out_len) {
-  int result = witness
-                   ? wally_psbt_get_input_witness_script_len(psbt, input_index,
-                                                             out_len)
-                   : wally_psbt_get_input_redeem_script_len(psbt, input_index,
-                                                            out_len);
+  int result =
+      witness
+          ? wally_psbt_get_input_witness_script_len(psbt, input_index, out_len)
+          : wally_psbt_get_input_redeem_script_len(psbt, input_index, out_len);
   if (result != WALLY_OK || *out_len > out_capacity)
     return false;
   if (*out_len == 0)
     return true;
   size_t written = 0;
-  result = witness ? wally_psbt_get_input_witness_script(
-                         psbt, input_index, out, out_capacity, &written)
-                   : wally_psbt_get_input_redeem_script(
-                         psbt, input_index, out, out_capacity, &written);
+  result = witness ? wally_psbt_get_input_witness_script(psbt, input_index, out,
+                                                         out_capacity, &written)
+                   : wally_psbt_get_input_redeem_script(psbt, input_index, out,
+                                                        out_capacity, &written);
   return result == WALLY_OK && written == *out_len;
 }
 
@@ -86,8 +85,8 @@ static bool has_taproot_metadata(const struct wally_psbt *psbt,
                                  size_t input_index) {
   const struct wally_psbt_input *input = &psbt->inputs[input_index];
   size_t key_sig_len = 0, internal_key_len = 0;
-  if (wally_psbt_get_input_taproot_signature_len(
-          psbt, input_index, &key_sig_len) != WALLY_OK ||
+  if (wally_psbt_get_input_taproot_signature_len(psbt, input_index,
+                                                 &key_sig_len) != WALLY_OK ||
       wally_psbt_get_input_taproot_internal_key_len(
           psbt, input_index, &internal_key_len) != WALLY_OK)
     return true;
@@ -99,14 +98,14 @@ static bool has_taproot_metadata(const struct wally_psbt *psbt,
          input->musig2_pubkeys.num_items != 0 ||
          input->musig2_pubnonces.num_items != 0 ||
          input->musig2_partial_sigs.num_items != 0 ||
-         wally_map_get_integer(&input->psbt_fields,
-                               PSBT_IN_TAP_MERKLE_ROOT) != NULL;
+         wally_map_get_integer(&input->psbt_fields, PSBT_IN_TAP_MERKLE_ROOT) !=
+             NULL;
 }
 
 static bool is_finalized(const struct wally_psbt_input *input) {
   return input->final_witness != NULL ||
-         wally_map_get_integer(&input->psbt_fields,
-                               PSBT_IN_FINAL_SCRIPTSIG) != NULL;
+         wally_map_get_integer(&input->psbt_fields, PSBT_IN_FINAL_SCRIPTSIG) !=
+             NULL;
 }
 
 static const struct wally_tx_output *
@@ -126,9 +125,8 @@ resolve_utxo(const struct wally_psbt *psbt, size_t input_index,
     uint8_t declared_txid[WALLY_TXHASH_LEN];
     uint8_t actual_txid[WALLY_TXHASH_LEN];
     uint32_t output_index = 0;
-    if (wally_psbt_get_input_previous_txid(
-            psbt, input_index, declared_txid, sizeof(declared_txid)) !=
-            WALLY_OK ||
+    if (wally_psbt_get_input_previous_txid(psbt, input_index, declared_txid,
+                                           sizeof(declared_txid)) != WALLY_OK ||
         wally_psbt_get_input_output_index(psbt, input_index, &output_index) !=
             WALLY_OK ||
         wally_tx_get_txid(*previous_out, actual_txid, sizeof(actual_txid)) !=
@@ -138,12 +136,11 @@ resolve_utxo(const struct wally_psbt *psbt, size_t input_index,
       return NULL;
     const struct wally_tx_output *previous =
         &(*previous_out)->outputs[output_index];
-    if (*witness_out &&
-        (previous->satoshi != (*witness_out)->satoshi ||
-         previous->script_len != (*witness_out)->script_len ||
-         (previous->script_len != 0 &&
-          memcmp(previous->script, (*witness_out)->script,
-                 previous->script_len) != 0)))
+    if (*witness_out && (previous->satoshi != (*witness_out)->satoshi ||
+                         previous->script_len != (*witness_out)->script_len ||
+                         (previous->script_len != 0 &&
+                          memcmp(previous->script, (*witness_out)->script,
+                                 previous->script_len) != 0)))
       return NULL;
     return previous;
   }
@@ -153,9 +150,8 @@ resolve_utxo(const struct wally_psbt *psbt, size_t input_index,
 static bool parse_multisig(const uint8_t *script, size_t script_len,
                            input_script_t *result) {
   if (script_len < 37 || script_len > ANTI_EXFIL_MAX_WITNESS_SCRIPT_LEN ||
-      script[script_len - 1] != 0xae || script[0] < 0x51 ||
-      script[0] > 0x60 || script[script_len - 2] < 0x51 ||
-      script[script_len - 2] > 0x60)
+      script[script_len - 1] != 0xae || script[0] < 0x51 || script[0] > 0x60 ||
+      script[script_len - 2] < 0x51 || script[script_len - 2] > 0x60)
     return false;
 
   const size_t required = script[0] - 0x50;
@@ -270,14 +266,13 @@ static int compare_slots(const void *left, const void *right) {
     return -1;
   if (a->input_index > b->input_index)
     return 1;
-  return memcmp(a->signer_pubkey, b->signer_pubkey,
-                ANTI_EXFIL_PUBKEY_LEN);
+  return memcmp(a->signer_pubkey, b->signer_pubkey, ANTI_EXFIL_PUBKEY_LEN);
 }
 
-static anti_exfil_result_t enumerate_input(
-    struct wally_psbt *psbt, size_t input_index,
-    const uint8_t fingerprint[BIP32_KEY_FINGERPRINT_LEN],
-    anti_exfil_slot_set_t *out) {
+static anti_exfil_result_t
+enumerate_input(struct wally_psbt *psbt, size_t input_index,
+                const uint8_t fingerprint[BIP32_KEY_FINGERPRINT_LEN],
+                anti_exfil_slot_set_t *out) {
   struct wally_tx_output *witness = NULL;
   struct wally_tx *previous = NULL;
   const struct wally_tx_output *utxo =
@@ -373,9 +368,10 @@ cleanup:
   return result;
 }
 
-anti_exfil_result_t anti_exfil_slots_enumerate(
-    const uint8_t *psbt_bytes, size_t psbt_bytes_len,
-    anti_exfil_network_t network, anti_exfil_slot_set_t *out) {
+anti_exfil_result_t anti_exfil_slots_enumerate(const uint8_t *psbt_bytes,
+                                               size_t psbt_bytes_len,
+                                               anti_exfil_network_t network,
+                                               anti_exfil_slot_set_t *out) {
   if (!out)
     return ANTI_EXFIL_INVALID_MESSAGE;
   memset(out, 0, sizeof(*out));

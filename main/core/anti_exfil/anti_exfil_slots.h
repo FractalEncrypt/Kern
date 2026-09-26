@@ -24,7 +24,8 @@ typedef struct {
   anti_exfil_script_kind_t script_kind;
 } anti_exfil_signing_slot_t;
 
-/* Embedded callers must allocate this owned result statically or on the heap. */
+/* Embedded callers must allocate this owned result statically or on the heap.
+ */
 typedef struct {
   anti_exfil_network_t network;
   uint8_t psbt_digest[ANTI_EXFIL_PSBT_DIGEST_LEN];
@@ -37,8 +38,9 @@ typedef struct {
  * ECDSA signing slot controlled by Kern's currently loaded key. The result is
  * cleared on every failure, so no partial slot set can escape.
  */
-anti_exfil_result_t anti_exfil_slots_enumerate(
-    const uint8_t *psbt_bytes, size_t psbt_bytes_len,
-    anti_exfil_network_t network, anti_exfil_slot_set_t *out);
+anti_exfil_result_t anti_exfil_slots_enumerate(const uint8_t *psbt_bytes,
+                                               size_t psbt_bytes_len,
+                                               anti_exfil_network_t network,
+                                               anti_exfil_slot_set_t *out);
 
 #endif // KERN_ANTI_EXFIL_SLOTS_H

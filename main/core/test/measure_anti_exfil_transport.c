@@ -40,9 +40,8 @@ static int emit_ordinary_psbt_parts(size_t fragment_len) {
   }
   memcpy(cbor + header_len, ANTI_EXFIL_SEMANTIC_PSBT, psbt_len);
 
-  ur_encoder_t *encoder = ur_encoder_new("crypto-psbt", cbor,
-                                         header_len + psbt_len, fragment_len,
-                                         0, 10);
+  ur_encoder_t *encoder = ur_encoder_new(
+      "crypto-psbt", cbor, header_len + psbt_len, fragment_len, 0, 10);
   ur_decoder_t *decoder = ur_decoder_new();
   if (!encoder || !decoder) {
     ur_encoder_free(encoder);
@@ -67,8 +66,7 @@ static int emit_ordinary_psbt_parts(size_t fragment_len) {
       free(cbor);
       return 1;
     }
-    printf("route=crypto-psbt part=%zu/%zu %s\n", part + 1, parts,
-           encoded);
+    printf("route=crypto-psbt part=%zu/%zu %s\n", part + 1, parts, encoded);
     free(encoded);
   }
   ur_result_t *decoded = ur_decoder_get_result(decoder);
@@ -83,9 +81,8 @@ static int emit_ordinary_psbt_parts(size_t fragment_len) {
 }
 
 static int emit_parts(size_t fragment_len) {
-  for (size_t i = 0;
-       i < sizeof(ANTI_EXFIL_MEASUREMENT_FIXTURES) /
-               sizeof(ANTI_EXFIL_MEASUREMENT_FIXTURES[0]);
+  for (size_t i = 0; i < sizeof(ANTI_EXFIL_MEASUREMENT_FIXTURES) /
+                             sizeof(ANTI_EXFIL_MEASUREMENT_FIXTURES[0]);
        ++i) {
     const anti_exfil_measurement_fixture_t *fixture =
         &ANTI_EXFIL_MEASUREMENT_FIXTURES[i];
@@ -141,15 +138,13 @@ int main(int argc, char **argv) {
 
   static const size_t fragment_lengths[] = {30, 50, 100, 150, 200, 250};
   printf("# sizeof_anti_exfil_message=%zu\n", sizeof(anti_exfil_message_t));
-  printf("# sizeof_anti_exfil_slot_set=%zu\n",
-         sizeof(anti_exfil_slot_set_t));
+  printf("# sizeof_anti_exfil_slot_set=%zu\n", sizeof(anti_exfil_slot_set_t));
   printf("# signer_work_records=%zu\n",
          sizeof(anti_exfil_message_t) + sizeof(anti_exfil_slot_set_t));
   printf("# sizeof_anti_exfil_aext_view=%zu\n", sizeof(anti_exfil_aext_view_t));
   puts("stage,cbor_bytes,max_fragment_bytes,source_parts,max_ur_chars");
-  for (size_t i = 0;
-       i < sizeof(ANTI_EXFIL_MEASUREMENT_FIXTURES) /
-               sizeof(ANTI_EXFIL_MEASUREMENT_FIXTURES[0]);
+  for (size_t i = 0; i < sizeof(ANTI_EXFIL_MEASUREMENT_FIXTURES) /
+                             sizeof(ANTI_EXFIL_MEASUREMENT_FIXTURES[0]);
        ++i) {
     const anti_exfil_measurement_fixture_t *fixture =
         &ANTI_EXFIL_MEASUREMENT_FIXTURES[i];

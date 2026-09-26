@@ -12,8 +12,8 @@ static anti_exfil_result_t decode_route(const char *type, const uint8_t *cbor,
     return ANTI_EXFIL_INVALID_MESSAGE;
   const uint8_t *package = NULL;
   size_t package_len = 0;
-  anti_exfil_result_t result = anti_exfil_aext_cbor_decode(
-      cbor, cbor_len, &package, &package_len);
+  anti_exfil_result_t result =
+      anti_exfil_aext_cbor_decode(cbor, cbor_len, &package, &package_len);
   if (result == ANTI_EXFIL_OK)
     result = anti_exfil_aext_decode(package, package_len, view);
   if (result != ANTI_EXFIL_OK)
@@ -21,10 +21,11 @@ static anti_exfil_result_t decode_route(const char *type, const uint8_t *cbor,
   return result;
 }
 
-static anti_exfil_result_t validate_route(
-    const char *type, const uint8_t *cbor, size_t cbor_len,
-    anti_exfil_network_t expected_network, anti_exfil_stage_t expected_stage,
-    anti_exfil_aext_view_t *view) {
+static anti_exfil_result_t validate_route(const char *type, const uint8_t *cbor,
+                                          size_t cbor_len,
+                                          anti_exfil_network_t expected_network,
+                                          anti_exfil_stage_t expected_stage,
+                                          anti_exfil_aext_view_t *view) {
   anti_exfil_result_t result = decode_route(type, cbor, cbor_len, view);
   if (result == ANTI_EXFIL_OK && view->message.network != expected_network)
     result = ANTI_EXFIL_TRANSACTION_MISMATCH;
@@ -66,7 +67,8 @@ anti_exfil_result_t anti_exfil_ur_encoder_create(
     ur_encoder_t **encoder) {
   if (encoder)
     *encoder = NULL;
-  if (!encoder || !scratch || max_fragment_len < ANTI_EXFIL_UR_MIN_FRAGMENT_LEN) {
+  if (!encoder || !scratch ||
+      max_fragment_len < ANTI_EXFIL_UR_MIN_FRAGMENT_LEN) {
     if (scratch)
       memset(scratch, 0, sizeof(*scratch));
     return ANTI_EXFIL_INVALID_MESSAGE;
@@ -75,13 +77,13 @@ anti_exfil_result_t anti_exfil_ur_encoder_create(
     memset(scratch, 0, sizeof(*scratch));
     return ANTI_EXFIL_SIZE_LIMIT;
   }
-  anti_exfil_result_t result = validate_route(
-      ANTI_EXFIL_AEXT_UR_TYPE, canonical_cbor, cbor_len, expected_network,
-      expected_stage, scratch);
+  anti_exfil_result_t result =
+      validate_route(ANTI_EXFIL_AEXT_UR_TYPE, canonical_cbor, cbor_len,
+                     expected_network, expected_stage, scratch);
   if (result == ANTI_EXFIL_OK) {
-    *encoder = ur_encoder_new(ANTI_EXFIL_AEXT_UR_TYPE, canonical_cbor, cbor_len,
-                              max_fragment_len, 0,
-                              ANTI_EXFIL_UR_MIN_FRAGMENT_LEN);
+    *encoder =
+        ur_encoder_new(ANTI_EXFIL_AEXT_UR_TYPE, canonical_cbor, cbor_len,
+                       max_fragment_len, 0, ANTI_EXFIL_UR_MIN_FRAGMENT_LEN);
     if (!*encoder)
       result = ANTI_EXFIL_NATIVE_BACKEND;
   }

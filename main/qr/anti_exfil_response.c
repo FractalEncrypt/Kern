@@ -39,9 +39,10 @@ static void wipe_free(void *memory, size_t memory_len) {
   free(memory);
 }
 
-anti_exfil_result_t anti_exfil_response_create(
-    const anti_exfil_request_t *request, size_t max_fragment_len,
-    anti_exfil_response_t **response_out) {
+anti_exfil_result_t
+anti_exfil_response_create(const anti_exfil_request_t *request,
+                           size_t max_fragment_len,
+                           anti_exfil_response_t **response_out) {
   if (response_out)
     *response_out = NULL;
   if (!response_out || !request ||
@@ -50,8 +51,7 @@ anti_exfil_result_t anti_exfil_response_create(
 
   measure_response_phase("entry");
 
-  const anti_exfil_aext_view_t *request_view =
-      anti_exfil_request_view(request);
+  const anti_exfil_aext_view_t *request_view = anti_exfil_request_view(request);
   if (!request_view)
     return ANTI_EXFIL_INVALID_MESSAGE;
   if (request_view->message.stage != ANTI_EXFIL_STAGE_HOST_COMMIT &&
@@ -111,8 +111,8 @@ anti_exfil_result_t anti_exfil_response_create(
   }
 
   size_t encoded_len = 0;
-  result = anti_exfil_aext_encode(signed_message, NULL, 0, package,
-                                  package_len, &encoded_len);
+  result = anti_exfil_aext_encode(signed_message, NULL, 0, package, package_len,
+                                  &encoded_len);
   if (result != ANTI_EXFIL_OK || encoded_len != package_len) {
     if (result == ANTI_EXFIL_OK)
       result = ANTI_EXFIL_INVALID_MESSAGE;
@@ -142,9 +142,9 @@ anti_exfil_result_t anti_exfil_response_create(
     result = ANTI_EXFIL_NATIVE_BACKEND;
     goto cleanup;
   }
-  result = anti_exfil_ur_encoder_create(
-      cbor, cbor_len, response->network, response->stage,
-      max_fragment_len, encoder_scratch, &response->encoder);
+  result = anti_exfil_ur_encoder_create(cbor, cbor_len, response->network,
+                                        response->stage, max_fragment_len,
+                                        encoder_scratch, &response->encoder);
   if (result != ANTI_EXFIL_OK)
     goto cleanup;
 
@@ -185,13 +185,14 @@ const uint8_t *anti_exfil_response_cbor(const anti_exfil_response_t *response,
   return response ? response->canonical_cbor : NULL;
 }
 
-size_t anti_exfil_response_ur_part_count(
-    const anti_exfil_response_t *response) {
+size_t
+anti_exfil_response_ur_part_count(const anti_exfil_response_t *response) {
   return response ? ur_encoder_seq_len(response->encoder) : 0;
 }
 
-anti_exfil_result_t anti_exfil_response_next_part(
-    anti_exfil_response_t *response, char **part_out) {
+anti_exfil_result_t
+anti_exfil_response_next_part(anti_exfil_response_t *response,
+                              char **part_out) {
   if (part_out)
     *part_out = NULL;
   if (!response || !part_out || !response->encoder)

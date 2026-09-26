@@ -369,9 +369,8 @@ static bool generate_ur_parts(void) {
   size_t seq_len = ur_encoder_seq_len(encoder);
   size_t parts_count =
       is_single ? 1
-                : (seq_len * 2 > QR_VIEWER_MAX_PARTS
-                       ? QR_VIEWER_MAX_PARTS
-                       : seq_len * 2);
+                : (seq_len * 2 > QR_VIEWER_MAX_PARTS ? QR_VIEWER_MAX_PARTS
+                                                     : seq_len * 2);
 
   qr_parts = malloc(parts_count * sizeof(char *));
   if (!qr_parts) {
@@ -676,12 +675,10 @@ bool qr_viewer_page_create_with_format(lv_obj_t *parent, int qr_format,
   return true;
 }
 
-bool qr_viewer_page_create_parts(lv_obj_t *parent,
-                                 const char *const *parts,
+bool qr_viewer_page_create_parts(lv_obj_t *parent, const char *const *parts,
                                  size_t part_count, const char *title,
                                  void (*return_cb)(void)) {
-  if (!parent || !parts || part_count == 0 ||
-      part_count > QR_VIEWER_MAX_PARTS)
+  if (!parent || !parts || part_count == 0 || part_count > QR_VIEWER_MAX_PARTS)
     return false;
 
   cleanup_qr_parts();

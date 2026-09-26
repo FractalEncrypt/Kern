@@ -594,22 +594,20 @@ static void process_scan_result(void) {
          * PSBT, bytes, or text signing. Only an enabled, testnet, stage-1 or
          * stage-3 request that passes non-signing authoritative preflight may
          * enter its stage-specific transaction review below. */
-        const size_t heap_before =
-            heap_caps_get_free_size(MALLOC_CAP_8BIT);
+        const size_t heap_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
         const ur_result_t result = {
             .type = (char *)ur_type,
             .cbor_data = (uint8_t *)cbor_data,
             .cbor_len = cbor_len,
         };
         anti_exfil_request_destroy(&current_anti_exfil_request);
-        anti_exfil_result_t ae_result = anti_exfil_request_create(
-            &result, &current_anti_exfil_request);
-        const size_t heap_after_copy =
-            heap_caps_get_free_size(MALLOC_CAP_8BIT);
+        anti_exfil_result_t ae_result =
+            anti_exfil_request_create(&result, &current_anti_exfil_request);
+        const size_t heap_after_copy = heap_caps_get_free_size(MALLOC_CAP_8BIT);
         const anti_exfil_aext_view_t *ae_view =
             anti_exfil_request_view(current_anti_exfil_request);
-        const size_t retained = anti_exfil_request_retained_bytes(
-            current_anti_exfil_request);
+        const size_t retained =
+            anti_exfil_request_retained_bytes(current_anti_exfil_request);
         qr_scanner_page_hide();
         qr_scanner_page_destroy();
         const size_t heap_after_camera_stop =
@@ -617,9 +615,8 @@ static void process_scan_result(void) {
         ESP_LOGI("ANTI_EXFIL_MEASURE",
                  "cbor=%u retained=%u heap_before=%u heap_after_copy=%u "
                  "heap_after_camera_stop=%u min_free=%u",
-                 (unsigned)cbor_len, (unsigned)retained,
-                 (unsigned)heap_before, (unsigned)heap_after_copy,
-                 (unsigned)heap_after_camera_stop,
+                 (unsigned)cbor_len, (unsigned)retained, (unsigned)heap_before,
+                 (unsigned)heap_after_copy, (unsigned)heap_after_camera_stop,
                  (unsigned)heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT));
         if (ae_result != ANTI_EXFIL_OK) {
           anti_exfil_request_destroy(&current_anti_exfil_request);
@@ -1414,14 +1411,12 @@ static bool create_psbt_info_display(void) {
   if (anti_exfil_review_active) {
     const anti_exfil_aext_view_t *review_request =
         anti_exfil_request_view(current_anti_exfil_request);
-    const bool final_round =
-        review_request &&
-        review_request->message.stage == ANTI_EXFIL_STAGE_HOST_REVEAL;
+    const bool final_round = review_request && review_request->message.stage ==
+                                                   ANTI_EXFIL_STAGE_HOST_REVEAL;
     char step_text[320];
     static const uint8_t zero_session[ANTI_EXFIL_SESSION_ID_LEN] = {0};
-    const uint8_t *session = review_request
-                                 ? review_request->message.session_id
-                                 : zero_session;
+    const uint8_t *session =
+        review_request ? review_request->message.session_id : zero_session;
     snprintf(
         step_text, sizeof(step_text),
         final_round
@@ -1435,8 +1430,7 @@ static bool create_psbt_info_display(void) {
         session[0], session[1], session[2], session[3], session[4], session[5],
         session[6], session[7]);
     theme_create_page_title(psbt_info_container, "Protected signing");
-    lv_obj_t *step =
-        theme_create_label(psbt_info_container, step_text, false);
+    lv_obj_t *step = theme_create_label(psbt_info_container, step_text, false);
     lv_obj_set_width(step, LV_PCT(100));
     lv_label_set_long_mode(step, LV_LABEL_LONG_WRAP);
     lv_obj_set_style_text_color(step, highlight_color(), 0);
@@ -1887,17 +1881,14 @@ static bool create_psbt_info_display(void) {
       anti_exfil_review_active
           ? anti_exfil_request_view(current_anti_exfil_request)
           : NULL;
-  const bool final_round =
-      review_request &&
-      review_request->message.stage == ANTI_EXFIL_STAGE_HOST_REVEAL;
-  create_sign_action_row(psbt_info_container,
-                         anti_exfil_review_active
-                             ? (final_round ? "Create signatures"
-                                            : "Create commitments")
-                             : "Sign",
-                         anti_exfil_review_active
-                             ? anti_exfil_approve_button_cb
-                             : sign_button_cb);
+  const bool final_round = review_request && review_request->message.stage ==
+                                                 ANTI_EXFIL_STAGE_HOST_REVEAL;
+  create_sign_action_row(
+      psbt_info_container,
+      anti_exfil_review_active
+          ? (final_round ? "Create signatures" : "Create commitments")
+          : "Sign",
+      anti_exfil_review_active ? anti_exfil_approve_button_cb : sign_button_cb);
 
   return true;
 }
@@ -2213,8 +2204,7 @@ static void anti_exfil_round_done_cb(void *unused) {
 }
 
 static void return_from_anti_exfil_response_viewer(void) {
-  const anti_exfil_stage_t request_stage =
-      anti_exfil_displayed_request_stage;
+  const anti_exfil_stage_t request_stage = anti_exfil_displayed_request_stage;
   anti_exfil_displayed_request_stage = 0;
   ESP_LOGI("ANTI_EXFIL_MEASURE",
            "ui_phase=viewer_destroy_entry free=%u largest=%u min_free=%u",
@@ -2324,12 +2314,12 @@ static void deferred_anti_exfil_response_cb(lv_timer_t *timer) {
 
   bool viewer_created =
       result == ANTI_EXFIL_OK &&
-      qr_viewer_page_create_parts(
-          lv_screen_active(), (const char *const *)parts, part_count,
-          request_stage == ANTI_EXFIL_STAGE_HOST_COMMIT
-              ? "Nonce commitments"
-              : "Protected signatures",
-          return_from_anti_exfil_response_viewer);
+      qr_viewer_page_create_parts(lv_screen_active(),
+                                  (const char *const *)parts, part_count,
+                                  request_stage == ANTI_EXFIL_STAGE_HOST_COMMIT
+                                      ? "Nonce commitments"
+                                      : "Protected signatures",
+                                  return_from_anti_exfil_response_viewer);
   free_anti_exfil_parts(parts, part_count);
   anti_exfil_response_destroy(&response);
   dismiss_progress();
