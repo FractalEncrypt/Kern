@@ -4,4 +4,4 @@ dependencies:
     version: "9.5.*"
     public: true
   esp_video:
-    version: "^2"
+    version: "2.5.*"
