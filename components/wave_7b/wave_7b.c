@@ -343,8 +343,6 @@ lv_display_t *bsp_display_start(void) {
   adapter_cfg.stack_in_psram = false;
   BSP_ERROR_CHECK_RETURN_NULL(esp_lv_adapter_init(&adapter_cfg));
 
-  BSP_ERROR_CHECK_RETURN_NULL(bsp_display_brightness_init());
-
   lv_display_t *disp;
   BSP_NULL_CHECK(disp = bsp_display_lcd_init(), NULL);
   BSP_NULL_CHECK(bsp_display_indev_init(disp), NULL);
