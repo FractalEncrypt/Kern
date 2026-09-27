@@ -168,8 +168,15 @@ for attempt in $(seq 1 "$REPEAT"); do
       (cd "$REPO_ROOT/$directory" && timeout --signal=KILL 120s "./$binary") > "$log" 2>&1
       status=$?
       classify_real "$status" "$log"
+      symbols=$(nm "$REPO_ROOT/$directory/$binary" 2>/dev/null | grep -cE '__asan|__lsan' || true)
+      printf 'instrumentation_symbols=%s\n' "$symbols" >> "$log"
+      if [ "$symbols" -eq 0 ] && [ "$CLASSIFICATION" = PASS ]; then
+        CLASSIFICATION=SANITIZER_INFRASTRUCTURE_STARTUP_FAILURE
+        FAILURES=$((FAILURES + 1))
+      elif [ "$CLASSIFICATION" != PASS ]; then
+        FAILURES=$((FAILURES + 1))
+      fi
       record real "$suite/$binary" "$attempt" "$status" "$MAIN_ENTERED" "$CLASSIFICATION" "raw/$(basename "$log")"
-      if [ "$CLASSIFICATION" != PASS ]; then FAILURES=$((FAILURES + 1)); fi
     done
   done
 
