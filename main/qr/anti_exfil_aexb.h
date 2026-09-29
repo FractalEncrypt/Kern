@@ -10,11 +10,13 @@
 
 size_t anti_exfil_aexb_encoded_len(const anti_exfil_message_t *message);
 
-anti_exfil_result_t anti_exfil_aexb_encode(
-    const anti_exfil_message_t *message, uint8_t *output,
-    size_t output_capacity, size_t *output_len);
+anti_exfil_result_t anti_exfil_aexb_encode(const anti_exfil_message_t *message,
+                                           uint8_t *output,
+                                           size_t output_capacity,
+                                           size_t *output_len);
 
-anti_exfil_result_t anti_exfil_aexb_decode(
-    const uint8_t *encoded, size_t encoded_len, anti_exfil_message_t *message);
+anti_exfil_result_t anti_exfil_aexb_decode(const uint8_t *encoded,
+                                           size_t encoded_len,
+                                           anti_exfil_message_t *message);
 
 #endif // KERN_QR_ANTI_EXFIL_AEXB_H

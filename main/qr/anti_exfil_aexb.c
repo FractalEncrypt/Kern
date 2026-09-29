@@ -52,9 +52,10 @@ size_t anti_exfil_aexb_encoded_len(const anti_exfil_message_t *message) {
   return encoded_len <= ANTI_EXFIL_AEXB_MAX_LEN ? encoded_len : 0;
 }
 
-anti_exfil_result_t anti_exfil_aexb_encode(
-    const anti_exfil_message_t *message, uint8_t *output,
-    size_t output_capacity, size_t *output_len) {
+anti_exfil_result_t anti_exfil_aexb_encode(const anti_exfil_message_t *message,
+                                           uint8_t *output,
+                                           size_t output_capacity,
+                                           size_t *output_len) {
   if (output_len)
     *output_len = 0;
   if (!message || !output || !output_len)
@@ -80,8 +81,7 @@ anti_exfil_result_t anti_exfil_aexb_encode(
     const anti_exfil_slot_t *slot = &message->slots[i];
     put_u32(output + offset, slot->input_index);
     put_u32(output + offset + 4, slot->sighash_type);
-    memcpy(output + offset + 8, slot->signer_pubkey,
-           ANTI_EXFIL_PUBKEY_LEN);
+    memcpy(output + offset + 8, slot->signer_pubkey, ANTI_EXFIL_PUBKEY_LEN);
     memcpy(output + offset + 41, slot->message_hash,
            ANTI_EXFIL_MESSAGE_HASH_LEN);
     memcpy(output + offset + 73, slot->host_commitment,
@@ -92,16 +92,16 @@ anti_exfil_result_t anti_exfil_aexb_encode(
       memcpy(output + offset + 138, slot->host_reveal,
              ANTI_EXFIL_HOST_REVEAL_LEN);
     if (message->stage == ANTI_EXFIL_STAGE_SIGNER_SIGNATURES)
-      memcpy(output + offset + 138, slot->signature,
-             ANTI_EXFIL_SIGNATURE_LEN);
+      memcpy(output + offset + 138, slot->signature, ANTI_EXFIL_SIGNATURE_LEN);
     offset += slot_len;
   }
   *output_len = encoded_len;
   return ANTI_EXFIL_OK;
 }
 
-anti_exfil_result_t anti_exfil_aexb_decode(
-    const uint8_t *encoded, size_t encoded_len, anti_exfil_message_t *message) {
+anti_exfil_result_t anti_exfil_aexb_decode(const uint8_t *encoded,
+                                           size_t encoded_len,
+                                           anti_exfil_message_t *message) {
   if (!message)
     return ANTI_EXFIL_INVALID_MESSAGE;
   memset(message, 0, sizeof(*message));
@@ -138,8 +138,7 @@ anti_exfil_result_t anti_exfil_aexb_decode(
     anti_exfil_slot_t *slot = &message->slots[i];
     slot->input_index = get_u32(encoded + offset);
     slot->sighash_type = get_u32(encoded + offset + 4);
-    memcpy(slot->signer_pubkey, encoded + offset + 8,
-           ANTI_EXFIL_PUBKEY_LEN);
+    memcpy(slot->signer_pubkey, encoded + offset + 8, ANTI_EXFIL_PUBKEY_LEN);
     memcpy(slot->message_hash, encoded + offset + 41,
            ANTI_EXFIL_MESSAGE_HASH_LEN);
     memcpy(slot->host_commitment, encoded + offset + 73,
@@ -154,8 +153,7 @@ anti_exfil_result_t anti_exfil_aexb_decode(
       slot->present_fields |= ANTI_EXFIL_FIELD_HOST_REVEAL;
     }
     if (message->stage == ANTI_EXFIL_STAGE_SIGNER_SIGNATURES) {
-      memcpy(slot->signature, encoded + offset + 138,
-             ANTI_EXFIL_SIGNATURE_LEN);
+      memcpy(slot->signature, encoded + offset + 138, ANTI_EXFIL_SIGNATURE_LEN);
       slot->present_fields |= ANTI_EXFIL_FIELD_SIGNATURE;
     }
     offset += slot_len;

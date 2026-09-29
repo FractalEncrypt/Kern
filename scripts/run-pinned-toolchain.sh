@@ -16,7 +16,7 @@ Commands:
   sanitize-clang OUTPUT [N]     Run Clang ASan/LSan N times (default: 2).
   sanitize-gcc OUTPUT [N]       Run the GCC 11.4 continuity lane N times.
   format [--check|--print-files]
-                                Run the repository formatter in the pinned image.
+                                Run the exact-version repository formatter.
 EOF
 }
 
@@ -57,13 +57,8 @@ case "${1:-}" in
     run_sanitizer "$GCC_BASE_IMAGE" gcc "$2" "${3:-2}"
     ;;
   format)
-    build_clang_image
     shift
-    docker run --rm \
-      --mount "type=bind,src=$REPO_ROOT,dst=/src" \
-      --workdir /src \
-      "$CLANG_TOOLCHAIN_IMAGE" \
-      ./scripts/format.sh "$@"
+    "$REPO_ROOT/scripts/format.sh" "$@"
     ;;
   *)
     usage

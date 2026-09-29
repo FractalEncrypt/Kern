@@ -136,9 +136,7 @@ void scan_dismiss_progress(void) {
   }
 }
 
-bool scan_anti_exfil_review_active(void) {
-  return anti_exfil_review_active;
-}
+bool scan_anti_exfil_review_active(void) { return anti_exfil_review_active; }
 
 bool scan_anti_exfil_final_round(void) {
   const anti_exfil_aext_view_t *request =
@@ -308,22 +306,20 @@ static void process_scan_result(void) {
         /* A recognized protected type is consumed even when malformed,
          * disabled, or unsupported so it can never fall through to ordinary
          * PSBT, bytes, or text signing. */
-        const size_t heap_before =
-            heap_caps_get_free_size(MALLOC_CAP_8BIT);
+        const size_t heap_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
         const ur_result_t result = {
             .type = (char *)ur_type,
             .cbor_data = (uint8_t *)cbor_data,
             .cbor_len = cbor_len,
         };
         anti_exfil_request_destroy(&current_anti_exfil_request);
-        anti_exfil_result_t ae_result = anti_exfil_request_create(
-            &result, &current_anti_exfil_request);
-        const size_t heap_after_copy =
-            heap_caps_get_free_size(MALLOC_CAP_8BIT);
+        anti_exfil_result_t ae_result =
+            anti_exfil_request_create(&result, &current_anti_exfil_request);
+        const size_t heap_after_copy = heap_caps_get_free_size(MALLOC_CAP_8BIT);
         const anti_exfil_aext_view_t *ae_view =
             anti_exfil_request_view(current_anti_exfil_request);
-        const size_t retained = anti_exfil_request_retained_bytes(
-            current_anti_exfil_request);
+        const size_t retained =
+            anti_exfil_request_retained_bytes(current_anti_exfil_request);
         qr_scanner_page_hide();
         qr_scanner_page_destroy();
         const size_t heap_after_camera_stop =
@@ -331,9 +327,8 @@ static void process_scan_result(void) {
         ESP_LOGI("ANTI_EXFIL_MEASURE",
                  "cbor=%u retained=%u heap_before=%u heap_after_copy=%u "
                  "heap_after_camera_stop=%u min_free=%u",
-                 (unsigned)cbor_len, (unsigned)retained,
-                 (unsigned)heap_before, (unsigned)heap_after_copy,
-                 (unsigned)heap_after_camera_stop,
+                 (unsigned)cbor_len, (unsigned)retained, (unsigned)heap_before,
+                 (unsigned)heap_after_copy, (unsigned)heap_after_camera_stop,
                  (unsigned)heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT));
         if (ae_result != ANTI_EXFIL_OK) {
           anti_exfil_request_destroy(&current_anti_exfil_request);
@@ -617,12 +612,12 @@ static void deferred_anti_exfil_response_cb(lv_timer_t *timer) {
 
   bool viewer_created =
       result == ANTI_EXFIL_OK &&
-      qr_viewer_page_create_parts(
-          lv_screen_active(), (const char *const *)parts, part_count,
-          request_stage == ANTI_EXFIL_STAGE_HOST_COMMIT
-              ? "Nonce commitments"
-              : "Protected signatures",
-          return_from_anti_exfil_response_viewer);
+      qr_viewer_page_create_parts(lv_screen_active(),
+                                  (const char *const *)parts, part_count,
+                                  request_stage == ANTI_EXFIL_STAGE_HOST_COMMIT
+                                      ? "Nonce commitments"
+                                      : "Protected signatures",
+                                  return_from_anti_exfil_response_viewer);
   free_anti_exfil_parts(parts, part_count);
   anti_exfil_response_destroy(&response);
   scan_dismiss_progress();
@@ -658,12 +653,12 @@ void scan_anti_exfil_approve_button_cb(lv_event_t *e) {
     dialog_show_error_timeout("No protected request loaded", NULL, 2000);
     return;
   }
-  scan_defer_with_progress(
-      "Protected signing",
-      request_view->message.stage == ANTI_EXFIL_STAGE_HOST_REVEAL
-          ? "Creating protected signatures..."
-          : "Creating nonce commitments...",
-      deferred_anti_exfil_response_cb);
+  scan_defer_with_progress("Protected signing",
+                           request_view->message.stage ==
+                                   ANTI_EXFIL_STAGE_HOST_REVEAL
+                               ? "Creating protected signatures..."
+                               : "Creating nonce commitments...",
+                           deferred_anti_exfil_response_cb);
 }
 
 static void return_from_qr_scanner_cb(void) {

@@ -39,10 +39,10 @@ static int failed;
 #define CHECK(name, condition)                                                 \
   do {                                                                         \
     if (condition) {                                                           \
-      printf("PASS: %s\n", name);                                             \
+      printf("PASS: %s\n", name);                                              \
       ++passed;                                                                \
     } else {                                                                   \
-      printf("FAIL: %s\n", name);                                             \
+      printf("FAIL: %s\n", name);                                              \
       ++failed;                                                                \
     }                                                                          \
   } while (0)
@@ -88,17 +88,17 @@ static void expect_mutation(const char *name, mutator_t mutator,
   uint8_t *bytes = NULL;
   size_t bytes_len = 0;
   anti_exfil_slot_set_t out;
-  int prepared = psbt && mutator(psbt) &&
-                 serialize_psbt(psbt, &bytes, &bytes_len);
+  int prepared =
+      psbt && mutator(psbt) && serialize_psbt(psbt, &bytes, &bytes_len);
   memset(&out, 0xa5, sizeof(out));
   anti_exfil_result_t actual =
       prepared ? anti_exfil_slots_enumerate(bytes, bytes_len,
                                             ANTI_EXFIL_NETWORK_TESTNET4, &out)
                : ANTI_EXFIL_NATIVE_BACKEND;
   if (!prepared || actual != expected || !all_zero(&out, sizeof(out)))
-    printf("  detail: prepared=%d actual=%s expected=%s cleared=%d\n",
-           prepared, anti_exfil_result_name(actual),
-           anti_exfil_result_name(expected), all_zero(&out, sizeof(out)));
+    printf("  detail: prepared=%d actual=%s expected=%s cleared=%d\n", prepared,
+           anti_exfil_result_name(actual), anti_exfil_result_name(expected),
+           all_zero(&out, sizeof(out)));
   CHECK(name, prepared && actual == expected && all_zero(&out, sizeof(out)));
   free(bytes);
   if (psbt)
@@ -156,18 +156,19 @@ static int broken_witness_script(struct wally_psbt *psbt) {
 
 static int taproot_metadata(struct wally_psbt *psbt) {
   return wally_psbt_set_input_taproot_internal_key(
-             psbt, 0, ANTI_EXFIL_SEMANTIC_MESSAGES[0].slots[0].signer_pubkey + 1,
+             psbt, 0,
+             ANTI_EXFIL_SEMANTIC_MESSAGES[0].slots[0].signer_pubkey + 1,
              32) == WALLY_OK;
 }
 
 static int mixed_legacy_input(struct wally_psbt *psbt) {
-  static const uint8_t p2pkh[] = {
-      0x76, 0xa9, 0x14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0,    0,    0,    0, 0, 0, 0x88, 0xac};
+  static const uint8_t p2pkh[] = {0x76, 0xa9, 0x14, 0, 0, 0, 0,    0,
+                                  0,    0,    0,    0, 0, 0, 0,    0,
+                                  0,    0,    0,    0, 0, 0, 0x88, 0xac};
   struct wally_tx_output *replacement = NULL;
   const uint64_t amount = psbt->inputs[3].witness_utxo->satoshi;
-  if (wally_tx_output_init_alloc(amount, p2pkh, sizeof(p2pkh),
-                                 &replacement) != WALLY_OK)
+  if (wally_tx_output_init_alloc(amount, p2pkh, sizeof(p2pkh), &replacement) !=
+      WALLY_OK)
     return 0;
   wally_tx_output_free(psbt->inputs[3].witness_utxo);
   psbt->inputs[3].witness_utxo = replacement;
@@ -177,8 +178,7 @@ static int mixed_legacy_input(struct wally_psbt *psbt) {
 static int finalized_selected_input(struct wally_psbt *psbt) {
   static const uint8_t final_script[] = {0x00};
   return wally_psbt_set_input_final_scriptsig(psbt, 0, final_script,
-                                              sizeof(final_script)) ==
-         WALLY_OK;
+                                              sizeof(final_script)) == WALLY_OK;
 }
 
 static int preexisting_signature(struct wally_psbt *psbt) {
@@ -211,18 +211,18 @@ static void test_positive_fixture(void) {
   for (size_t i = 0; matches && i < out.slot_count; ++i) {
     const anti_exfil_signing_slot_t *actual = &out.slots[i];
     const anti_exfil_slot_t *slot = &expected->slots[i];
-    const uint32_t expected_path[] = {0x80000054, 0x80000001, 0x80000000,
-                                      0, (uint32_t)i};
-    matches = actual->input_index == slot->input_index &&
-              actual->sighash_type == slot->sighash_type &&
-              actual->script_kind == kinds[i] &&
-              actual->derivation_path_len == 5 &&
-              memcmp(actual->derivation_path, expected_path,
-                     sizeof(expected_path)) == 0 &&
-              memcmp(actual->signer_pubkey, slot->signer_pubkey,
-                     sizeof(actual->signer_pubkey)) == 0 &&
-              memcmp(actual->message_hash, slot->message_hash,
-                     sizeof(actual->message_hash)) == 0;
+    const uint32_t expected_path[] = {0x80000054, 0x80000001, 0x80000000, 0,
+                                      (uint32_t)i};
+    matches =
+        actual->input_index == slot->input_index &&
+        actual->sighash_type == slot->sighash_type &&
+        actual->script_kind == kinds[i] && actual->derivation_path_len == 5 &&
+        memcmp(actual->derivation_path, expected_path, sizeof(expected_path)) ==
+            0 &&
+        memcmp(actual->signer_pubkey, slot->signer_pubkey,
+               sizeof(actual->signer_pubkey)) == 0 &&
+        memcmp(actual->message_hash, slot->message_hash,
+               sizeof(actual->message_hash)) == 0;
   }
   CHECK("canonical fixture reproduces exact slots and BIP143 hashes", matches);
 }
@@ -245,45 +245,42 @@ static void test_network_identity(void) {
 
 static void test_live_both_utxo_fixture(void) {
   static const uint8_t expected_digest[ANTI_EXFIL_PSBT_DIGEST_LEN] = {
-      0x4c, 0x9b, 0x55, 0xd1, 0x0d, 0x4e, 0xc0, 0x68,
-      0x6a, 0x28, 0x27, 0x84, 0x31, 0x5c, 0x7f, 0xdc,
-      0x44, 0xf7, 0x6d, 0x36, 0x42, 0x5a, 0xa5, 0xeb,
-      0xfa, 0x00, 0x76, 0x6c, 0xc3, 0x4a, 0x6b, 0xfd};
+      0x4c, 0x9b, 0x55, 0xd1, 0x0d, 0x4e, 0xc0, 0x68, 0x6a, 0x28, 0x27,
+      0x84, 0x31, 0x5c, 0x7f, 0xdc, 0x44, 0xf7, 0x6d, 0x36, 0x42, 0x5a,
+      0xa5, 0xeb, 0xfa, 0x00, 0x76, 0x6c, 0xc3, 0x4a, 0x6b, 0xfd};
   static const uint8_t expected_pubkey[ANTI_EXFIL_PUBKEY_LEN] = {
       0x03, 0x90, 0x9b, 0xe3, 0xf1, 0x29, 0x8f, 0x13, 0x37, 0x97, 0x1e,
       0xd6, 0x36, 0x0d, 0xd9, 0x5d, 0x45, 0x6b, 0x2b, 0xda, 0x2c, 0x8f,
       0x50, 0x87, 0x98, 0x56, 0xe0, 0xa0, 0xfa, 0xd3, 0x8e, 0x26, 0x70};
   static const uint8_t expected_hash[ANTI_EXFIL_MESSAGE_HASH_LEN] = {
-      0x13, 0x47, 0xca, 0x94, 0x6a, 0xf3, 0xfe, 0x65,
-      0x11, 0xc4, 0x09, 0x76, 0x62, 0x53, 0x8d, 0x9f,
-      0x4e, 0x31, 0x9d, 0xa0, 0xea, 0xb6, 0x4c, 0x66,
-      0x3d, 0x5e, 0x1c, 0x2e, 0x0c, 0x30, 0x03, 0xec};
-  static const uint32_t expected_path[] = {
-      0x80000054, 0x80000001, 0x80000000, 0, 0};
+      0x13, 0x47, 0xca, 0x94, 0x6a, 0xf3, 0xfe, 0x65, 0x11, 0xc4, 0x09,
+      0x76, 0x62, 0x53, 0x8d, 0x9f, 0x4e, 0x31, 0x9d, 0xa0, 0xea, 0xb6,
+      0x4c, 0x66, 0x3d, 0x5e, 0x1c, 0x2e, 0x0c, 0x30, 0x03, 0xec};
+  static const uint32_t expected_path[] = {0x80000054, 0x80000001, 0x80000000,
+                                           0, 0};
   uint8_t psbt[1024];
   size_t psbt_len = 0;
   anti_exfil_slot_set_t out;
-  int decoded =
-      wally_base64_to_bytes(LIVE_BOTH_UTXO_PSBT_BASE64, 0, psbt,
-                            sizeof(psbt), &psbt_len) == WALLY_OK &&
-      psbt_len == 559;
+  int decoded = wally_base64_to_bytes(LIVE_BOTH_UTXO_PSBT_BASE64, 0, psbt,
+                                      sizeof(psbt), &psbt_len) == WALLY_OK &&
+                psbt_len == 559;
   anti_exfil_result_t result =
       decoded ? anti_exfil_slots_enumerate(psbt, psbt_len,
                                            ANTI_EXFIL_NETWORK_TESTNET3, &out)
               : ANTI_EXFIL_NATIVE_BACKEND;
-  int matches = decoded && result == ANTI_EXFIL_OK && out.slot_count == 1 &&
-                out.network == ANTI_EXFIL_NETWORK_TESTNET3 &&
-                memcmp(out.psbt_digest, expected_digest,
-                       sizeof(expected_digest)) == 0 &&
-                out.slots[0].input_index == 0 &&
-                out.slots[0].sighash_type == ANTI_EXFIL_SIGHASH_ALL &&
-                out.slots[0].derivation_path_len == 5 &&
-                memcmp(out.slots[0].derivation_path, expected_path,
-                       sizeof(expected_path)) == 0 &&
-                memcmp(out.slots[0].signer_pubkey, expected_pubkey,
-                       sizeof(expected_pubkey)) == 0 &&
-                memcmp(out.slots[0].message_hash, expected_hash,
-                       sizeof(expected_hash)) == 0;
+  int matches =
+      decoded && result == ANTI_EXFIL_OK && out.slot_count == 1 &&
+      out.network == ANTI_EXFIL_NETWORK_TESTNET3 &&
+      memcmp(out.psbt_digest, expected_digest, sizeof(expected_digest)) == 0 &&
+      out.slots[0].input_index == 0 &&
+      out.slots[0].sighash_type == ANTI_EXFIL_SIGHASH_ALL &&
+      out.slots[0].derivation_path_len == 5 &&
+      memcmp(out.slots[0].derivation_path, expected_path,
+             sizeof(expected_path)) == 0 &&
+      memcmp(out.slots[0].signer_pubkey, expected_pubkey,
+             sizeof(expected_pubkey)) == 0 &&
+      memcmp(out.slots[0].message_hash, expected_hash, sizeof(expected_hash)) ==
+          0;
   if (!matches)
     printf("  detail: decoded=%d length=%zu result=%s slots=%zu\n", decoded,
            psbt_len, anti_exfil_result_name(result),
@@ -320,8 +317,7 @@ int main(void) {
   expect_mutation("reject selected-key signature atomically",
                   preexisting_signature, ANTI_EXFIL_UNEXPECTED_RETURN_DATA);
   expect_mutation("reject finalized selected input atomically",
-                  finalized_selected_input,
-                  ANTI_EXFIL_UNEXPECTED_RETURN_DATA);
+                  finalized_selected_input, ANTI_EXFIL_UNEXPECTED_RETURN_DATA);
 
   uint8_t trailing[ANTI_EXFIL_SEMANTIC_PSBT_LEN + 1];
   anti_exfil_slot_set_t out;
@@ -330,17 +326,16 @@ int main(void) {
   memset(&out, 0xa5, sizeof(out));
   CHECK("reject trailing PSBT bytes atomically",
         anti_exfil_slots_enumerate(trailing, sizeof(trailing),
-                                   ANTI_EXFIL_NETWORK_TESTNET4, &out) ==
-                ANTI_EXFIL_INVALID_MESSAGE &&
+                                   ANTI_EXFIL_NETWORK_TESTNET4,
+                                   &out) == ANTI_EXFIL_INVALID_MESSAGE &&
             all_zero(&out, sizeof(out)));
 
   key_unload();
   memset(&out, 0xa5, sizeof(out));
   CHECK("reject enumeration without a loaded key",
-        anti_exfil_slots_enumerate(ANTI_EXFIL_SEMANTIC_PSBT,
-                                   ANTI_EXFIL_SEMANTIC_PSBT_LEN,
-                                   ANTI_EXFIL_NETWORK_TESTNET4, &out) ==
-                ANTI_EXFIL_STATE_INVALID &&
+        anti_exfil_slots_enumerate(
+            ANTI_EXFIL_SEMANTIC_PSBT, ANTI_EXFIL_SEMANTIC_PSBT_LEN,
+            ANTI_EXFIL_NETWORK_TESTNET4, &out) == ANTI_EXFIL_STATE_INVALID &&
             all_zero(&out, sizeof(out)));
   printf("%d passed, %d failed\n", passed, failed);
   return failed ? 1 : 0;

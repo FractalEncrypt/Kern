@@ -20,18 +20,18 @@ static int failed;
 #define CHECK(name, condition)                                                 \
   do {                                                                         \
     if (condition) {                                                           \
-      printf("PASS: %s\n", name);                                             \
+      printf("PASS: %s\n", name);                                              \
       ++passed;                                                                \
     } else {                                                                   \
-      printf("FAIL: %s\n", name);                                             \
+      printf("FAIL: %s\n", name);                                              \
       ++failed;                                                                \
     }                                                                          \
   } while (0)
 
-static const anti_exfil_measurement_fixture_t *fixture_for_stage(uint8_t stage) {
-  for (size_t i = 0;
-       i < sizeof(ANTI_EXFIL_MEASUREMENT_FIXTURES) /
-               sizeof(ANTI_EXFIL_MEASUREMENT_FIXTURES[0]);
+static const anti_exfil_measurement_fixture_t *
+fixture_for_stage(uint8_t stage) {
+  for (size_t i = 0; i < sizeof(ANTI_EXFIL_MEASUREMENT_FIXTURES) /
+                             sizeof(ANTI_EXFIL_MEASUREMENT_FIXTURES[0]);
        ++i) {
     if (ANTI_EXFIL_MEASUREMENT_FIXTURES[i].stage == stage)
       return &ANTI_EXFIL_MEASUREMENT_FIXTURES[i];
@@ -39,8 +39,8 @@ static const anti_exfil_measurement_fixture_t *fixture_for_stage(uint8_t stage) 
   return NULL;
 }
 
-static anti_exfil_result_t create_request(
-    uint8_t stage, anti_exfil_request_t **request_out) {
+static anti_exfil_result_t create_request(uint8_t stage,
+                                          anti_exfil_request_t **request_out) {
   const anti_exfil_measurement_fixture_t *fixture = fixture_for_stage(stage);
   if (!fixture)
     return ANTI_EXFIL_INVALID_MESSAGE;
@@ -90,9 +90,9 @@ static void test_round(uint8_t request_stage, uint8_t response_stage,
   ur_result_t *decoded = decoder ? ur_decoder_get_result(decoder) : NULL;
   anti_exfil_aext_view_t decoded_view;
   memset(&decoded_view, 0xa5, sizeof(decoded_view));
-  result = anti_exfil_ur_decode_result(
-      decoded, ANTI_EXFIL_NETWORK_TESTNET4,
-      (anti_exfil_stage_t)response_stage, &decoded_view);
+  result = anti_exfil_ur_decode_result(decoded, ANTI_EXFIL_NETWORK_TESTNET4,
+                                       (anti_exfil_stage_t)response_stage,
+                                       &decoded_view);
   CHECK("response UR window reconstructs exact semantic message",
         state == UR_DECODER_OK && result == ANTI_EXFIL_OK &&
             memcmp(&decoded_view.message,
@@ -104,7 +104,8 @@ static void test_round(uint8_t request_stage, uint8_t response_stage,
   const anti_exfil_aext_view_t *borrowed = anti_exfil_request_view(request);
   CHECK("response creation does not consume retained request",
         borrowed && borrowed->message.stage == request_stage &&
-            borrowed->psbt && borrowed->psbt_len == ANTI_EXFIL_SEMANTIC_PSBT_LEN);
+            borrowed->psbt &&
+            borrowed->psbt_len == ANTI_EXFIL_SEMANTIC_PSBT_LEN);
   anti_exfil_response_destroy(&response);
   anti_exfil_request_destroy(&request);
   CHECK("response and request owners clear on destroy",
@@ -117,10 +118,9 @@ int main(void) {
   CHECK("load pinned fixture seed",
         key_load_from_mnemonic(TEST_MNEMONIC, "", true));
 
-  test_round(ANTI_EXFIL_STAGE_HOST_COMMIT,
-             ANTI_EXFIL_STAGE_SIGNER_OPENINGS, 6);
-  test_round(ANTI_EXFIL_STAGE_HOST_REVEAL,
-             ANTI_EXFIL_STAGE_SIGNER_SIGNATURES, 8);
+  test_round(ANTI_EXFIL_STAGE_HOST_COMMIT, ANTI_EXFIL_STAGE_SIGNER_OPENINGS, 6);
+  test_round(ANTI_EXFIL_STAGE_HOST_REVEAL, ANTI_EXFIL_STAGE_SIGNER_SIGNATURES,
+             8);
 
   anti_exfil_request_t *request = NULL;
   anti_exfil_response_t *response = (anti_exfil_response_t *)(uintptr_t)1;

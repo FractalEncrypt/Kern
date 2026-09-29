@@ -1,16 +1,15 @@
 #include "anti_exfil_signer.h"
 
-#include "anti_exfil_semantic.h"
 #include "../anti_exfil_crypto.h"
 #include "../key.h"
+#include "anti_exfil_semantic.h"
 #include <string.h>
 #include <wally_bip32.h>
 
 static anti_exfil_result_t fail(anti_exfil_message_t *output,
                                 anti_exfil_slot_set_t *scratch,
                                 anti_exfil_result_t result) {
-  if (output && scratch &&
-      (const void *)output == (const void *)scratch) {
+  if (output && scratch && (const void *)output == (const void *)scratch) {
     /* Contract violation: clear only the smaller object to avoid overrunning
      * caller storage through an output-sized memset. */
     memset(scratch, 0, sizeof(*scratch));
@@ -23,10 +22,11 @@ static anti_exfil_result_t fail(anti_exfil_message_t *output,
   return result;
 }
 
-static anti_exfil_result_t validate_arguments(
-    const anti_exfil_message_t *input, const uint8_t *psbt_bytes,
-    size_t psbt_bytes_len, anti_exfil_message_t *output,
-    anti_exfil_slot_set_t *scratch) {
+static anti_exfil_result_t validate_arguments(const anti_exfil_message_t *input,
+                                              const uint8_t *psbt_bytes,
+                                              size_t psbt_bytes_len,
+                                              anti_exfil_message_t *output,
+                                              anti_exfil_slot_set_t *scratch) {
   if (!output || !scratch)
     return ANTI_EXFIL_INVALID_MESSAGE;
   if ((const void *)output == (const void *)scratch)
@@ -39,9 +39,10 @@ static anti_exfil_result_t validate_arguments(
   return ANTI_EXFIL_OK;
 }
 
-static anti_exfil_result_t validate_authoritative_slots(
-    const anti_exfil_message_t *message, const uint8_t *psbt_bytes,
-    size_t psbt_bytes_len, anti_exfil_slot_set_t *scratch) {
+static anti_exfil_result_t
+validate_authoritative_slots(const anti_exfil_message_t *message,
+                             const uint8_t *psbt_bytes, size_t psbt_bytes_len,
+                             anti_exfil_slot_set_t *scratch) {
   anti_exfil_result_t result = anti_exfil_slots_enumerate(
       psbt_bytes, psbt_bytes_len, message->network, scratch);
   if (result != ANTI_EXFIL_OK)
@@ -67,14 +68,15 @@ static anti_exfil_result_t validate_authoritative_slots(
   return ANTI_EXFIL_OK;
 }
 
-static anti_exfil_result_t derive_slot_key(
-    const anti_exfil_signing_slot_t *slot, struct ext_key **derived) {
+static anti_exfil_result_t
+derive_slot_key(const anti_exfil_signing_slot_t *slot,
+                struct ext_key **derived) {
   *derived = NULL;
   if (!key_get_derived_key_components(slot->derivation_path,
                                       slot->derivation_path_len, derived) ||
       !*derived ||
-      memcmp((*derived)->pub_key, slot->signer_pubkey,
-             ANTI_EXFIL_PUBKEY_LEN) != 0) {
+      memcmp((*derived)->pub_key, slot->signer_pubkey, ANTI_EXFIL_PUBKEY_LEN) !=
+          0) {
     if (*derived)
       bip32_key_free(*derived);
     *derived = NULL;
@@ -83,9 +85,9 @@ static anti_exfil_result_t derive_slot_key(
   return ANTI_EXFIL_OK;
 }
 
-static anti_exfil_result_t validate_host_reveal_continuation(
-    const anti_exfil_message_t *host_reveal,
-    const anti_exfil_slot_set_t *scratch) {
+static anti_exfil_result_t
+validate_host_reveal_continuation(const anti_exfil_message_t *host_reveal,
+                                  const anti_exfil_slot_set_t *scratch) {
   for (size_t i = 0; i < host_reveal->slot_count; ++i) {
     struct ext_key *derived = NULL;
     uint8_t opening[ANTI_EXFIL_OPENING_LEN];
@@ -95,10 +97,9 @@ static anti_exfil_result_t validate_host_reveal_continuation(
 
     anti_exfil_result_t result = derive_slot_key(&scratch->slots[i], &derived);
     if (result == ANTI_EXFIL_OK &&
-        !anti_exfil_signer_commit(derived->priv_key + 1,
-                                  host_reveal->slots[i].message_hash,
-                                  host_reveal->slots[i].host_commitment,
-                                  opening))
+        !anti_exfil_signer_commit(
+            derived->priv_key + 1, host_reveal->slots[i].message_hash,
+            host_reveal->slots[i].host_commitment, opening))
       result = ANTI_EXFIL_NATIVE_BACKEND;
     if (derived)
       bip32_key_free(derived);
@@ -106,8 +107,7 @@ static anti_exfil_result_t validate_host_reveal_continuation(
         memcmp(opening, host_reveal->slots[i].opening, sizeof(opening)) != 0)
       result = ANTI_EXFIL_OPENING_MISMATCH;
     if (result == ANTI_EXFIL_OK &&
-        !anti_exfil_host_commit(host_reveal->slots[i].host_reveal,
-                                commitment))
+        !anti_exfil_host_commit(host_reveal->slots[i].host_reveal, commitment))
       result = ANTI_EXFIL_NATIVE_BACKEND;
     if (result == ANTI_EXFIL_OK &&
         memcmp(commitment, host_reveal->slots[i].host_commitment,
@@ -121,9 +121,10 @@ static anti_exfil_result_t validate_host_reveal_continuation(
   return ANTI_EXFIL_OK;
 }
 
-anti_exfil_result_t anti_exfil_signer_preflight(
-    const anti_exfil_message_t *input, const uint8_t *psbt_bytes,
-    size_t psbt_bytes_len, anti_exfil_slot_set_t *scratch) {
+anti_exfil_result_t
+anti_exfil_signer_preflight(const anti_exfil_message_t *input,
+                            const uint8_t *psbt_bytes, size_t psbt_bytes_len,
+                            anti_exfil_slot_set_t *scratch) {
   if (!scratch)
     return ANTI_EXFIL_INVALID_MESSAGE;
   memset(scratch, 0, sizeof(*scratch));
@@ -132,24 +133,23 @@ anti_exfil_result_t anti_exfil_signer_preflight(
     return ANTI_EXFIL_INVALID_MESSAGE;
 
   anti_exfil_result_t result = anti_exfil_semantic_validate(input);
-  if (result == ANTI_EXFIL_OK &&
-      input->stage != ANTI_EXFIL_STAGE_HOST_COMMIT &&
+  if (result == ANTI_EXFIL_OK && input->stage != ANTI_EXFIL_STAGE_HOST_COMMIT &&
       input->stage != ANTI_EXFIL_STAGE_HOST_REVEAL)
     result = ANTI_EXFIL_WRONG_STAGE;
   if (result == ANTI_EXFIL_OK)
     result = validate_authoritative_slots(input, psbt_bytes, psbt_bytes_len,
                                           scratch);
-  if (result == ANTI_EXFIL_OK &&
-      input->stage == ANTI_EXFIL_STAGE_HOST_REVEAL)
+  if (result == ANTI_EXFIL_OK && input->stage == ANTI_EXFIL_STAGE_HOST_REVEAL)
     result = validate_host_reveal_continuation(input, scratch);
   memset(scratch, 0, sizeof(*scratch));
   return result;
 }
 
-anti_exfil_result_t anti_exfil_signer_prepare(
-    const anti_exfil_message_t *host_commit, const uint8_t *psbt_bytes,
-    size_t psbt_bytes_len, anti_exfil_message_t *output,
-    anti_exfil_slot_set_t *scratch) {
+anti_exfil_result_t
+anti_exfil_signer_prepare(const anti_exfil_message_t *host_commit,
+                          const uint8_t *psbt_bytes, size_t psbt_bytes_len,
+                          anti_exfil_message_t *output,
+                          anti_exfil_slot_set_t *scratch) {
   anti_exfil_result_t result = validate_arguments(
       host_commit, psbt_bytes, psbt_bytes_len, output, scratch);
   if (result != ANTI_EXFIL_OK)
@@ -159,8 +159,8 @@ anti_exfil_result_t anti_exfil_signer_prepare(
     return fail(output, scratch, result);
   if (host_commit->stage != ANTI_EXFIL_STAGE_HOST_COMMIT)
     return fail(output, scratch, ANTI_EXFIL_WRONG_STAGE);
-  result = validate_authoritative_slots(host_commit, psbt_bytes,
-                                        psbt_bytes_len, scratch);
+  result = validate_authoritative_slots(host_commit, psbt_bytes, psbt_bytes_len,
+                                        scratch);
   if (result != ANTI_EXFIL_OK)
     return fail(output, scratch, result);
 
@@ -170,10 +170,9 @@ anti_exfil_result_t anti_exfil_signer_prepare(
     struct ext_key *derived = NULL;
     result = derive_slot_key(&scratch->slots[i], &derived);
     if (result == ANTI_EXFIL_OK &&
-        !anti_exfil_signer_commit(derived->priv_key + 1,
-                                  output->slots[i].message_hash,
-                                  output->slots[i].host_commitment,
-                                  output->slots[i].opening))
+        !anti_exfil_signer_commit(
+            derived->priv_key + 1, output->slots[i].message_hash,
+            output->slots[i].host_commitment, output->slots[i].opening))
       result = ANTI_EXFIL_NATIVE_BACKEND;
     if (derived)
       bip32_key_free(derived);
@@ -188,10 +187,11 @@ anti_exfil_result_t anti_exfil_signer_prepare(
   return ANTI_EXFIL_OK;
 }
 
-anti_exfil_result_t anti_exfil_signer_complete(
-    const anti_exfil_message_t *host_reveal, const uint8_t *psbt_bytes,
-    size_t psbt_bytes_len, anti_exfil_message_t *output,
-    anti_exfil_slot_set_t *scratch) {
+anti_exfil_result_t
+anti_exfil_signer_complete(const anti_exfil_message_t *host_reveal,
+                           const uint8_t *psbt_bytes, size_t psbt_bytes_len,
+                           anti_exfil_message_t *output,
+                           anti_exfil_slot_set_t *scratch) {
   anti_exfil_result_t result = validate_arguments(
       host_reveal, psbt_bytes, psbt_bytes_len, output, scratch);
   if (result != ANTI_EXFIL_OK)
@@ -201,8 +201,8 @@ anti_exfil_result_t anti_exfil_signer_complete(
     return fail(output, scratch, result);
   if (host_reveal->stage != ANTI_EXFIL_STAGE_HOST_REVEAL)
     return fail(output, scratch, ANTI_EXFIL_WRONG_STAGE);
-  result = validate_authoritative_slots(host_reveal, psbt_bytes,
-                                        psbt_bytes_len, scratch);
+  result = validate_authoritative_slots(host_reveal, psbt_bytes, psbt_bytes_len,
+                                        scratch);
   if (result != ANTI_EXFIL_OK)
     return fail(output, scratch, result);
 
@@ -244,8 +244,7 @@ anti_exfil_result_t anti_exfil_signer_complete(
     result = derive_slot_key(&scratch->slots[i], &derived);
     if (result == ANTI_EXFIL_OK &&
         !anti_exfil_sign(derived->priv_key + 1, response_slot->message_hash,
-                         reveal_slot->host_reveal,
-                         response_slot->signature))
+                         reveal_slot->host_reveal, response_slot->signature))
       result = ANTI_EXFIL_NATIVE_BACKEND;
     if (derived)
       bip32_key_free(derived);
@@ -255,8 +254,7 @@ anti_exfil_result_t anti_exfil_signer_complete(
                            reveal_slot->host_reveal, response_slot->opening,
                            response_slot->signature))
       result = ANTI_EXFIL_SIGNATURE_INVALID;
-    memset(response_slot->host_reveal, 0,
-           sizeof(response_slot->host_reveal));
+    memset(response_slot->host_reveal, 0, sizeof(response_slot->host_reveal));
     response_slot->present_fields =
         ANTI_EXFIL_FIELD_OPENING | ANTI_EXFIL_FIELD_SIGNATURE;
     if (result != ANTI_EXFIL_OK)

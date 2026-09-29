@@ -20,10 +20,10 @@ static int failed;
 #define CHECK(name, condition)                                                 \
   do {                                                                         \
     if (condition) {                                                           \
-      printf("PASS: %s\n", name);                                             \
+      printf("PASS: %s\n", name);                                              \
       ++passed;                                                                \
     } else {                                                                   \
-      printf("FAIL: %s\n", name);                                             \
+      printf("FAIL: %s\n", name);                                              \
       ++failed;                                                                \
     }                                                                          \
   } while (0)
@@ -38,21 +38,22 @@ static int all_zero(const void *data, size_t data_len) {
 
 static void test_fixture(const anti_exfil_transport_fixture_t *fixture) {
   memset(&message, 0xa5, sizeof(message));
-  anti_exfil_result_t result = anti_exfil_aexb_decode(
-      fixture->message, fixture->message_len, &message);
-  CHECK("decode canonical AEXB", result == ANTI_EXFIL_OK &&
-                                     message.stage == fixture->stage);
+  anti_exfil_result_t result =
+      anti_exfil_aexb_decode(fixture->message, fixture->message_len, &message);
+  CHECK("decode canonical AEXB",
+        result == ANTI_EXFIL_OK && message.stage == fixture->stage);
 
   size_t encoded_len = 0;
   memset(encoded, 0xa5, sizeof(encoded));
-  result = anti_exfil_aexb_encode(&message, encoded, sizeof(encoded),
-                                  &encoded_len);
+  result =
+      anti_exfil_aexb_encode(&message, encoded, sizeof(encoded), &encoded_len);
   CHECK("reproduce byte-exact AEXB",
         result == ANTI_EXFIL_OK && encoded_len == fixture->message_len &&
             memcmp(encoded, fixture->message, encoded_len) == 0);
 
   memset(&view, 0xa5, sizeof(view));
-  result = anti_exfil_aext_decode(fixture->package, fixture->package_len, &view);
+  result =
+      anti_exfil_aext_decode(fixture->package, fixture->package_len, &view);
   CHECK("decode canonical AEXT",
         result == ANTI_EXFIL_OK && view.message.stage == fixture->stage &&
             memcmp(&view.message, &message, sizeof(message)) == 0 &&
@@ -77,9 +78,8 @@ static void test_fixture(const anti_exfil_transport_fixture_t *fixture) {
             memcmp(package, fixture->package, package_len) == 0);
 
   encoded_len = 0;
-  result = anti_exfil_aext_cbor_encode(
-      fixture->package, fixture->package_len, encoded, sizeof(encoded),
-      &encoded_len);
+  result = anti_exfil_aext_cbor_encode(fixture->package, fixture->package_len,
+                                       encoded, sizeof(encoded), &encoded_len);
   CHECK("reproduce byte-exact canonical CBOR",
         result == ANTI_EXFIL_OK && encoded_len == fixture->cbor_len &&
             memcmp(encoded, fixture->cbor, encoded_len) == 0);
@@ -110,9 +110,9 @@ static void test_fixture(const anti_exfil_transport_fixture_t *fixture) {
     decoder_state = ur_decoder_receive_part(decoder, fixture->ur_parts[i]);
   ur_result_t *ur_result = decoder ? ur_decoder_get_result(decoder) : NULL;
   memset(&view, 0xa5, sizeof(view));
-  result = anti_exfil_ur_decode_result(
-      ur_result, ANTI_EXFIL_NETWORK_TESTNET4,
-      (anti_exfil_stage_t)fixture->stage, &view);
+  result =
+      anti_exfil_ur_decode_result(ur_result, ANTI_EXFIL_NETWORK_TESTNET4,
+                                  (anti_exfil_stage_t)fixture->stage, &view);
   CHECK("decode and route complete pinned UR fountain window",
         decoder_state == UR_DECODER_OK && result == ANTI_EXFIL_OK &&
             view.message.stage == fixture->stage);
@@ -120,23 +120,18 @@ static void test_fixture(const anti_exfil_transport_fixture_t *fixture) {
   anti_exfil_request_t *request = NULL;
   result = anti_exfil_request_create(ur_result, &request);
   size_t owned_cbor_len = 0;
-  const uint8_t *owned_cbor =
-      anti_exfil_request_cbor(request, &owned_cbor_len);
-  const anti_exfil_aext_view_t *owned_view =
-      anti_exfil_request_view(request);
+  const uint8_t *owned_cbor = anti_exfil_request_cbor(request, &owned_cbor_len);
+  const anti_exfil_aext_view_t *owned_view = anti_exfil_request_view(request);
   CHECK("retain byte-exact canonical CBOR outside scanner",
         result == ANTI_EXFIL_OK && request && owned_cbor &&
             owned_cbor_len == fixture->cbor_len &&
             memcmp(owned_cbor, fixture->cbor, fixture->cbor_len) == 0);
   const uintptr_t owned_start = (uintptr_t)owned_cbor;
   const uintptr_t owned_end = owned_start + owned_cbor_len;
-  const uintptr_t psbt_start =
-      owned_view ? (uintptr_t)owned_view->psbt : 0;
-  const uintptr_t psbt_end =
-      owned_view ? psbt_start + owned_view->psbt_len : 0;
-  const int expects_psbt =
-      fixture->stage == ANTI_EXFIL_STAGE_HOST_COMMIT ||
-      fixture->stage == ANTI_EXFIL_STAGE_HOST_REVEAL;
+  const uintptr_t psbt_start = owned_view ? (uintptr_t)owned_view->psbt : 0;
+  const uintptr_t psbt_end = owned_view ? psbt_start + owned_view->psbt_len : 0;
+  const int expects_psbt = fixture->stage == ANTI_EXFIL_STAGE_HOST_COMMIT ||
+                           fixture->stage == ANTI_EXFIL_STAGE_HOST_REVEAL;
   CHECK("owned PSBT view follows stage-neutral carriage",
         owned_view &&
             (expects_psbt ? owned_view->psbt && psbt_start >= owned_start &&
@@ -155,9 +150,8 @@ static void test_fixture(const anti_exfil_transport_fixture_t *fixture) {
 
 int main(void) {
   printf("=== anti-exfil AEXB/AEXT transport tests ===\n");
-  for (size_t i = 0;
-       i < sizeof(ANTI_EXFIL_TRANSPORT_FIXTURES) /
-               sizeof(ANTI_EXFIL_TRANSPORT_FIXTURES[0]);
+  for (size_t i = 0; i < sizeof(ANTI_EXFIL_TRANSPORT_FIXTURES) /
+                             sizeof(ANTI_EXFIL_TRANSPORT_FIXTURES[0]);
        ++i)
     test_fixture(&ANTI_EXFIL_TRANSPORT_FIXTURES[i]);
 
@@ -175,8 +169,8 @@ int main(void) {
   mutated[7] = 1;
   memset(&decoded_again, 0xa5, sizeof(decoded_again));
   CHECK("reject unknown AEXB flags atomically",
-        anti_exfil_aexb_decode(mutated, first->message_len,
-                               &decoded_again) == ANTI_EXFIL_INVALID_MESSAGE &&
+        anti_exfil_aexb_decode(mutated, first->message_len, &decoded_again) ==
+                ANTI_EXFIL_INVALID_MESSAGE &&
             all_zero(&decoded_again, sizeof(decoded_again)));
 
   memcpy(mutated, first->package, first->package_len);
@@ -203,7 +197,8 @@ int main(void) {
                 ANTI_EXFIL_INVALID_MESSAGE &&
             all_zero(&view, sizeof(view)));
 
-  /* Encode the 480-byte package with uint32 length instead of shortest uint16. */
+  /* Encode the 480-byte package with uint32 length instead of shortest uint16.
+   */
   mutated[0] = 0x5a;
   mutated[1] = 0;
   mutated[2] = 0;
@@ -236,8 +231,8 @@ int main(void) {
   memset(&view, 0xa5, sizeof(view));
   CHECK("reject generic UR bytes routing",
         anti_exfil_ur_decode_result(&wrong_type, ANTI_EXFIL_NETWORK_TESTNET4,
-                                    ANTI_EXFIL_STAGE_HOST_COMMIT, &view) ==
-                ANTI_EXFIL_INVALID_MESSAGE &&
+                                    ANTI_EXFIL_STAGE_HOST_COMMIT,
+                                    &view) == ANTI_EXFIL_INVALID_MESSAGE &&
             all_zero(&view, sizeof(view)));
 
   ur_result_t routed = {
@@ -270,12 +265,12 @@ int main(void) {
 
   CHECK("reject wrong active network at UR route",
         anti_exfil_ur_decode_result(&routed, ANTI_EXFIL_NETWORK_SIGNET,
-                                    ANTI_EXFIL_STAGE_HOST_COMMIT, &view) ==
-            ANTI_EXFIL_TRANSACTION_MISMATCH);
+                                    ANTI_EXFIL_STAGE_HOST_COMMIT,
+                                    &view) == ANTI_EXFIL_TRANSACTION_MISMATCH);
   CHECK("reject wrong expected stage at UR route",
         anti_exfil_ur_decode_result(&routed, ANTI_EXFIL_NETWORK_TESTNET4,
-                                    ANTI_EXFIL_STAGE_HOST_REVEAL, &view) ==
-            ANTI_EXFIL_WRONG_STAGE);
+                                    ANTI_EXFIL_STAGE_HOST_REVEAL,
+                                    &view) == ANTI_EXFIL_WRONG_STAGE);
 
   memset(&view, 0xa5, sizeof(view));
   ur_encoder_t *oversized_encoder = (ur_encoder_t *)1;

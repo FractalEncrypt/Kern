@@ -35,9 +35,10 @@ qr_viewer_page_create_with_format(lv_obj_t *parent, int qr_format,
  * Display an already encoded ordered QR animation. Every part is copied, so
  * the caller may release its encoder and strings after this returns.
  */
-KERN_WARN_UNUSED_RESULT bool qr_viewer_page_create_parts(
-    lv_obj_t *parent, const char *const *parts, size_t part_count,
-    const char *title, void (*return_cb)(void));
+KERN_WARN_UNUSED_RESULT bool
+qr_viewer_page_create_parts(lv_obj_t *parent, const char *const *parts,
+                            size_t part_count, const char *title,
+                            void (*return_cb)(void));
 
 /**
  * Make a widget open the QR viewer fullscreen when tapped (tap again to

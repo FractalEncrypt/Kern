@@ -221,11 +221,11 @@ static export_view_t *prepare_view(uint16_t density) {
   export_view_t *v = calloc(1, sizeof(*v));
   if (!v)
     return NULL;
-  v->source = qr_parts_copy
-                  ? qr_export_create_parts((const char *const *)qr_parts_copy,
-                                           qr_parts_count)
-                  : qr_export_create(qr_source_format, qr_content_copy,
-                                     density);
+  v->source =
+      qr_parts_copy
+          ? qr_export_create_parts((const char *const *)qr_parts_copy,
+                                   qr_parts_count)
+          : qr_export_create(qr_source_format, qr_content_copy, density);
   if (!v->source)
     goto fail;
   const char *first = qr_export_frame(v->source, 0);
@@ -617,12 +617,10 @@ bool qr_viewer_page_create_with_format(lv_obj_t *parent, int qr_format,
   return true;
 }
 
-bool qr_viewer_page_create_parts(lv_obj_t *parent,
-                                 const char *const *parts,
+bool qr_viewer_page_create_parts(lv_obj_t *parent, const char *const *parts,
                                  size_t part_count, const char *title,
                                  void (*return_cb)(void)) {
-  if (!parent || !parts || part_count == 0 ||
-      part_count > QR_VIEWER_MAX_PARTS)
+  if (!parent || !parts || part_count == 0 || part_count > QR_VIEWER_MAX_PARTS)
     return false;
 
   char **copy = calloc(part_count, sizeof(*copy));

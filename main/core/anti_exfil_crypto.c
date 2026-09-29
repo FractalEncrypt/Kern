@@ -90,12 +90,12 @@ bool anti_exfil_verify(const uint8_t *public_key, const uint8_t *message_hash,
   if (!public_key || !message_hash || !host_entropy || !signer_opening ||
       !compact_signature)
     return false;
-  return wally_ae_verify(
-             public_key, EC_PUBLIC_KEY_LEN, message_hash,
-             ANTI_EXFIL_MESSAGE_HASH_LEN, host_entropy,
-             ANTI_EXFIL_HOST_ENTROPY_LEN, signer_opening,
-             ANTI_EXFIL_SIGNER_OPENING_LEN, EC_FLAG_ECDSA, compact_signature,
-             ANTI_EXFIL_COMPACT_SIGNATURE_LEN) == WALLY_OK;
+  return wally_ae_verify(public_key, EC_PUBLIC_KEY_LEN, message_hash,
+                         ANTI_EXFIL_MESSAGE_HASH_LEN, host_entropy,
+                         ANTI_EXFIL_HOST_ENTROPY_LEN, signer_opening,
+                         ANTI_EXFIL_SIGNER_OPENING_LEN, EC_FLAG_ECDSA,
+                         compact_signature,
+                         ANTI_EXFIL_COMPACT_SIGNATURE_LEN) == WALLY_OK;
 }
 
 bool anti_exfil_crypto_self_test(void) {
@@ -134,12 +134,12 @@ bool anti_exfil_crypto_self_test(void) {
                      sizeof(host_commitment)) == 0 &&
        anti_exfil_sign(private_key, message_hash, host_entropy, signature) &&
        secure_memcmp(signature, expected_signature, sizeof(signature)) == 0 &&
-       anti_exfil_verify((const uint8_t[]){
-                             0x02, 0x9a, 0xc2, 0x03, 0x35, 0xeb, 0x38,
-                             0x76, 0x8d, 0x20, 0x52, 0xbe, 0x1d, 0xbb,
-                             0xc3, 0xc8, 0xf6, 0x17, 0x84, 0x07, 0x45,
-                             0x8e, 0x51, 0xe6, 0xb4, 0xad, 0x22, 0xf1,
-                             0xd9, 0x17, 0x58, 0x89, 0x5b},
+       anti_exfil_verify((const uint8_t[]){0x02, 0x9a, 0xc2, 0x03, 0x35, 0xeb,
+                                           0x38, 0x76, 0x8d, 0x20, 0x52, 0xbe,
+                                           0x1d, 0xbb, 0xc3, 0xc8, 0xf6, 0x17,
+                                           0x84, 0x07, 0x45, 0x8e, 0x51, 0xe6,
+                                           0xb4, 0xad, 0x22, 0xf1, 0xd9, 0x17,
+                                           0x58, 0x89, 0x5b},
                          message_hash, host_entropy, opening, signature);
 
   secure_memzero(private_key, sizeof(private_key));

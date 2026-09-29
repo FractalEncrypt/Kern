@@ -24,6 +24,14 @@ Both lanes compile with `-g -O1 -fno-omit-frame-pointer -fsanitize=address`,
 enable leak detection, and run the same out-of-bounds, use-after-free, and leak
 positive controls before any real test target is accepted.
 
+The repository formatter is an independent toolchain input. Kern requires
+`clang-format` 21.1.8, and CI installs it from
+`ci/formatter-requirements.txt` with pip hash checking. The Linux x86-64 wheel
+is 1,804,755 bytes with SHA-256
+`d12b864b596b80810cdd7f97556c485dc09cfe2952503958535f01359e025fbb`.
+Keeping this separate preserves the accepted Clang 18 sanitizer qualification
+while matching the ESP-IDF 6.1 formatting generation.
+
 ## Classification contract
 
 Every real executable is linked through a test-only `main` wrapper which emits

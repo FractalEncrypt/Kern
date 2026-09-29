@@ -18,9 +18,10 @@ typedef struct anti_exfil_response anti_exfil_response_t;
  * No such policy is selected here. The request is borrowed and remains owned
  * by the caller. On every failure, *response_out is NULL.
  */
-anti_exfil_result_t anti_exfil_response_create(
-    const anti_exfil_request_t *request, size_t max_fragment_len,
-    anti_exfil_response_t **response_out);
+anti_exfil_result_t
+anti_exfil_response_create(const anti_exfil_request_t *request,
+                           size_t max_fragment_len,
+                           anti_exfil_response_t **response_out);
 
 anti_exfil_network_t
 anti_exfil_response_network(const anti_exfil_response_t *response);
@@ -32,12 +33,11 @@ anti_exfil_response_stage(const anti_exfil_response_t *response);
 const uint8_t *anti_exfil_response_cbor(const anti_exfil_response_t *response,
                                         size_t *cbor_len_out);
 
-size_t anti_exfil_response_ur_part_count(
-    const anti_exfil_response_t *response);
+size_t anti_exfil_response_ur_part_count(const anti_exfil_response_t *response);
 
 /* Caller owns the returned cUR string and must free it. */
-anti_exfil_result_t anti_exfil_response_next_part(
-    anti_exfil_response_t *response, char **part_out);
+anti_exfil_result_t
+anti_exfil_response_next_part(anti_exfil_response_t *response, char **part_out);
 
 void anti_exfil_response_destroy(anti_exfil_response_t **response);
 
