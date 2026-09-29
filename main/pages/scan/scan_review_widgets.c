@@ -6,6 +6,7 @@
 #include "../../ui/assets/icons.h"
 #include "../../ui/theme_widgets.h"
 #include "scan_internal.h"
+#include <inttypes.h>
 #include <lvgl.h>
 #include <stdio.h>
 #include <string.h>
@@ -40,11 +41,9 @@ static void format_btc(char *buf, size_t buf_size, uint64_t sats) {
   uint32_t frac_first = (uint32_t)(frac / 1000000ULL);
   uint32_t frac_second = (uint32_t)((frac / 1000ULL) % 1000ULL);
   uint32_t frac_third = (uint32_t)(frac % 1000ULL);
-  snprintf(buf, buf_size, "%llu.%02u %03u %03u", whole, frac_first, frac_second,
-           frac_third);
+  snprintf(buf, buf_size, "%" PRIu64 ".%02u %03u %03u", whole, frac_first,
+           frac_second, frac_third);
 }
-
-#define ADDRESS_TIP_CHARS 6
 
 static void add_address_tip_overlay(lv_obj_t *parent, lv_obj_t *base_label,
                                     const char *address, size_t index,
