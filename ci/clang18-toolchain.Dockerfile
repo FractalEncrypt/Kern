@@ -6,15 +6,18 @@ FROM ${GCC_BASE_IMAGE} AS zlib_development_files
 COPY ci/.toolchain-cache/libmbedtls-dev_2.28.3-1_amd64.deb /tmp/
 COPY ci/.toolchain-cache/libmbedtls14_2.28.3-1_amd64.deb /tmp/
 COPY ci/.toolchain-cache/libmbedx509-1_2.28.3-1_amd64.deb /tmp/
+COPY ci/.toolchain-cache/cmake-4.4.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl /tmp/cmake.whl
 RUN mkdir -p /mbedtls-root && \
     dpkg-deb -x /tmp/libmbedtls-dev_2.28.3-1_amd64.deb /mbedtls-root && \
     dpkg-deb -x /tmp/libmbedtls14_2.28.3-1_amd64.deb /mbedtls-root && \
-    dpkg-deb -x /tmp/libmbedx509-1_2.28.3-1_amd64.deb /mbedtls-root
+    dpkg-deb -x /tmp/libmbedx509-1_2.28.3-1_amd64.deb /mbedtls-root && \
+    mkdir -p /cmake-wheel && unzip -q /tmp/cmake.whl -d /cmake-wheel
 
 FROM zlib_development_files AS gcc_toolchain
 RUN cp -a /mbedtls-root/usr/include/mbedtls /usr/include/ && \
     cp -a /mbedtls-root/usr/include/psa /usr/include/ && \
-    cp -a /mbedtls-root/usr/lib/x86_64-linux-gnu/. /usr/lib/x86_64-linux-gnu/
+    cp -a /mbedtls-root/usr/lib/x86_64-linux-gnu/. /usr/lib/x86_64-linux-gnu/ && \
+    cp -a /cmake-wheel/cmake/data/. /usr/local/
 LABEL org.opencontainers.image.title="Kern GCC 11.4 host-test toolchain"
 
 FROM ${CLANG_BASE_IMAGE} AS clang_toolchain
@@ -27,7 +30,8 @@ COPY --from=zlib_development_files /usr/lib/x86_64-linux-gnu/libz.a /usr/lib/x86
 COPY --from=zlib_development_files /mbedtls-root/usr/include/mbedtls/ /usr/include/mbedtls/
 COPY --from=zlib_development_files /mbedtls-root/usr/include/psa/ /usr/include/psa/
 COPY --from=zlib_development_files /mbedtls-root/usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
+COPY --from=zlib_development_files /cmake-wheel/cmake/data/ /usr/local/
 RUN ln -s libz.so.1 /usr/lib/x86_64-linux-gnu/libz.so
 
 LABEL org.opencontainers.image.title="Kern Clang 18 host-test toolchain" \
-      org.opencontainers.image.description="Digest-pinned Clang/clang-format 18.1.8 with zlib development files"
+      org.opencontainers.image.description="Digest-pinned Clang/LLVM 18.1.8 host-test environment"

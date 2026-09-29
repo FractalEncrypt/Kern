@@ -8,6 +8,10 @@ also requires mbedTLS 2.28.3 headers and libraries. The three exact Debian
 Bookworm packages, URLs, sizes, and SHA-256 hashes are pinned in
 `ci/sanitizer-inputs.lock`; the wrapper verifies them before the image build.
 The Docker build itself performs no package-manager or network installation.
+The same lock records the official PyPI CMake 4.4.3 Linux x86-64 wheel
+(30,231,983 bytes, SHA-256
+`bae3c4954623ec4d62e62c70443f0da7988b733111c2871fcc6a31ead5137e20`).
+It supplies `cmake` and `ctest` for the k_quirc leg of the complete host suite.
 
 Run the Clang lane locally with:
 
