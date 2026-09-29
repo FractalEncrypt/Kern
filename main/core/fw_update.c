@@ -179,9 +179,9 @@ int fw_update_validate(const char *path, fw_update_info_t *info,
 
   if (info) {
     memset(info, 0, sizeof(*info));
-    strlcpy(info->version, desc.version, sizeof(info->version));
-    strlcpy(info->current_version, running->version,
-            sizeof(info->current_version));
+    snprintf(info->version, sizeof(info->version), "%s", desc.version);
+    snprintf(info->current_version, sizeof(info->current_version), "%s",
+             running->version);
     info->secure_version = desc.secure_version;
     info->image_size = (size_t)fsize;
   }

@@ -2,9 +2,12 @@
 
 The authoritative CI sanitizer lane uses Clang 18.1.8 from
 `silkeh/clang@sha256:3914c93a02e866795aafc80737488e515b96390eff3d2787cf8c5095997baea9`.
-The committed `ci/clang18-toolchain.Dockerfile` adds only zlib development files
-copied from the digest-pinned GCC 11.4 image; its build performs no package or
-network-dependent installation.
+The committed `ci/clang18-toolchain.Dockerfile` adds zlib development files
+copied from the digest-pinned GCC 11.4 image. Upstream's expanded host suite
+also requires mbedTLS 2.28.3 headers and libraries. The three exact Debian
+Bookworm packages, URLs, sizes, and SHA-256 hashes are pinned in
+`ci/sanitizer-inputs.lock`; the wrapper verifies them before the image build.
+The Docker build itself performs no package-manager or network installation.
 
 Run the Clang lane locally with:
 

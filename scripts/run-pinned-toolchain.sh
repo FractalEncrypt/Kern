@@ -21,6 +21,24 @@ EOF
 }
 
 build_clang_image() {
+  local cache="$REPO_ROOT/ci/.toolchain-cache"
+  mkdir -p "$cache"
+  while read -r digest size url filename; do
+    case "$digest" in ''|'#'*) continue ;; esac
+    local target="$cache/$filename"
+    if [ ! -f "$target" ] ||
+       [ "$(wc -c < "$target" | tr -d ' ')" != "$size" ] ||
+       [ "$(sha256sum "$target" | cut -d' ' -f1)" != "$digest" ]; then
+      rm -f "$target"
+      curl --fail --location --proto '=https' --tlsv1.2 \
+        --output "$target" "$url"
+    fi
+    printf '%s  %s\n' "$digest" "$target" | sha256sum --check --status
+    [ "$(wc -c < "$target" | tr -d ' ')" = "$size" ] || {
+      echo "size mismatch: $filename" >&2
+      exit 1
+    }
+  done < "$REPO_ROOT/ci/sanitizer-inputs.lock"
   docker build --pull=false \
     --build-arg "CLANG_BASE_IMAGE=$CLANG_BASE_IMAGE" \
     --build-arg "GCC_BASE_IMAGE=$GCC_BASE_IMAGE" \

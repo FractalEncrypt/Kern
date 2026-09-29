@@ -114,7 +114,6 @@ static void test_round(uint8_t request_stage, uint8_t response_stage,
 
 int main(void) {
   printf("=== anti-exfil owned response bridge tests ===\n");
-  CHECK("initialize key state", key_init());
   CHECK("load pinned fixture seed",
         key_load_from_mnemonic(TEST_MNEMONIC, "", true));
 
@@ -147,7 +146,7 @@ int main(void) {
 
   key_unload();
   CHECK("load unrelated seed",
-        key_init() && key_load_from_mnemonic(WRONG_MNEMONIC, "", true));
+        key_load_from_mnemonic(WRONG_MNEMONIC, "", true));
   CHECK("create message 1 for wrong-seed rejection",
         create_request(ANTI_EXFIL_STAGE_HOST_COMMIT, &request) ==
                 ANTI_EXFIL_OK &&

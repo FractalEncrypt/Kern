@@ -293,7 +293,6 @@ static void test_live_both_utxo_fixture(void) {
 
 int main(void) {
   printf("=== anti-exfil authoritative slot tests ===\n");
-  CHECK("initialize key state", key_init());
   CHECK("load pinned fixture seed",
         key_load_from_mnemonic(TEST_MNEMONIC, "", true));
   test_positive_fixture();

@@ -66,7 +66,6 @@ static void expect_complete_failure(const char *name,
 
 int main(void) {
   printf("=== anti-exfil headless signer tests ===\n");
-  CHECK("initialize key state", key_init());
   CHECK("load pinned fixture seed",
         key_load_from_mnemonic(TEST_MNEMONIC, "", true));
 
@@ -124,7 +123,7 @@ int main(void) {
 
   key_unload();
   CHECK("reload key after simulated process restart",
-        key_init() && key_load_from_mnemonic(TEST_MNEMONIC, "", true));
+        key_load_from_mnemonic(TEST_MNEMONIC, "", true));
   poison();
   result = anti_exfil_signer_complete(
       &ANTI_EXFIL_SEMANTIC_MESSAGES[2], ANTI_EXFIL_SEMANTIC_PSBT,
@@ -137,14 +136,14 @@ int main(void) {
 
   key_unload();
   CHECK("load unrelated seed for mismatch test",
-        key_init() && key_load_from_mnemonic(WRONG_MNEMONIC, "", true));
+        key_load_from_mnemonic(WRONG_MNEMONIC, "", true));
   expect_complete_failure(
       "reject message 3 after wrong-seed reload",
       &ANTI_EXFIL_SEMANTIC_MESSAGES[2], ANTI_EXFIL_SEMANTIC_PSBT,
       ANTI_EXFIL_SEMANTIC_PSBT_LEN, ANTI_EXFIL_SIGNATURE_SLOT_MISMATCH);
   key_unload();
   CHECK("restore pinned fixture seed",
-        key_init() && key_load_from_mnemonic(TEST_MNEMONIC, "", true));
+        key_load_from_mnemonic(TEST_MNEMONIC, "", true));
 
   memcpy(&mutated, &ANTI_EXFIL_SEMANTIC_MESSAGES[1], sizeof(mutated));
   expect_prepare_failure("reject non-message-1 prepare", &mutated,

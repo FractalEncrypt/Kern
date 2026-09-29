@@ -3,6 +3,14 @@ ARG CLANG_BASE_IMAGE=silkeh/clang@sha256:3914c93a02e866795aafc80737488e515b96390
 
 FROM ${GCC_BASE_IMAGE} AS zlib_development_files
 
+COPY ci/.toolchain-cache/libmbedtls-dev_2.28.3-1_amd64.deb /tmp/
+COPY ci/.toolchain-cache/libmbedtls14_2.28.3-1_amd64.deb /tmp/
+COPY ci/.toolchain-cache/libmbedx509-1_2.28.3-1_amd64.deb /tmp/
+RUN mkdir -p /mbedtls-root && \
+    dpkg-deb -x /tmp/libmbedtls-dev_2.28.3-1_amd64.deb /mbedtls-root && \
+    dpkg-deb -x /tmp/libmbedtls14_2.28.3-1_amd64.deb /mbedtls-root && \
+    dpkg-deb -x /tmp/libmbedx509-1_2.28.3-1_amd64.deb /mbedtls-root
+
 FROM ${CLANG_BASE_IMAGE}
 
 # The Clang base already contains the exact same zlib runtime. Copy only the
@@ -10,6 +18,9 @@ FROM ${CLANG_BASE_IMAGE}
 # the conventional development symlink. No package repository is contacted.
 COPY --from=zlib_development_files /usr/include/zlib.h /usr/include/zconf.h /usr/include/
 COPY --from=zlib_development_files /usr/lib/x86_64-linux-gnu/libz.a /usr/lib/x86_64-linux-gnu/
+COPY --from=zlib_development_files /mbedtls-root/usr/include/mbedtls/ /usr/include/mbedtls/
+COPY --from=zlib_development_files /mbedtls-root/usr/include/psa/ /usr/include/psa/
+COPY --from=zlib_development_files /mbedtls-root/usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
 RUN ln -s libz.so.1 /usr/lib/x86_64-linux-gnu/libz.so
 
 LABEL org.opencontainers.image.title="Kern Clang 18 host-test toolchain" \

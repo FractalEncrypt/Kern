@@ -68,6 +68,7 @@ main/core/test/physical_qr_output/
 .vscode/
 .cache/
 .cm/logs/
+ci/.toolchain-cache/
 
 # Python
 __pycache__/
