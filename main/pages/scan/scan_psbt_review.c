@@ -887,13 +887,15 @@ static bool create_psbt_info_display(void) {
     const uint8_t *session = scan_anti_exfil_session_id();
     if (!session)
       session = zero_session;
-    char step_text[320];
+    char step_text[480];
     snprintf(
         step_text, sizeof(step_text),
         final_round
             ? "Step 2 of 2\n\nReview this transaction again before creating "
               "protected signatures for every controlled signing slot. No "
-              "ordinary signed PSBT is returned.\n\nSession: "
+              "ordinary signed PSBT is returned. Kern revalidates the "
+              "request but does not retain stage 1; session continuity is "
+              "enforced by the coordinator.\n\nCoordinator session: "
               "%02x%02x%02x%02x%02x%02x%02x%02x..."
             : "Step 1 of 2\n\nReview this transaction before creating nonce "
               "commitments. No signature is created in this step.\n\nSession: "

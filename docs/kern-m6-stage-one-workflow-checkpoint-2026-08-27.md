@@ -27,8 +27,10 @@ transaction review, an explicit `Create commitments` approval, and an animated
   `Nonce commitments`.
 - Done destroys the viewer and reports `Step 1 of 2 complete`, explicitly
   stating that the transaction is not signed.
-- While anti-exfil signing is enabled, an ordinary transaction PSBT is refused
-  with `Protected signing required`. BIP322 routing remains separate.
+- While anti-exfil signing is enabled, ordinary transaction PSBTs and BIP322
+  message-signing requests are refused with `Protected signing required`.
+  Protected BIP322 support is outside the transaction-signing protocol and may
+  be added as a separately designed extension.
 
 The implementation makes no retry, session substitution, coordinator merge,
 or stage-3 continuation decision. Those remain outside this checkpoint.

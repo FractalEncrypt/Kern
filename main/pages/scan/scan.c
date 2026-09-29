@@ -258,7 +258,24 @@ static void finish_dispatch(char *qr_content, size_t qr_content_len,
         return;
       }
 
-      if (bip322_detect(scan_ctx.psbt)) {
+      const bool is_bip322 = bip322_detect(scan_ctx.psbt);
+
+      if (settings_get_anti_exfil_signing()) {
+        dialog_show_info(
+            "Protected signing required",
+            is_bip322
+                ? "BIP322 message signing is unavailable while Anti-exfil "
+                  "signing is enabled. Disable protected signing only if "
+                  "you explicitly intend to create an unprotected message "
+                  "signature."
+                : "Anti-exfil signing is enabled. Scan an "
+                  "x-btc-anti-exfil protected request instead of an "
+                  "ordinary transaction PSBT.",
+            policy_reject_dismissed_cb, NULL, DIALOG_STYLE_FULLSCREEN);
+        return;
+      }
+
+      if (is_bip322) {
         if (!bip322_parse(scan_ctx.psbt, scan_ctx.is_testnet,
                           &scan_ctx.bip322)) {
           dialog_show_error_timeout("Invalid BIP322 message request",
@@ -267,15 +284,6 @@ static void finish_dispatch(char *qr_content, size_t qr_content_len,
         }
         scan_ctx.is_bip322 = true;
         scan_bip322_create_display();
-        return;
-      }
-
-      if (settings_get_anti_exfil_signing()) {
-        dialog_show_info(
-            "Protected signing required",
-            "Anti-exfil signing is enabled. Scan an x-btc-anti-exfil "
-            "protected request instead of an ordinary transaction PSBT.",
-            policy_reject_dismissed_cb, NULL, DIALOG_STYLE_FULLSCREEN);
         return;
       }
 

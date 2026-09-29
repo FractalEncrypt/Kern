@@ -50,11 +50,12 @@ look up the durable stage-1 record by the full 32-byte session ID and refuse a
 missing, completed, replaced, or retried session.
 
 On the device, the full session ID is structurally validated, retained
-unchanged, and echoed in stage 4. The review shows a short session prefix for
-human orientation; that prefix is not an authentication check. Cryptographic
-round continuity is independently established by the rederived signer
-openings, host-reveal commitments, exact frozen PSBT, network identity, and
-complete ordered slot set.
+unchanged, and echoed in stage 4. The review labels its short prefix as a
+coordinator session and explicitly says that Kern does not retain stage 1.
+The prefix is for human orientation, not a device-side authentication check.
+Cryptographic round continuity is independently established by the rederived
+signer openings, host-reveal commitments, exact frozen PSBT, network identity,
+and complete ordered slot set.
 
 ## Physical acceptance playbook
 

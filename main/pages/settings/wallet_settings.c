@@ -41,6 +41,8 @@ static const char *EXPECTED_OWNED_HELP =
 static const char *ANTI_EXFIL_HELP =
     "Experimental testnet-only protected signing. Uses two QR exchanges so "
     "the coordinator contributes randomness to every Kern signature. "
+    "While enabled, ordinary transaction PSBTs and BIP322 message signing "
+    "are blocked; only x-btc-anti-exfil transaction requests are accepted. "
     "Default off.";
 
 static lv_obj_t *wallet_settings_screen = NULL;
