@@ -2,4 +2,7 @@
 78de9cd0ee6b6bb220ba3d59f1753281c459e7b08de374008ea3b970d8577a0e 684768 https://deb.debian.org/debian/pool/main/m/mbedtls/libmbedtls-dev_2.28.3-1_amd64.deb libmbedtls-dev_2.28.3-1_amd64.deb
 621ddfb85c668a86d755fae7bb0f31f00d83e4456c8171f9da7445a54b04da9c 163324 https://deb.debian.org/debian/pool/main/m/mbedtls/libmbedtls14_2.28.3-1_amd64.deb libmbedtls14_2.28.3-1_amd64.deb
 3377b6bedec2882b9fefeb0ef960ad4dc372939854d76adf761ba70e71d35c3b 128084 https://deb.debian.org/debian/pool/main/m/mbedtls/libmbedx509-1_2.28.3-1_amd64.deb libmbedx509-1_2.28.3-1_amd64.deb
+af3295f80abf7e6ba2cba419134e29bde04192bf3614622ee53ce49de8d02abe 277112 https://deb.debian.org/debian/pool/main/m/mbedtls/libmbedcrypto7_2.28.3-1_amd64.deb libmbedcrypto7_2.28.3-1_amd64.deb
 bae3c4954623ec4d62e62c70443f0da7988b733111c2871fcc6a31ead5137e20 30231983 https://files.pythonhosted.org/packages/0b/d0/18fe62f0bddc8b9bb71ba55762ee48a224f8344101c34350d969f6e0d327/cmake-4.4.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl cmake-4.4.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+5f5993c530f084535c65a6879e9b26ad441169b3e25d789d83287040a9ca5165 7630262 https://www.libsdl.org/release/SDL2-2.32.10.tar.gz SDL2-2.32.10.tar.gz
+d74945deb2d50393430e07596b766f8a779512c7f60dac2a30ea64e059ece57b 4213443 https://github.com/cppcheck-opensource/cppcheck/archive/refs/tags/2.22.0.tar.gz cppcheck-2.22.0.tar.gz

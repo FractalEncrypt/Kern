@@ -13,6 +13,8 @@ Usage: scripts/run-pinned-toolchain.sh COMMAND [ARGUMENTS]
 
 Commands:
   build                         Build the digest-pinned Clang toolchain image.
+  build-device-free             Build the SDL2/Cppcheck device-free image.
+  build-static-analysis         Build the ESP-IDF/Clang-Tidy image.
   sanitize-clang OUTPUT [N]     Run Clang ASan/LSan N times (default: 2).
   sanitize-gcc OUTPUT [N]       Run the GCC 11.4 continuity lane N times.
   format [--check|--print-files]
@@ -59,6 +61,27 @@ build_gcc_image() {
     "$REPO_ROOT"
 }
 
+build_device_free_image() {
+  build_clang_image
+  docker build --pull=false \
+    --build-arg "CLANG_BASE_IMAGE=$CLANG_BASE_IMAGE" \
+    --build-arg "GCC_BASE_IMAGE=$GCC_BASE_IMAGE" \
+    --file "$REPO_ROOT/ci/clang18-toolchain.Dockerfile" \
+    --target device_free_toolchain \
+    --tag "$DEVICE_FREE_TOOLCHAIN_IMAGE" \
+    "$REPO_ROOT"
+}
+
+build_static_analysis_image() {
+  docker build --pull=false \
+    --build-arg "CLANG_BASE_IMAGE=$CLANG_BASE_IMAGE" \
+    --build-arg "ESP_IDF_IMAGE=$ESP_IDF_IMAGE" \
+    --file "$REPO_ROOT/ci/static-analysis.Dockerfile" \
+    --target static_analysis \
+    --tag "$STATIC_ANALYSIS_IMAGE" \
+    "$REPO_ROOT"
+}
+
 run_sanitizer() {
   local image="$1"
   local compiler="$2"
@@ -76,6 +99,12 @@ run_sanitizer() {
 case "${1:-}" in
   build)
     build_clang_image
+    ;;
+  build-device-free)
+    build_device_free_image
+    ;;
+  build-static-analysis)
+    build_static_analysis_image
     ;;
   sanitize-clang)
     [ "$#" -ge 2 ] || { usage; exit 2; }

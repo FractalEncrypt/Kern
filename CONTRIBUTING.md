@@ -45,16 +45,20 @@ Both tools cover `main/` and first-party components (`bbqr`, `cUR`, `k_quirc`, `
 # Requires a build first (for compile_commands.json)
 idf.py build
 
-# Run on a single file
-clang-tidy -p build/compile_commands.json main/core/wallet.c
+# Normalize the ESP RISC-V GCC-only flags that upstream Clang cannot parse.
+# This copies the database; it does not suppress analyzer diagnostics.
+python3 scripts/prepare-clang-tidy-db.py \
+  build/compile_commands.json build/clang-tidy-db \
+  --files-output build/clang-tidy-files.txt
 
-# Run on all project source files (excluding libwally-core)
-find main components/bbqr components/cUR components/k_quirc \
-     components/sd_card components/video \
-     components/wave_4b components/wave_35 components/wave_43 components/crowpanel \
-     components/wave_7b \
-     -name '*.c' -not -path '*/build/*' 2>/dev/null | \
-  xargs -P$(nproc) -I{} clang-tidy -p build/compile_commands.json {}
+# Run on a single file
+clang-tidy -p build/clang-tidy-db main/core/wallet.c
+
+# Run on all first-party translation units in the firmware build database.
+# The generated list excludes test-only sources without a firmware compile
+# command, as well as the documented third-party exclusions.
+xargs -a build/clang-tidy-files.txt -P$(nproc) -I{} \
+  clang-tidy -p build/clang-tidy-db {}
 ```
 
 The project `.clang-tidy` config enables bug-finding and security checks tuned for embedded C. Warnings about unknown GCC flags (`-fno-tree-switch-conversion`, `-fstrict-volatile-bitfields`) are expected and harmless; they come from clang analyzing GCC-compiled code.
