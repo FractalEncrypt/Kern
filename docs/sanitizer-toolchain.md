@@ -23,6 +23,9 @@ The GCC 11.4 continuity baseline is separately reproducible with:
 
 The GCC image is
 `gcc@sha256:8e6d66e2c6bd07552d7a9fc1e3f17ebc64fb4e92c122f6d793e0fd079c0cf417`.
+The wrapper derives the local `kern-gcc-toolchain:11.4` tag from that exact
+base plus the same hash-verified mbedTLS packages; it does not replace the
+GCC compiler or runtime.
 Both lanes compile with `-g -O1 -fno-omit-frame-pointer -fsanitize=address`,
 enable leak detection, and run the same out-of-bounds, use-after-free, and leak
 positive controls before any real test target is accepted.

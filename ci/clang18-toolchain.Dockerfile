@@ -11,7 +11,13 @@ RUN mkdir -p /mbedtls-root && \
     dpkg-deb -x /tmp/libmbedtls14_2.28.3-1_amd64.deb /mbedtls-root && \
     dpkg-deb -x /tmp/libmbedx509-1_2.28.3-1_amd64.deb /mbedtls-root
 
-FROM ${CLANG_BASE_IMAGE}
+FROM zlib_development_files AS gcc_toolchain
+RUN cp -a /mbedtls-root/usr/include/mbedtls /usr/include/ && \
+    cp -a /mbedtls-root/usr/include/psa /usr/include/ && \
+    cp -a /mbedtls-root/usr/lib/x86_64-linux-gnu/. /usr/lib/x86_64-linux-gnu/
+LABEL org.opencontainers.image.title="Kern GCC 11.4 host-test toolchain"
+
+FROM ${CLANG_BASE_IMAGE} AS clang_toolchain
 
 # The Clang base already contains the exact same zlib runtime. Copy only the
 # headers and static linker input from the digest-pinned GCC image, then create

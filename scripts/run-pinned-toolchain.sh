@@ -43,7 +43,19 @@ build_clang_image() {
     --build-arg "CLANG_BASE_IMAGE=$CLANG_BASE_IMAGE" \
     --build-arg "GCC_BASE_IMAGE=$GCC_BASE_IMAGE" \
     --file "$REPO_ROOT/ci/clang18-toolchain.Dockerfile" \
+    --target clang_toolchain \
     --tag "$CLANG_TOOLCHAIN_IMAGE" \
+    "$REPO_ROOT"
+}
+
+build_gcc_image() {
+  build_clang_image
+  docker build --pull=false \
+    --build-arg "CLANG_BASE_IMAGE=$CLANG_BASE_IMAGE" \
+    --build-arg "GCC_BASE_IMAGE=$GCC_BASE_IMAGE" \
+    --file "$REPO_ROOT/ci/clang18-toolchain.Dockerfile" \
+    --target gcc_toolchain \
+    --tag "$GCC_TOOLCHAIN_IMAGE" \
     "$REPO_ROOT"
 }
 
@@ -53,7 +65,7 @@ run_sanitizer() {
   local output="$3"
   local repeats="${4:-2}"
   mkdir -p "$output"
-  docker run --rm \
+  MSYS_NO_PATHCONV=1 docker run --rm \
     --mount "type=bind,src=$REPO_ROOT,dst=/src" \
     --mount "type=bind,src=$(cd "$output" && pwd),dst=/out" \
     --workdir /src \
@@ -72,7 +84,8 @@ case "${1:-}" in
     ;;
   sanitize-gcc)
     [ "$#" -ge 2 ] || { usage; exit 2; }
-    run_sanitizer "$GCC_BASE_IMAGE" gcc "$2" "${3:-2}"
+    build_gcc_image
+    run_sanitizer "$GCC_TOOLCHAIN_IMAGE" gcc "$2" "${3:-2}"
     ;;
   format)
     shift
