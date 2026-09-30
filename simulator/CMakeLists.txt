@@ -340,6 +340,7 @@ set(APP_PAGE_SOURCES
     ${APP_PAGES_DIR}/store_mnemonic.c
     # Scan page
     ${APP_PAGES_DIR}/scan/scan.c
+    ${APP_PAGES_DIR}/scan/anti_exfil_continuation.c
     ${APP_PAGES_DIR}/scan/scan_handlers.c
     ${APP_PAGES_DIR}/scan/scan_message_sign.c
     ${APP_PAGES_DIR}/scan/scan_psbt_review.c

@@ -1326,7 +1326,9 @@ static bool camera_run(void) {
   return true;
 }
 
-void qr_scanner_page_create(lv_obj_t *parent, void (*return_cb)(void)) {
+void qr_scanner_page_create_with_title(lv_obj_t *parent,
+                                       void (*return_cb)(void),
+                                       const char *title) {
   session_cleanup_register(qr_scanner_page_destroy);
   (void)parent;
 
@@ -1381,8 +1383,8 @@ void qr_scanner_page_create(lv_obj_t *parent, void (*return_cb)(void)) {
   lv_obj_set_style_bg_color(camera_img, bg_color(), 0);
   lv_obj_set_style_bg_opa(camera_img, LV_OPA_COVER, 0);
 
-  lv_obj_t *title_label =
-      theme_create_label(qr_scanner_screen, "QR Scanner", false);
+  lv_obj_t *title_label = theme_create_label(
+      qr_scanner_screen, title ? title : "QR Scanner", false);
   theme_apply_label(title_label, true);
   lv_obj_align(title_label, LV_ALIGN_TOP_MID, 0, 8);
 
@@ -1401,6 +1403,10 @@ void qr_scanner_page_create(lv_obj_t *parent, void (*return_cb)(void)) {
   completion_timer =
       lv_timer_create(completion_timer_cb, UI_UPDATE_INTERVAL_MS, NULL);
   is_fully_initialized = true;
+}
+
+void qr_scanner_page_create(lv_obj_t *parent, void (*return_cb)(void)) {
+  qr_scanner_page_create_with_title(parent, return_cb, "QR Scanner");
 }
 
 void qr_scanner_page_show(void) {

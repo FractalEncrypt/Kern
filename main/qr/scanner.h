@@ -20,6 +20,11 @@
  */
 void qr_scanner_page_create(lv_obj_t *parent, void (*return_cb)(void));
 
+/** Create the scanner with flow-specific visible title text. */
+void qr_scanner_page_create_with_title(lv_obj_t *parent,
+                                       void (*return_cb)(void),
+                                       const char *title);
+
 /**
  * @brief Show the QR scanner page
  */

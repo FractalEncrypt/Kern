@@ -32,6 +32,7 @@
 #include "../shared/address_checker.h"
 #include "../shared/descriptor_loader.h"
 #include "../shared/kef_decrypt_page.h"
+#include "anti_exfil_continuation.h"
 #include "scan_internal.h"
 #include "sd_card.h"
 #include <esp_heap_caps.h>
@@ -66,6 +67,13 @@ void scan_defer_with_progress(const char *title, const char *text,
 static anti_exfil_request_t *current_anti_exfil_request = NULL;
 static bool anti_exfil_review_active = false;
 static anti_exfil_stage_t anti_exfil_displayed_request_stage = 0;
+static anti_exfil_continuation_t anti_exfil_continuation;
+static lv_obj_t *anti_exfil_continuation_dialog = NULL;
+
+static void reset_export_context(const char *save_dir, const char *source_name);
+static void show_anti_exfil_continuation_choice(void);
+static void return_from_qr_scanner_cb(void);
+static void anti_exfil_restricted_reject_dismissed_cb(void *unused);
 
 static void return_from_anti_exfil_scaffold(void *unused) {
   (void)unused;
@@ -303,6 +311,31 @@ static void process_scan_result(void) {
   size_t qr_content_len = 0;
   bool parse_success = false;
 
+  if (anti_exfil_continuation_scanner_active(&anti_exfil_continuation)) {
+    const char *restricted_type = NULL;
+    const uint8_t *restricted_cbor = NULL;
+    size_t restricted_cbor_len = 0;
+    const bool allowed_transport =
+        detected_format == FORMAT_UR &&
+        qr_scanner_get_ur_result(&restricted_type, &restricted_cbor,
+                                 &restricted_cbor_len) &&
+        restricted_type &&
+        strcmp(restricted_type, ANTI_EXFIL_AEXT_UR_TYPE) == 0;
+    (void)restricted_cbor;
+    (void)restricted_cbor_len;
+    if (!allowed_transport) {
+      qr_scanner_page_hide();
+      qr_scanner_page_destroy();
+      dialog_show_acknowledge(
+          "Protected scan rejected",
+          "Only host reveal message 3 is accepted here. Ordinary PSBT, "
+          "BIP322, descriptor, seed, address, and text QRs are blocked.",
+          "Try again", anti_exfil_restricted_reject_dismissed_cb, NULL,
+          DIALOG_STYLE_FULLSCREEN);
+      return;
+    }
+  }
+
   if (detected_format == FORMAT_UR) {
     const char *ur_type = NULL;
     const uint8_t *cbor_data = NULL;
@@ -361,8 +394,13 @@ static void process_scan_result(void) {
               return_from_anti_exfil_scaffold, NULL, DIALOG_STYLE_FULLSCREEN);
           return;
         }
-        if (ae_view->message.stage != ANTI_EXFIL_STAGE_HOST_COMMIT &&
-            ae_view->message.stage != ANTI_EXFIL_STAGE_HOST_REVEAL) {
+        const anti_exfil_scan_route_t continuation_route =
+            anti_exfil_continuation_route(&anti_exfil_continuation, true, true,
+                                          ae_view->message.stage);
+        if (continuation_route == ANTI_EXFIL_SCAN_REJECT ||
+            (continuation_route == ANTI_EXFIL_SCAN_GENERIC &&
+             ae_view->message.stage != ANTI_EXFIL_STAGE_HOST_COMMIT &&
+             ae_view->message.stage != ANTI_EXFIL_STAGE_HOST_REVEAL)) {
           anti_exfil_request_destroy(&current_anti_exfil_request);
           dialog_show_error_timeout("Wrong protected signing stage",
                                     scan_ctx.return_cb, 0);
@@ -509,6 +547,98 @@ static void anti_exfil_round_done_cb(void *unused) {
   }
 }
 
+static void anti_exfil_continuation_cleanup(void) {
+  session_cleanup_unregister(anti_exfil_continuation_cleanup);
+  anti_exfil_continuation_clear(&anti_exfil_continuation);
+  if (anti_exfil_continuation_dialog) {
+    lv_obj_t *dialog = anti_exfil_continuation_dialog;
+    anti_exfil_continuation_dialog = NULL;
+    lv_obj_delete(dialog);
+  }
+}
+
+static void anti_exfil_return_to_choice_cb(void) {
+  if (!anti_exfil_continuation_scanner_back(&anti_exfil_continuation))
+    return;
+  scan_page_destroy();
+  show_anti_exfil_continuation_choice();
+}
+
+static void anti_exfil_restricted_reject_dismissed_cb(void *unused) {
+  (void)unused;
+  anti_exfil_return_to_choice_cb();
+}
+
+static void start_anti_exfil_host_reveal_scan(uint32_t generation) {
+  if (!anti_exfil_continuation_open_scanner(&anti_exfil_continuation,
+                                            generation))
+    return;
+  session_cleanup_register(scan_page_destroy);
+  scan_ctx.return_cb = anti_exfil_return_to_choice_cb;
+  scan_ctx.complete_cb = anti_exfil_continuation.return_cb;
+  reset_export_context(NULL, NULL);
+  scan_ctx.screen = theme_create_page_container(lv_screen_active());
+  qr_scanner_page_create_with_title(NULL, return_from_qr_scanner_cb,
+                                    "Scan host reveal");
+  qr_scanner_page_show();
+}
+
+static void anti_exfil_continuation_choice_cb(bool scan_host_reveal,
+                                              void *generation_ptr) {
+  const uint32_t generation = (uint32_t)(uintptr_t)generation_ptr;
+  if (anti_exfil_continuation.phase != ANTI_EXFIL_CONTINUATION_CHOICE ||
+      anti_exfil_continuation.generation != generation)
+    return;
+  /* dialog_show_choice deletes its root before invoking this callback. */
+  anti_exfil_continuation_dialog = NULL;
+  if (scan_host_reveal) {
+    start_anti_exfil_host_reveal_scan(generation);
+    return;
+  }
+
+  void (*return_cb)(void) =
+      anti_exfil_continuation_exit(&anti_exfil_continuation, generation);
+  session_cleanup_unregister(anti_exfil_continuation_cleanup);
+  if (return_cb)
+    return_cb();
+}
+
+static void show_anti_exfil_continuation_choice(void) {
+  if (anti_exfil_continuation.phase != ANTI_EXFIL_CONTINUATION_CHOICE ||
+      !key_is_loaded() || !settings_get_anti_exfil_signing() ||
+      wallet_get_network() != WALLET_NETWORK_TESTNET) {
+    void (*return_cb)(void) = anti_exfil_continuation.return_cb;
+    anti_exfil_continuation_cleanup();
+    if (return_cb)
+      return_cb();
+    return;
+  }
+
+  anti_exfil_continuation_dialog = dialog_show_choice(
+      "Protected signing",
+      "Step 1 of 2 complete.\n\nThe transaction is not signed. Scan host "
+      "reveal message 3 from the coordinator to finish, or explicitly exit "
+      "and scan it later.",
+      "Scan host reveal", "Exit to Home", anti_exfil_continuation_choice_cb,
+      (void *)(uintptr_t)anti_exfil_continuation.generation,
+      DIALOG_STYLE_FULLSCREEN);
+  if (!anti_exfil_continuation_dialog) {
+    void (*return_cb)(void) = anti_exfil_continuation.return_cb;
+    anti_exfil_continuation_cleanup();
+    if (return_cb)
+      return_cb();
+  }
+}
+
+static void begin_anti_exfil_continuation(void) {
+  anti_exfil_continuation_cleanup();
+  anti_exfil_continuation_begin(&anti_exfil_continuation,
+                                scan_ctx.saved_return_cb);
+  scan_ctx.saved_return_cb = NULL;
+  session_cleanup_register(anti_exfil_continuation_cleanup);
+  show_anti_exfil_continuation_choice();
+}
+
 static void return_from_anti_exfil_response_viewer(void) {
   const anti_exfil_stage_t request_stage = anti_exfil_displayed_request_stage;
   anti_exfil_displayed_request_stage = 0;
@@ -531,11 +661,7 @@ static void return_from_anti_exfil_response_viewer(void) {
         "session is complete; any retry must start a new ceremony.",
         anti_exfil_round_done_cb, NULL, DIALOG_STYLE_FULLSCREEN);
   } else {
-    dialog_show_info(
-        "Protected signing",
-        "Step 1 of 2 complete.\n\nThe transaction is not signed. Scan this "
-        "response in the coordinator to continue with the same session.",
-        anti_exfil_round_done_cb, NULL, DIALOG_STYLE_FULLSCREEN);
+    begin_anti_exfil_continuation();
   }
 }
 
@@ -557,8 +683,8 @@ static void deferred_anti_exfil_response_cb(lv_timer_t *timer) {
     invalidate_anti_exfil_attempt();
     scan_dismiss_progress();
     dialog_show_error_timeout(
-        "Protected signing state changed. Restart with a new session.", NULL,
-        0);
+        "Protected signing state changed. Restart with a new session.",
+        scan_ctx.return_cb, 0);
     return;
   }
   const anti_exfil_stage_t request_stage = request_view->message.stage;
@@ -578,7 +704,7 @@ static void deferred_anti_exfil_response_cb(lv_timer_t *timer) {
     snprintf(detail, sizeof(detail),
              "Protected signing failed: %s. Restart with a new session.",
              anti_exfil_result_name(result));
-    dialog_show_error_timeout(detail, NULL, 0);
+    dialog_show_error_timeout(detail, scan_ctx.return_cb, 0);
     return;
   }
 
@@ -594,7 +720,7 @@ static void deferred_anti_exfil_response_cb(lv_timer_t *timer) {
     scan_dismiss_progress();
     dialog_show_error_timeout(
         "Protected response identity mismatch. Restart with a new session.",
-        NULL, 0);
+        scan_ctx.return_cb, 0);
     return;
   }
   size_t part_count = source_parts * 2;
@@ -608,8 +734,8 @@ static void deferred_anti_exfil_response_cb(lv_timer_t *timer) {
     invalidate_anti_exfil_attempt();
     scan_dismiss_progress();
     dialog_show_error_timeout(
-        "Out of memory. Restart with a new protected signing session.", NULL,
-        0);
+        "Out of memory. Restart with a new protected signing session.",
+        scan_ctx.return_cb, 0);
     return;
   }
   for (size_t i = 0; i < part_count; ++i) {
@@ -633,7 +759,7 @@ static void deferred_anti_exfil_response_cb(lv_timer_t *timer) {
     invalidate_anti_exfil_attempt();
     dialog_show_error_timeout(
         "Failed to create protected response QR. Restart with a new session.",
-        NULL, 0);
+        scan_ctx.return_cb, 0);
     return;
   }
 
@@ -647,6 +773,8 @@ static void deferred_anti_exfil_response_cb(lv_timer_t *timer) {
 
   scan_ctx.saved_return_cb =
       scan_ctx.complete_cb ? scan_ctx.complete_cb : scan_ctx.return_cb;
+  if (request_stage == ANTI_EXFIL_STAGE_HOST_REVEAL)
+    anti_exfil_continuation_cleanup();
   scan_page_destroy();
   qr_viewer_page_show();
 }

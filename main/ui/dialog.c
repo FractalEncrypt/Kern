@@ -307,6 +307,54 @@ void dialog_show_confirm(const char *message,
   show_confirm_internal(message, callback, user_data, style, false);
 }
 
+lv_obj_t *dialog_show_choice(const char *title, const char *message,
+                             const char *primary_text,
+                             const char *secondary_text,
+                             dialog_confirm_callback_t callback,
+                             void *user_data, dialog_style_t style) {
+  if (!message || !primary_text || !secondary_text)
+    return NULL;
+
+  lv_obj_t *root;
+  lv_obj_t *dialog = create_dialog_container(style, &root);
+  dialog_context_t *ctx = dialog_context_create(root);
+  if (!ctx) {
+    lv_obj_delete(root);
+    return NULL;
+  }
+  ctx->callback.confirm = callback;
+  ctx->user_data = user_data;
+
+  int32_t gap = theme_small_padding();
+  int32_t btn_h = theme_button_height();
+  int32_t msg_y = title ? add_dialog_title(dialog, title) + gap : gap;
+  dialog_fit_overlay(dialog, style, message, msg_y + 2 * btn_h + 2 * gap);
+  lv_obj_update_layout(dialog);
+
+  int32_t body_h =
+      lv_obj_get_content_height(dialog) - msg_y - 2 * btn_h - 2 * gap;
+  if (body_h < btn_h)
+    body_h = btn_h;
+  lv_obj_t *body = lv_obj_create(dialog);
+  theme_apply_transparent_container(body);
+  lv_obj_set_size(body, LV_PCT(100), body_h);
+  lv_obj_align(body, LV_ALIGN_TOP_MID, 0, msg_y);
+  lv_obj_set_scroll_dir(body, LV_DIR_VER);
+  lv_obj_set_scrollbar_mode(body, LV_SCROLLBAR_MODE_AUTO);
+  lv_obj_align(make_message_label(body, message, 100), LV_ALIGN_TOP_MID, 0, 0);
+
+  lv_obj_t *primary = theme_create_button(dialog, primary_text, true);
+  lv_obj_set_size(primary, LV_PCT(80), btn_h);
+  lv_obj_align(primary, LV_ALIGN_BOTTOM_MID, 0, -btn_h - gap);
+  lv_obj_add_event_cb(primary, confirm_yes_cb, LV_EVENT_CLICKED, ctx);
+
+  lv_obj_t *secondary = theme_create_button(dialog, secondary_text, false);
+  lv_obj_set_size(secondary, LV_PCT(80), btn_h);
+  lv_obj_align(secondary, LV_ALIGN_BOTTOM_MID, 0, 0);
+  lv_obj_add_event_cb(secondary, confirm_no_cb, LV_EVENT_CLICKED, ctx);
+  return root;
+}
+
 void dialog_show_danger_confirm(const char *message,
                                 dialog_confirm_callback_t callback,
                                 void *user_data, dialog_style_t style) {

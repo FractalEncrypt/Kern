@@ -38,6 +38,17 @@ void dialog_show_confirm(const char *message,
                          dialog_confirm_callback_t callback, void *user_data,
                          dialog_style_t style);
 
+/* Fullscreen/overlay decision with caller-supplied title and action labels.
+ *
+ * The primary action reports true; the secondary action reports false.
+ *
+ * Returns the dialog root so an owning flow can destroy it during teardown. */
+lv_obj_t *dialog_show_choice(const char *title, const char *message,
+                             const char *primary_text,
+                             const char *secondary_text,
+                             dialog_confirm_callback_t callback,
+                             void *user_data, dialog_style_t style);
+
 void dialog_show_danger_confirm(const char *message,
                                 dialog_confirm_callback_t callback,
                                 void *user_data, dialog_style_t style);

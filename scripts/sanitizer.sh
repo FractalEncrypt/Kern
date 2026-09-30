@@ -146,7 +146,7 @@ CORE_BINS=(
   test_registry_parse test_psbt_classify test_miniscript_policy test_bip322
   test_estimated_entropy test_anti_exfil_crypto test_anti_exfil_semantic
   test_anti_exfil_slots test_anti_exfil_signer test_anti_exfil_transport
-  test_anti_exfil_response
+  test_anti_exfil_response test_anti_exfil_continuation
 )
 
 for attempt in $(seq 1 "$REPEAT"); do
